@@ -1,17 +1,1 @@
-biggus=0.14.0 py27_0
-cartopy=0.14.2 np110py27_0
-cf_units=1.1 py27_0
-ecmwf_grib=1.16.0 np110py27_0
-geos=3.4.2 4
-iris=1.10.dev1 py27_0
-jasper=1.900.1 5
-libmo_unpack=3.0 3
-mo_pack=0.2.0 np110py27_1
-owslib=0.10.3 py27_0
-proj.4=4.9.1 1
-pyepsg=0.2.0 py27_0
-pyke=1.1.1 py27_1
-pyshp=1.2.3 py27_0
-python-dateutil=2.2 py27_0
-shapely=1.5.13 np110py27_1
-udunits2=2.2.20 0
+iris=1.11.0=py27_2
