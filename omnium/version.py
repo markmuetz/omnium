@@ -1,4 +1,4 @@
-VERSION = (0, 6, 0, 0, 'gamma-ray')
+VERSION = (0, 6, 9, 0, 'delta-beam')
 
 
 def get_version(form='short'):
