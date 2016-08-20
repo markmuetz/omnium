@@ -6,7 +6,8 @@ import omni_cmds
 
 
 ARGS = [(['-c', '--config-file'], {'default': 'omni.conf'}),
-        (['-x', '--throw-exceptions'], {'action': 'store_true', 'default': False})]
+        (['-x', '--throw-exceptions'], {'action': 'store_true', 'default': False}), 
+        (['--DEBUG'], {'action': 'store_true', 'default': False})]
 
 
 def main():

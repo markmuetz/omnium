@@ -12,7 +12,7 @@ ARGS = [(['--full-path'], {'help': 'show full path of files',
 
 def main(args, config):
     settings = config.settings
-    full_glob = os.path.join(settings.work_dir, config.streams.glob_nc3)
+    full_glob = os.path.join(settings.work_dir, config.groups.glob_nc3)
     cubes = None
     if args.full_path:
         cubes = iris.load(args.filename)

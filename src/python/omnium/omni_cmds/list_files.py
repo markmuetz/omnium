@@ -9,11 +9,11 @@ ARGS = [(['--full-path'], {'help': 'show full path of files',
 
 def main(args, config):
     settings = config.settings
-    full_glob = os.path.join(settings.work_dir, config.streams.glob_nc3)
-    for fn in sorted(glob(full_glob)):
-        if args.full_path:
-            print(fn)
-        else:
-            print(os.path.basename(fn))
-
-
+    for opt in config.groups.options():
+        file_glob = getattr(config.groups, opt)
+        full_glob = os.path.join(settings.work_dir, file_glob)
+        for fn in sorted(glob(full_glob)):
+            if args.full_path:
+                print(fn)
+            else:
+                print(os.path.basename(fn))

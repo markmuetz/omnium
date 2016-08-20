@@ -14,13 +14,13 @@ class UMO(object):
 	self.level_index = 0
         self.filename_index = 0
         self.all_cubes = []
-        self.filenames_by_stream = OrderedDict()
-        for glob_name in config.streams.options():
-            stream_name = glob_name[5:]
-            stream_glob = getattr(config.streams, glob_name)
+        self.filenames_by_group = OrderedDict()
+        for glob_name in config.groups.options():
+            group_name = glob_name[5:]
+            group_glob = getattr(config.groups, glob_name)
 
-            full_glob = os.path.join(settings.work_dir, stream_glob)
-            self.filenames_by_stream[stream_name] = sorted(glob(full_glob))
+            full_glob = os.path.join(settings.work_dir, group_glob)
+            self.filenames_by_group[group_name] = sorted(glob(full_glob))
 
 
     def load_cubes(self, filename):
@@ -37,7 +37,7 @@ class UMO(object):
 	self.cube = self.cubes[self.cube_index]
 
 
-    def set_cube(self, stream, section, item):
+    def set_cube(self, group, section, item):
 	cube = None
 	cubes = self.all_cubes
 
@@ -51,7 +51,7 @@ class UMO(object):
 		cube = test_cube
 
 	if not cube:
-	    raise Exception('Cannot find cube {}'.format((stream, section, item)))
+	    raise Exception('Cannot find cube {}'.format((group, section, item)))
 
 	self.cube = cube
         self.cube_index = self.all_cubes.index(self.cube)
