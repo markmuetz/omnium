@@ -1,8 +1,8 @@
 """Run processing"""
 import os
 
-import omnium.processes
 from omnium.node_dag import create_node_dag
+from omnium.processes import get_process_classes
 
 ARGS = [(['batchname'], {'nargs': 1})]
 
@@ -13,6 +13,7 @@ def main(args, config):
 def process_batch(args, config, batchname):
     print('Processing batch {}'.format(batchname))
     dag = create_node_dag(args, config)
+    process_classes = get_process_classes(args.cwd)
 
     to_groups = dag.batches[batchname]
     for to_group in to_groups:
@@ -25,7 +26,9 @@ def process_batch(args, config, batchname):
                 if not from_node.exists():
                     raise Exception('Node {} does not exist'.format(from_node))
 
-            process = getattr(omnium.processes, to_node.process_name)
-            print('Processing {} with {}'.format(to_node, process))
-            process(args, config, to_node)
+            process_class = process_classes[to_node.process_name]
+            process = process_class()
+
+            print('Processing {} with {}'.format(to_node, process.name))
+            process.run(to_node)
             print('Processed {}'.format(to_node))

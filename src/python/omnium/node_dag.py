@@ -3,6 +3,7 @@ from collections import OrderedDict
 from glob import glob
 
 from results import ResultsManager
+from omnium.processes import get_process_classes
 
 class NodeDAG(object):
     def __init__(self, args, config, rm):
@@ -14,32 +15,56 @@ class NodeDAG(object):
         self.groups = OrderedDict()
         self.batches = OrderedDict()
 
-    def generate_all_nodes(self, groups_names):
-        self._generate_conversion_nodes(groups_names)
 
-        self._generate_process_nodes()
+    def generate_all_nodes(self, group_names):
+        process_classes = get_process_classes(self._args.cwd)
 
+        for i, group_name in enumerate(group_names):
+            group_sec = getattr(self._config, group_name)
+            group = self._create_group(group_name, 'batch{}'.format(i))
+            if hasattr(group_sec, 'filename_glob'):
+                full_glob = os.path.join(self._config.settings.work_dir,
+                                         group_sec.filename_glob)
+                filenames = sorted(glob(full_glob))
+                for filename in filenames:
+                    node = self._create_node(filename, group)
+            elif hasattr(group_sec, 'from_group'):
+                from_group = self.groups[group_sec.from_group]
+                process_name = group_sec.process
+                process = process_classes[process_name]()
+                for node in from_group.nodes:
+                    # TODO: Make smarter.
+                    fn = self._get_converted_filename(node.filename)
+                    next_node = self._create_node(fn, group, process_name)
+                    self._link_nodes(node, next_node)
+            elif hasattr(group_sec, 'nodes'):
+                for node_name in map(str.strip, group_sec.nodes.split(',')):
+                    node_sec = getattr(self._config, node_name)
+                    from_group = self.groups[node_sec.from_group]
+                    process = process_classes[node_sec.process]()
+                    fn_args = [group_name, node_name,
+                               node_sec.process]
+                    fn = self._rm.get_filename(fn_args, out_ext=process.out_ext)
+                    if hasattr(node_sec, 'section') and hasattr(node_sec, 'item'):
+                        next_node = self._create_node(fn, group, 
+                                                      node_sec.process, 
+                                                      node_sec.section, 
+                                                      node_sec.item)
+                    else:
+                        next_node = self._create_node(fn, group, 
+                                                      node_sec.process)
+                    for node in from_group.nodes:
+                        self._link_nodes(node, next_node)
         self._check_nodes()
 
 
     def print_nodes(self):
-        print('batch1')
-        for group in self.batches['batch1']:
-            print('  ' + group.__repr__())
-            for node in group.nodes:
-                print('    ' + node.__repr__())
-        print('')
-        print('batch2')
-        for group in self.batches['batch2']:
-            print('  ' + group.__repr__())
-            for node in group.nodes:
-                print('    ' + node.__repr__())
-        print('')
-        print('batch3')
-        for group in self.batches['batch3']:
-            print('  ' + group.__repr__())
-            for node in group.nodes:
-                print('    ' + node.__repr__())
+        for batchname, batch in self.batches.items():
+            print(batchname)
+            for group in batch:
+                print('  ' + group.__repr__())
+                for node in group.nodes:
+                    print('    ' + node.__repr__())
         print('')
 
     def _create_node(self, filename, group, process_name=None, 
@@ -65,43 +90,9 @@ class NodeDAG(object):
         start_node.to_nodes.append(end_node)
         end_node.from_nodes.append(start_node)
 
-    def _generate_conversion_nodes(self, groups_names):
-        for group_name, conv_filenames in groups_names:
-            group = self._create_group(group_name, 'batch1')
-
-            convert_from = self._config.convert.convert_from[1:]
-            convert_to = self._config.convert.convert_to[1:]
-
-            next_group_name = group.name.replace(convert_from, convert_to)
-            next_group = self._create_group(next_group_name, 'batch2')
-
-            for conv_filename in conv_filenames:
-                output_filename = self._get_converted_filename(conv_filename)
-
-                start_node = self._create_node(conv_filename, group)
-                next_node = self._create_node(output_filename, 
-                                              next_group, 'convert_pp_to_nc')
-                self._link_nodes(start_node, next_node)
-
-    def _generate_process_nodes(self):
-        for output_var in self._config.output_vars.options():
-            sec = getattr(self._config, output_var)
-            group = self.groups[sec.group]
-
-            proc_group_name = '{}_{}'.format(output_var, group.name)
-            proc_group = self._create_group(proc_group_name, 'batch3')
-
-            fn_args = [sec.process, sec.section, sec.item]
-            fn_args.extend([n.filename for n in group.nodes])
-            fn = self._rm.get_filename(fn_args)
-            node = self._create_node(fn, proc_group, sec.process, 
-                                     sec.section, sec.item)
-            for from_node in group.nodes:
-                self._link_nodes(from_node, node)
-
     def _check_nodes(self):
         warnings = []
-        init_groups = self.batches['batch1']
+        init_groups = self.batches['batch0']
         for group in init_groups:
             for node in group.nodes:
                 if not node.exists():
@@ -158,15 +149,8 @@ def create_node_dag(args, config):
     rm = ResultsManager(config)
     dag = NodeDAG(args, config, rm)
 
-    groups_names = []
-    for opt in config.convert_groups.options():
-        file_glob = getattr(config.convert_groups, opt)
-
-        full_glob = os.path.join(config.settings.work_dir, file_glob)
-        filenames = sorted(glob(full_glob))
-        groups_names.append((opt[5:], filenames))
-
-    dag.generate_all_nodes(groups_names)
+    group_names = config.groups.options()
+    dag.generate_all_nodes(group_names)
     return dag
 
 

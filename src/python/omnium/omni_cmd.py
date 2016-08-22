@@ -13,6 +13,7 @@ ARGS = [(['-c', '--config-file'], {'default': 'omni.conf'}),
 def main():
     cmds, args = parse_commands('omni', ARGS, omni_cmds)
     cwd = os.getcwd()
+    args.cwd = cwd
     config = read_config(cwd, config_filename=args.config_file)
 
     if config.settings.ignore_warnings:

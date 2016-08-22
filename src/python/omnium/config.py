@@ -4,11 +4,11 @@ from ConfigParser import ConfigParser
 
 
 class Config(object):
-    def __init__(self, name, config_filename=None, root=None):
+    def __init__(self, name, filename=None, root=None):
         self.name = name
+        self.filename = filename
         if name == 'root':
             self.is_root = True
-            self.config_filename = config_filename
             self.reload()
         else:
             self.is_root = False
@@ -51,7 +51,7 @@ class Config(object):
 
         self._storage = OrderedDict()
         self._cp = ConfigParser()
-        self._cp.read(self.config_filename)
+        self._cp.read(self.filename)
 
         for sec in self._cp.sections():
             sec_config = self.read_section(sec)
@@ -61,7 +61,7 @@ class Config(object):
 
 
     def save(self):
-        with open(self.config_filename, 'wb') as f:
+        with open(self.filename, 'wb') as f:
             self._cp.write(f)
 
 
@@ -86,10 +86,6 @@ class Config(object):
 
 
     def __repr__(self):
-        return 'CONFIG'
-
-
-    def __str__(self):
         if self.is_root:
             full_repr = []
             for k, value in self._storage.items():
@@ -101,6 +97,13 @@ class Config(object):
             full_repr = ['[{}]'.format(self.name)]
             full_repr.extend(self._get_key_value_list())
             return '\n'.join(full_repr)
+
+
+    def __str__(self):
+        if self.filename:
+            return '<Config {}>'.format(self.filename)
+        else:
+            return '<Section {} ({})>'.format(self.name, self.root.filename)
 
 
 
