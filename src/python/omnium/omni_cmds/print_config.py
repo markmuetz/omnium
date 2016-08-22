@@ -8,6 +8,6 @@ def main(args, config):
         if not hasattr(config, args.section):
             raise Exception('No section {} in config'.format(args.section))
         section = getattr(config, args.section)
-        print(section)
+        print(section.__repr())
     else:
-        print(config)
+        print(config.__repr__())

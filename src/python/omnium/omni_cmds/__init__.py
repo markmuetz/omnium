@@ -1,14 +1,5 @@
-import config_get
-import config_set
-import config_del
-import file_info
-import list_files
-import list_processes
-import print_config
-import print_node_graph
-import process_batch
-import run
-import threed
+from collections import OrderedDict
+import importlib
 
 commands = [
     'config-get', 
@@ -22,3 +13,12 @@ commands = [
     'run', 
     'threed',
     ]
+
+modules = OrderedDict()
+for command in commands:
+    command_name = 'omni_cmds.' + command.replace('-', '_')
+    try:
+        modules[command] = importlib.import_module(command_name)
+    except ImportError, e:
+        print('Cannot load module {}'.format(command_name))
+        print(e)
