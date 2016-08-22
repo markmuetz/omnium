@@ -6,6 +6,7 @@ commands = [
     'config-set', 
     'config-del',
     'file-info',
+    'list-files',
     'list-processes',
     'print-config', 
     'print-node-graph', 

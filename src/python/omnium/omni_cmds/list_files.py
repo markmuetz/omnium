@@ -9,11 +9,13 @@ ARGS = [(['--full-path'], {'help': 'show full path of files',
 
 def main(args, config):
     settings = config.settings
-    for opt in config.groups.options():
-        file_glob = getattr(config.groups, opt)
-        full_glob = os.path.join(settings.work_dir, file_glob)
-        for fn in sorted(glob(full_glob)):
-            if args.full_path:
-                print(fn)
-            else:
-                print(os.path.basename(fn))
+    for group_name in config.groups.options():
+        group_sec = getattr(config, group_name)
+        if hasattr(group_sec, 'filename_glob'):
+            filename_glob = group_sec.filename_glob
+            full_glob = os.path.join(settings.work_dir, filename_glob)
+            for fn in sorted(glob(full_glob)):
+                if args.full_path:
+                    print(fn)
+                else:
+                    print(os.path.basename(fn))
