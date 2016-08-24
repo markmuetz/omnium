@@ -10,6 +10,7 @@ commands = [
     'list-processes',
     'print-config', 
     'print-node-graph', 
+    'gen-node-graph', 
     'process-batch', 
     'run', 
     'threed',

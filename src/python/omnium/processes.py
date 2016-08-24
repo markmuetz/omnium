@@ -35,7 +35,6 @@ class DomainMean(Process):
 
         with open(to_node.filename + '.done', 'w') as f:
             f.write('{}\n'.format(results_cube))
-        assert(to_node.exists())
 
 
 class ConvertPpToNc(Process):
@@ -57,7 +56,6 @@ class ConvertPpToNc(Process):
 
         with open(to_node.filename + '.done', 'w') as f:
             f.write('{}'.format(cubes))
-        assert(to_node.exists())
 
 
 def get_process_classes(cwd):
