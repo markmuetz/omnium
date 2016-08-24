@@ -55,7 +55,7 @@ class Node(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    filename_tpl = Column(String)
+    filename = Column(String)
     process = Column(String)
     status = Column(statuses)
     section = Column(Integer)
@@ -69,7 +69,7 @@ class Node(Base):
                             backref="from_nodes"
     )
 
-    def filename(self, config):
+    def _filename(self, config):
         return self.filename_tpl.format(config.settings.work_dir)
 
     def __repr__(self):
