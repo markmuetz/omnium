@@ -24,7 +24,11 @@ class Window(QtGui.QWidget):
         self.umo = UMO(config)
         self.thresh = 0.5
         self.cube_index = 0
-        glob_full = os.path.join(config.settings.work_dir, config.groups.glob_nc3)
+
+        # TODO: Picking first is arbitrary!
+        group = config.groups.options()[0]
+        filename_glob = getattr(config, group).filename_glob
+        glob_full = os.path.join(config.settings.work_dir, filename_glob)
         filenames = glob(glob_full)
 
         self.umo.load_cubes(filenames[0])

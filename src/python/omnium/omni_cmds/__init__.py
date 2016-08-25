@@ -6,15 +6,16 @@ commands = [
     'config-set', 
     'config-del',
     'file-info',
+    'gen-node-graph', 
     'list-files',
     'list-processes',
     'print-config', 
     'print-node-graph', 
-    'gen-node-graph', 
-    'verify-node-graph', 
     'process-batch', 
     'run', 
+    'shell', 
     'threed',
+    'verify-node-graph', 
     ]
 
 modules = OrderedDict()
