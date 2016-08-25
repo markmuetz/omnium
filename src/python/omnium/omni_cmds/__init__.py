@@ -11,6 +11,7 @@ commands = [
     'print-config', 
     'print-node-graph', 
     'gen-node-graph', 
+    'verify-node-graph', 
     'process-batch', 
     'run', 
     'threed',

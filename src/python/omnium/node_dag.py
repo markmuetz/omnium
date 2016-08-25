@@ -9,18 +9,21 @@ from results import ResultsManager
 from omnium.processes import get_process_classes
 from models import Base, Computer, Batch, Group, Node
 
-engine = create_engine('sqlite:///.omni/sqlite3.db')
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-
 class NodeDAG(object):
     def __init__(self, args, config, rm):
-        self._session = Session()
         self._args = args
         self._config = config
         self._rm = rm
+        self._connect_create_db()
 
+    def _connect_create_db(self):
+        if not os.path.exists('.omni'):
+            os.makedirs('.omni')
+        engine = create_engine('sqlite:///.omni/sqlite3.db')
+        Base.metadata.create_all(engine)
+
+        Session = sessionmaker(bind=engine)
+        self._session = Session()
 
     def commit(self):
         self._session.commit()
@@ -31,8 +34,46 @@ class NodeDAG(object):
     def get_batch(self, batch_name):
         return self._session.query(Batch).filter_by(name=batch_name).one()
 
+    def _get_node_status(self, filename):
+        status = 'missing'
+        if os.path.exists(filename):
+            if os.path.exists(filename + '.done'):
+                status = 'done'
+            else:
+                status = 'processing'
+        return status
+
+    def verify_status(self):
+        self.errors = []
+        for node in self._session.query(Node).all():
+            status = self._get_node_status(node.filename)
+            if node.status != status:
+                self.errors.append((node, status))
+                print('{}: {} doesn\'t match {}'.format(node.name,
+                                                        node.status,
+                                                        status))
+                if self._args.update:
+                    node.status = status
+                    print('Updated: {}'.format(node))
+
+        if len(self.errors):
+            if self._args.update:
+                self.commit()
+                self.errors = []
+            else:
+                msg = 'Status doesn\'t match for {} node(s)\n'\
+                      'To fix run:\nomni verify-node-graph --update'\
+                      .format(len(self.errors))
+                raise Exception(msg)
+        else:
+            print('All nodes statuses verified')
+
     def generate_all_nodes(self, group_names):
         process_classes = get_process_classes(self._args.cwd)
+        # Test to see if entry for this comp already exists.
+        # Raise error if so.
+        #try:
+            #self._session.query(Computer).filter_by(name='zg').one()
         computer = Computer(name='zg')
         self._session.add(computer)
 
@@ -92,12 +133,7 @@ class NodeDAG(object):
 
     def _create_node(self, filename, group, process_name=None, 
                      section=None, item=None):
-        status = 'missing'
-        if os.path.exists(filename):
-            if os.path.exists(filename + '.done'):
-                status = 'done'
-            else:
-                status = 'processing'
+        status = self._get_node_status(filename)
         node = Node(name=os.path.basename(filename), 
                     filename=filename,
                     process=process_name,
@@ -168,6 +204,11 @@ if False:
             exists = 'X' if self.exists() else ' '
 
             return '<Node {} [{}]>'.format(basename, exists)
+
+
+def regenerate_node_dag(args, config):
+    os.remove('.omni/sqlite3.db')
+    return generate_node_dag(args, config)
 
 
 def generate_node_dag(args, config):
