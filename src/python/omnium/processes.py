@@ -10,6 +10,10 @@ import pylab as plt
 
 class Process(object):
     name = None
+    def __init__(args, config, computer_name):
+        self.args = args
+        self.config = config
+        self.computer_name = computer_name
 
 
 class DomainMean(Process):
@@ -21,7 +25,7 @@ class DomainMean(Process):
 
         results = []
         for from_node in to_node.from_nodes:
-            cubes = iris.load(from_node.filename)
+            cubes = iris.load(from_node.filename(self.computer_name, self.config))
             for cube in cubes:
                 cube_stash = cube.attributes['STASH']
                 section, item = cube_stash.section, cube_stash.item
@@ -32,9 +36,9 @@ class DomainMean(Process):
             results.append(result)
 
         results_cube = iris.cube.CubeList(results).concatenate_cube()
-        iris.save(results_cube, to_node.filename)
+        iris.save(results_cube, to_node.filename(self.computer_name, self.config))
 
-        with open(to_node.filename + '.done', 'w') as f:
+        with open(to_node.filename(self.computer_name, self.config) + '.done', 'w') as f:
             f.write('{}\n'.format(results_cube))
 
 
@@ -49,13 +53,13 @@ class ConvertPpToNc(Process):
         from_node = to_node.from_nodes[0]
 
         print('Convert {} to {}'.format(from_node, to_node))
-        cubes = iris.load(from_node.filename)
+        cubes = iris.load(from_node.filename(self.computer_name, self.config))
         if not len(cubes):
             print('Cubes is empty')
             return
-        iris.save(cubes, to_node.filename)
+        iris.save(cubes, to_node.filename(self.computer_name, self.config))
 
-        with open(to_node.filename + '.done', 'w') as f:
+        with open(to_node.filename(self.computer_name, self.config) + '.done', 'w') as f:
             f.write('{}'.format(cubes))
 
 
@@ -71,7 +75,7 @@ class PlotMultiTimeseries(Process):
             axes = [axes]
         f.canvas.set_window_title('timeseries') 
         for i, from_node in enumerate(node.from_nodes):
-            timeseries = iris.load(from_node.filename)[0]
+            timeseries = iris.load(from_node.filename(self.computer_name, self.config))[0]
 
             times = timeseries.coords()[0].points.copy()
             times -= times[0]
@@ -81,8 +85,8 @@ class PlotMultiTimeseries(Process):
             axes[i].set_ylabel(timeseries.units)
             axes[i].set_title(timeseries.name())
 
-        plt.savefig(node.filename)
-        with open(node.filename + '.done', 'w') as f:
+        plt.savefig(node.filename(self.computer_name, self.config))
+        with open(node.filename(self.computer_name, self.config) + '.done', 'w') as f:
             f.write('')
 
 

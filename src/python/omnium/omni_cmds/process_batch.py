@@ -28,7 +28,8 @@ def process_batch(args, config, batchname):
                     raise Exception('Node {} does not exist'.format(from_node))
 
             process_class = process_classes[to_node.process]
-            process = process_class()
+            computer_name = open(config['computers']['current'], 'r').read().strip()
+            process = process_class(args, config, computer_name)
 
             print('Processing {} with {}'.format(to_node, process.name))
             process.run(to_node)
