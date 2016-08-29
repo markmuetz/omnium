@@ -26,11 +26,13 @@ class Window(QtGui.QWidget):
         self.cube_index = 0
 
         # TODO: Picking first is arbitrary!
-        group = config.groups.options()[0]
-        filename_glob = getattr(config, group).filename_glob
-        glob_full = os.path.join(config.settings.work_dir, filename_glob)
+        group = config['groups'].keys()[0]
+        filename_glob = config['groups'][group]['filename_glob']
+        work_dir = os.path.expandvars(config['settings']['dirs']['work'])
+        glob_full = os.path.join(work_dir, filename_glob)
         filenames = glob(glob_full)
 
+        print(glob_full)
         self.umo.load_cubes(filenames[0])
         self.cube = self.umo.cube[self.cube_index]
 

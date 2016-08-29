@@ -8,19 +8,11 @@ import iris
 class UMO(object):
     def __init__(self, config):
         self.config = config
-        settings = config.settings
 	self.cube_index = 0
 	self.time_index = 0
 	self.level_index = 0
         self.filename_index = 0
         self.all_cubes = []
-        self.filenames_by_group = OrderedDict()
-        for glob_name in config.groups.options():
-            group_name = glob_name[5:]
-            group_glob = getattr(config.groups, glob_name)
-
-            full_glob = os.path.join(settings.work_dir, group_glob)
-            self.filenames_by_group[group_name] = sorted(glob(full_glob))
 
 
     def load_cubes(self, filename):
