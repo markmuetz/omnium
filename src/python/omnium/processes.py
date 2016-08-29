@@ -10,7 +10,7 @@ import pylab as plt
 
 class Process(object):
     name = None
-    def __init__(args, config, computer_name):
+    def __init__(self, args, config, computer_name):
         self.args = args
         self.config = config
         self.computer_name = computer_name
