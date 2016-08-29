@@ -6,6 +6,7 @@ import inspect
 import importlib
 
 import iris
+import pylab as plt
 
 class Process(object):
     name = None
@@ -56,6 +57,33 @@ class ConvertPpToNc(Process):
 
         with open(to_node.filename + '.done', 'w') as f:
             f.write('{}'.format(cubes))
+
+
+class PlotMultiTimeseries(Process):
+    name = 'plot_multi_timeseries'
+    out_ext = 'png'
+
+    def run(self, node):
+        print('Plotting timeseries')
+
+        f, axes = plt.subplots(1, len(node.from_nodes))
+        if len(node.from_nodes) == 1:
+            axes = [axes]
+        f.canvas.set_window_title('timeseries') 
+        for i, from_node in enumerate(node.from_nodes):
+            timeseries = iris.load(from_node.filename)[0]
+
+            times = timeseries.coords()[0].points.copy()
+            times -= times[0]
+
+            axes[i].plot(times / 24, timeseries.data)
+            axes[i].set_xlabel('time (days)')
+            axes[i].set_ylabel(timeseries.units)
+            axes[i].set_title(timeseries.name())
+
+        plt.savefig(node.filename)
+        with open(node.filename + '.done', 'w') as f:
+            f.write('')
 
 
 def get_process_classes(cwd):
