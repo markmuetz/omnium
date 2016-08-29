@@ -7,16 +7,16 @@ class ResultsManager(object):
     SAVE_FILE_TPL = '{}.{}'
 
     def __init__(self, computer_name, config):
+        self.computer_name = computer_name
         self.config = config
-        self.results_dir = config['computers'][computer_name]['dirs']['results']
-        if not os.path.exists(self.results_dir):
-            os.makedirs(self.results_dir)
 
     def key(self, args):
         return hashlib.sha1(''.join(map(str, args))).hexdigest()
 
-    def get_filename(self, args, out_ext):
-        key = self.key(args)
-        save_file = os.path.join(self.results_dir,
-                                 self.SAVE_FILE_TPL.format(key, out_ext))
+    def get_filename(self, results_dir, node_name, out_ext):
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+
+        save_file = os.path.join(results_dir,
+                                 self.SAVE_FILE_TPL.format(node_name, out_ext))
         return save_file

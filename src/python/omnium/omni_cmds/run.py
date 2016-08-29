@@ -6,5 +6,5 @@ from node_dag import get_node_dag
 ARGS = []
 
 def main(args, config):
-    for batch in ['batch1', 'batch2', 'batch3']:
-        process_batch(args, config, batch)
+    for batch_name in config['batches']:
+        process_batch(args, config, batch_name)

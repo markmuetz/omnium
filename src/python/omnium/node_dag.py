@@ -133,8 +133,8 @@ class NodeDAG(object):
                                                             self.computer_name)
         fn_args = [from_group.name, node_name,
                    node_sec['process']]
-        filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
         base_dir = self._get_base_dir(group.base_dirname)
+        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
         if 'variable' in node_sec:
             var_sec = self._config['variables'][node_sec['variable']]
@@ -157,8 +157,8 @@ class NodeDAG(object):
                                                             self.computer_name)
         fn_args = [group.name, node_name,
                    node_sec['process']]
-        filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
         base_dir = self._get_base_dir(group.base_dirname)
+        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
         if 'section' in node_sec and 'item' in node_sec:
             next_node = self._create_node(rel_filename, group, 
@@ -191,11 +191,16 @@ class NodeDAG(object):
 
     def generate_all_nodes(self, group_names):
         self.process_classes = get_process_classes(self._args.cwd)
-        # TODO:
-        # Test to see if entry for this comp already exists.
-        # Raise error if so.
-        #try:
-            #self._session.query(Computer).filter_by(name='zg').one()
+
+        computer_count = self._session.query(Computer)\
+                             .filter_by(name=self.computer_name).count()
+        if computer_count:
+            msg = 'Computer {} already exists in DB\n'\
+                  'Perhaps you should run:\n'\
+                  'omni gen-node-graph --regen'\
+                  .format(self.computer_name)
+            raise Exception(msg)
+
         if self.remote_computer_name:
             raise Exception('remote_computer_name should be None')
 
