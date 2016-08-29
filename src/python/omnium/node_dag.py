@@ -10,17 +10,21 @@ from omnium.processes import get_process_classes
 from models import Base, Computer, Batch, Group, Node
 
 class NodeDAG(object):
-    def __init__(self, args, config, rm):
+    def __init__(self, args, config, rm, remote_computer_name):
         self._args = args
         self._config = config
         self._rm = rm
+        self.remote_computer_name = remote_computer_name
         self._connect_create_db()
 
     def _connect_create_db(self):
         if not os.path.exists('.omni'):
             os.makedirs('.omni')
-        engine = create_engine('sqlite:///.omni/sqlite3.db')
-        Base.metadata.create_all(engine)
+        if not self.remote_computer_name:
+            engine = create_engine('sqlite:///.omni/sqlite3.db')
+            Base.metadata.create_all(engine)
+        else:
+            engine = create_engine('sqlite:///.omni/{}_sqlite3.db'.format(self.remote_computer_name))
 
         Session = sessionmaker(bind=engine)
         self._session = Session()
@@ -79,11 +83,13 @@ class NodeDAG(object):
         # Raise error if so.
         #try:
             #self._session.query(Computer).filter_by(name='zg').one()
-        if 'current' in self._config['computers']:
-            computer_name = open(self._config['computers']['current'], 'r').read().strip()
-            print(computer_name)
+        if not self.remote_computer_name:
+            if 'current' in self._config['computers']:
+                computer_name = open(self._config['computers']['current'], 'r').read().strip()
+            else:
+                raise Exception('Not sure what computer this is running on')
         else:
-            raise Exception('Not sure what computer this is running on')
+            raise Exception('remote_computer_name should be None')
         computer = Computer(name=computer_name)
         self._session.add(computer)
 
@@ -119,7 +125,7 @@ class NodeDAG(object):
                     node_sec = self._config['nodes'][node_name]
                     if 'from_group' in node_sec:
                         from_group = self.get_group(node_sec['from_group'])
-                        process = process_classes[node_sec['process']]()
+                        process = process_classes[node_sec['process']](self._args, self._config, computer_name)
                         fn_args = [group_name, node_name,
                                    node_sec['process']]
                         filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
@@ -248,10 +254,10 @@ def generate_node_dag(args, config):
     return dag
 
 
-def get_node_dag(args, config):
+def get_node_dag(args, config, remote_computer_name=None):
     computer_name = open(config['computers']['current'], 'r').read().strip()
     rm = ResultsManager(computer_name, config)
-    dag = NodeDAG(args, config, rm)
+    dag = NodeDAG(args, config, rm, remote_computer_name)
     return dag
 
 

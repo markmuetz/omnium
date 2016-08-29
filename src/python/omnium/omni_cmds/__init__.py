@@ -12,6 +12,7 @@ commands = [
     'print-config', 
     'print-node-graph', 
     'process-batch', 
+    'remote-node-sync', 
     'run', 
     'shell', 
     'threed',
