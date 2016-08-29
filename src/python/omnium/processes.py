@@ -15,6 +15,11 @@ class Process(object):
         self.config = config
         self.computer_name = computer_name
 
+        if self.name in self.config['process_options']:
+            self.options = self.config['process_options'][self.name]
+        else:
+            self.options = {}
+
 
 class DomainMean(Process):
     name = 'domain_mean'
@@ -25,7 +30,9 @@ class DomainMean(Process):
 
         results = []
         for from_node in to_node.from_nodes:
-            cubes = iris.load(from_node.filename(self.computer_name, self.config))
+            filename = from_node.filename(self.computer_name, self.config)
+            print(filename)
+            cubes = iris.load(filename)
             for cube in cubes:
                 cube_stash = cube.attributes['STASH']
                 section, item = cube_stash.section, cube_stash.item

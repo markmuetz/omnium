@@ -28,6 +28,7 @@ class Batch(Base):
     __tablename__ = 'batches'
 
     id = Column(Integer, primary_key=True)
+    index = Column(Integer)
     name = Column(String)
     computer_id = Column(Integer, ForeignKey('computers.id'))
     status = Column(statuses)
