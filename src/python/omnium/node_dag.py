@@ -52,8 +52,9 @@ class NodeDAG(object):
 
     def verify_status(self):
         self.errors = []
+        computer_name = open(self._config['computers']['current'], 'r').read().strip()
         for node in self._session.query(Node).all():
-            status = self._get_node_status(node.filename)
+            status = self._get_node_status(node.filename(computer_name, self._config))
             if node.status != status:
                 self.errors.append((node, status))
                 print('{}: {} doesn\'t match {}'.format(node.name,
