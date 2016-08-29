@@ -80,7 +80,7 @@ class NodeDAG(object):
         #try:
             #self._session.query(Computer).filter_by(name='zg').one()
         if 'current' in self._config['computers']:
-            computer_name = open(self._config['computers']['current'], 'r').read()
+            computer_name = open(self._config['computers']['current'], 'r').read().strip()
             print(computer_name)
         else:
             raise Exception('Not sure what computer this is running on')
@@ -92,23 +92,27 @@ class NodeDAG(object):
             self._session.add(batch)
 
             group_sec = self._config['groups'][group_name]
-            group = Group(name=group_name, batch=batch)
+            base_dirname = group_sec['base_dir']
+            group = Group(name=group_name, batch=batch, base_dirname=base_dirname)
             self._session.add(group)
 
             if 'filename_glob' in group_sec:
-                full_glob = os.path.join(self._config['settings']['dirs']['work'],
+                base_dir = self._config['computers'][computer_name]['dirs'][base_dirname]
+                full_glob = os.path.join(base_dir,
                                          group_sec['filename_glob'])
                 filenames = sorted(glob(full_glob))
                 for filename in filenames:
-                    node = self._create_node(filename, group)
+                    rel_filename = os.path.relpath(filename, base_dir)
+                    node = self._create_node(base_dir, rel_filename, group)
             elif 'from_group' in group_sec:
                 from_group = self.get_group(group_sec['from_group'])
                 process_name = group_sec['process']
                 process = process_classes[process_name]()
                 for node in from_group.nodes:
                     # TODO: Make smarter.
-                    fn = self._get_converted_filename(node.filename)
-                    next_node = self._create_node(fn, group, process_name=process_name)
+                    filename = self._get_converted_filename(node.filename(computer_name, self._config))
+                    rel_filename = os.path.relpath(filename, base_dir)
+                    next_node = self._create_node(base_dir, rel_filename, group, process_name=process_name)
                     next_node.from_nodes.append(node)
             elif 'nodes' in group_sec :
                 for node_name in group_sec['nodes']:
@@ -118,16 +122,18 @@ class NodeDAG(object):
                         process = process_classes[node_sec['process']]()
                         fn_args = [group_name, node_name,
                                    node_sec['process']]
-                        fn = self._rm.get_filename(fn_args, out_ext=process.out_ext)
+                        filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
                         if 'variable' in node_sec:
                             var_sec = self._config['variables'][node_sec['variable']]
-                            next_node = self._create_node(fn, group, 
+                            rel_filename = os.path.relpath(filename, base_dir)
+                            next_node = self._create_node(base_dir, rel_filename, group, 
                                                           node_name,
                                                           node_sec['process'], 
                                                           var_sec.as_int('section'), 
                                                           var_sec.as_int('item'))
                         else:
-                            next_node = self._create_node(fn, group, 
+                            rel_filename = os.path.relpath(filename, base_dir)
+                            next_node = self._create_node(base_dir, rel_filename, group, 
                                                           node_name,
                                                           node_sec['process'])
                         for node in from_group.nodes:
@@ -136,15 +142,17 @@ class NodeDAG(object):
                         process = process_classes[node_sec['process']]()
                         fn_args = [group_name, node_name,
                                    node_sec['process']]
-                        fn = self._rm.get_filename(fn_args, out_ext=process.out_ext)
+                        filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
                         if 'section' in node_sec and 'item' in node_sec:
-                            next_node = self._create_node(fn, group, 
+                            rel_filename = os.path.relpath(filename, base_dir)
+                            next_node = self._create_node(base_dir, rel_filename, group, 
                                                           node_name,
                                                           process_name=node_sec['process'], 
                                                           section=node_sec['section'], 
                                                           item=node_sec['item'])
                         else:
-                            next_node = self._create_node(fn, group, 
+                            rel_filename = os.path.relpath(filename, base_dir)
+                            next_node = self._create_node(base_dir, rel_filename, group, 
                                                           process_name=node_sec['process'])
                         from_nodes = node_sec['from_nodes']
                         for from_node_name in from_nodes:
@@ -156,14 +164,16 @@ class NodeDAG(object):
                         process = process_classes[node_sec['process']]()
                         fn_args = [group_name, node_name,
                                    node_sec['process']]
-                        fn = self._rm.get_filename(fn_args, out_ext=process.out_ext)
+                        filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
                         if 'section' in node_sec and 'item' in node_sec:
-                            next_node = self._create_node(fn, group, 
+                            rel_filename = os.path.relpath(filename, base_dir)
+                            next_node = self._create_node(base_dir, rel_filename, group, 
                                                           process_name=node_sec['process'], 
                                                           section=node_sec['section'], 
                                                           item=node_sec['item'])
                         else:
-                            next_node = self._create_node(fn, group, 
+                            rel_filename = os.path.relpath(filename, base_dir)
+                            next_node = self._create_node(base_dir, rel_filename, group, 
                                                           process_name=node_sec['process'])
                         for node in from_group.nodes:
                             next_node.from_nodes.append(node)
@@ -180,13 +190,13 @@ class NodeDAG(object):
                     print('    ' + node.__repr__())
         print('')
 
-    def _create_node(self, filename, group, name=None, process_name=None, 
+    def _create_node(self, base_dir, rel_filename, group, name=None, process_name=None, 
                      section=None, item=None):
-        status = self._get_node_status(filename)
+        status = self._get_node_status(os.path.join(base_dir, rel_filename))
         if not name:
-            name = os.path.basename(filename)
+            name = os.path.basename(rel_filename)
         node = Node(name=name, 
-                    filename=filename,
+                    rel_filename=rel_filename,
                     process=process_name,
                     status=status,
                     section=section,
@@ -196,7 +206,7 @@ class NodeDAG(object):
         self._session.add(node)
         return node
 
-    def _create_group(self, name, batch):
+    def _create_group(self, name, batch, base_dirname):
         group = Group(name=name, batch=batch)
         self._session.add(group)
         return group
@@ -223,48 +233,14 @@ class NodeDAG(object):
         return pre + '.' + ext[-1] + conv_config['convert_to'] 
 
 
-if False:
-    class Group(object):
-        def __init__(self, name, dag):
-            self.name = name
-            self.dag = dag
-            self.nodes = []
-
-        def __repr__(self):
-            return '<Group {} ({} nodes)>'.format(self.name, len(self.nodes))
-
-
-    class Node(object):
-        def __init__(self, filename, dag):
-            self.filename = filename
-            self.dag = dag
-            self.from_nodes = []
-            self.to_nodes = []
-            self.group = None
-
-        def exists(self):
-            return os.path.exists(self.filename) and os.path.exists(self.filename + '.done')
-
-        def is_start(self):
-            return not len(self.from_nodes)
-
-        def is_end(self):
-            return not len(self.to_nodes)
-        
-        def __repr__(self):
-            basename = os.path.basename(self.filename)
-            exists = 'X' if self.exists() else ' '
-
-            return '<Node {} [{}]>'.format(basename, exists)
-
-
 def regenerate_node_dag(args, config):
     os.remove('.omni/sqlite3.db')
     return generate_node_dag(args, config)
 
 
 def generate_node_dag(args, config):
-    rm = ResultsManager(config)
+    computer_name = open(config['computers']['current'], 'r').read().strip()
+    rm = ResultsManager(computer_name, config)
     dag = NodeDAG(args, config, rm)
 
     group_names = config['groups'].keys()
@@ -273,13 +249,15 @@ def generate_node_dag(args, config):
 
 
 def get_node_dag(args, config):
-    rm = ResultsManager(config)
+    computer_name = open(config['computers']['current'], 'r').read().strip()
+    rm = ResultsManager(computer_name, config)
     dag = NodeDAG(args, config, rm)
     return dag
 
 
 def create_dummy_node_dag(args, config):
-    rm = ResultsManager(config)
+    computer_name = open(config['computers']['current'], 'r').read().strip()
+    rm = ResultsManager(computer_name, config)
     dag = NodeDAG(args, config, rm)
     # Initial files for conversion.
     groups_names = [

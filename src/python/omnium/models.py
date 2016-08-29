@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import Integer, ForeignKey, String, Column, Table, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -42,6 +44,7 @@ class Group(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     status = Column(statuses)
+    base_dirname = Column(String)
     
     batch_id = Column(Integer, ForeignKey('batches.id'))
     nodes = relationship('Node', backref='group')
@@ -55,7 +58,7 @@ class Node(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    filename = Column(String)
+    rel_filename = Column(String)
     process = Column(String)
     status = Column(statuses)
     section = Column(Integer)
@@ -69,8 +72,9 @@ class Node(Base):
                             backref="from_nodes"
     )
 
-    def _filename(self, config):
-        return self.filename_tpl.format(config.settings.work_dir)
+    def filename(self, computer_name, config):
+        base_dir = config['settings'][computer_name]['dirs'][self.group.base_dirname]
+        return os.path.join(base_dir, self.rel_filename)
 
     def __repr__(self):
         return '<Node {} (id={}, status={})>'\
