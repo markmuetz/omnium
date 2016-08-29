@@ -8,6 +8,7 @@ ARGS = [(['--full-path'], {'help': 'show full path of files',
         ]
 
 def main(args, config):
+    raise NotImplementedError('Implement by 0.5')
     settings = config.settings
     for group_name in config.groups.options():
         group_sec = getattr(config, group_name)

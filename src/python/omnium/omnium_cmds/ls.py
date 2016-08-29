@@ -1,7 +1,6 @@
 """Lists all omnis"""
 import os
 from glob import glob
-from config import read_config
 
 ARGS = [(['--full-path'], {'help': 'show full path of files',
                            'action': 'store_true',
@@ -25,9 +24,10 @@ def main(args):
             row.append(os.path.basename(dirname))
 
         try:
-            info = read_config(dirname, 'omni.info').info
-            row.append(info.title)
-            row.append(info.description)
+            config = ConfigObj(os.path.join(dirname, 'omni.info'))
+            info = config['info']
+            row.append(info['title'])
+            row.append(info['description'])
         except:
             row.append('No Info')
             row.append('')

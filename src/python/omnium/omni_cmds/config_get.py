@@ -1,20 +1,20 @@
 """Get a value from config"""
 import os
-from omnium.config import read_config
 
 ARGS = [
-        (['section'], {'nargs': 1,
-                       'help': 'Section to get value for'}),
+        (['sections'], {'nargs': '*',
+                       'help': 'Section(s) to get value for'}),
         (['option'], {'nargs': 1,
                        'help': 'Option to get value for'}),
         ]
 
 def main(args, config):
-    if not hasattr(config, args.section[0]):
-        raise Exception('No section {} in config'.format(args.section[0]))
-    section = getattr(config, args.section[0])
-    if not hasattr(section, args.option[0]):
-        raise Exception('No option {} in section'.format(args.option[0]))
-    value = getattr(section, args.option[0])
+    config_level = config
+    for section in args.sections:
+        if section not in config_level:
+            sections_string = '/'.join(args.sections)
+            msg = 'No section "{}" in config'.format(sections_string)
+            raise Exception(msg)
+        config_level = config_level[section]
 
-    print(value)
+    print(config_level[args.option[0]])

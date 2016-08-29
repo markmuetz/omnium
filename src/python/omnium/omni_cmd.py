@@ -1,7 +1,7 @@
 import os
 
 from command_parser import parse_commands
-from config import read_config
+from configobj import ConfigObj
 import omni_cmds
 
 
@@ -14,9 +14,9 @@ def main():
     cmds, args = parse_commands('omni', ARGS, omni_cmds)
     cwd = os.getcwd()
     args.cwd = cwd
-    config = read_config(cwd, config_filename=args.config_file)
+    config = ConfigObj(args.config_file)
 
-    if config.settings.ignore_warnings:
+    if config['settings'].as_bool('ignore_warnings'):
         # DO NOT LEAVE IN!!!
         # Added so as orography warning not shown on iris.load.
         # Orography warning gone, now get iris warning about FUTURE promoting.
