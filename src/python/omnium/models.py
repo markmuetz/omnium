@@ -73,7 +73,7 @@ class Node(Base):
     )
 
     def filename(self, computer_name, config):
-        base_dir = config['settings'][computer_name]['dirs'][self.group.base_dirname]
+        base_dir = config['computers'][computer_name]['dirs'][self.group.base_dirname]
         return os.path.join(base_dir, self.rel_filename)
 
     def __repr__(self):
