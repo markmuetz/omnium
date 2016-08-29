@@ -247,7 +247,7 @@ def regenerate_node_dag(args, config):
 def generate_node_dag(args, config):
     computer_name = open(config['computers']['current'], 'r').read().strip()
     rm = ResultsManager(computer_name, config)
-    dag = NodeDAG(args, config, rm)
+    dag = NodeDAG(args, config, rm, None)
 
     group_names = config['groups'].keys()
     dag.generate_all_nodes(group_names)
