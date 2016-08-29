@@ -113,7 +113,7 @@ class NodeDAG(object):
             elif 'from_group' in group_sec:
                 from_group = self.get_group(group_sec['from_group'])
                 process_name = group_sec['process']
-                process = process_classes[process_name]()
+                process = process_classes[node_sec['process']](self._args, self._config, computer_name)
                 for node in from_group.nodes:
                     # TODO: Make smarter.
                     filename = self._get_converted_filename(node.filename(computer_name, self._config))
@@ -145,7 +145,7 @@ class NodeDAG(object):
                         for node in from_group.nodes:
                             next_node.from_nodes.append(node)
                     elif 'from_nodes' in node_sec:
-                        process = process_classes[node_sec['process']]()
+                        process = process_classes[node_sec['process']](self._args, self._config, computer_name)
                         fn_args = [group_name, node_name,
                                    node_sec['process']]
                         filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
@@ -167,7 +167,7 @@ class NodeDAG(object):
 
                     elif 'from_node' in node_sec:
                         from_node = self.get_node(node_sec['from_node'])
-                        process = process_classes[node_sec['process']]()
+                        process = process_classes[node_sec['process']](self._args, self._config, computer_name)
                         fn_args = [group_name, node_name,
                                    node_sec['process']]
                         filename = self._rm.get_filename(fn_args, out_ext=process.out_ext)
