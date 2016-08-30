@@ -97,6 +97,31 @@ class PlotMultiTimeseries(Process):
             f.write('')
 
 
+class ConvertMassToEnergyFlux(Process):
+    name = 'convert_mass_to_energy_flux'
+    out_ext = 'nc'
+
+    def run(self, to_node):
+        assert(len(to_node.from_nodes) == 1)
+        from_node = to_node.from_nodes[0]
+
+        print('Convert {} to {}'.format(from_node, to_node))
+        precip = iris.load(from_node.filename(self.computer_name, self.config))[0]
+
+	print(precip.shape)
+        L = iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
+	# Order of precip, L seems to be important!
+        precip_energy_flux = precip * L
+        precip_energy_flux.convert_units(iris.unit.Unit('W m-2'))
+        precip_energy_flux.rename('precip_energy_flux')
+        
+        filename = to_node.filename(self.computer_name, self.config)
+        iris.save(precip_energy_flux, filename)
+
+        with open(filename + '.done', 'w') as f:
+            f.write('{}'.format(precip))
+
+
 def get_process_classes(cwd):
     modules = []
     local_python_path = os.path.join(cwd, 'src/python')
