@@ -168,6 +168,7 @@ class NodeDAG(object):
                                           item=node_sec['item'])
         else:
             next_node = self._create_node(rel_filename, group, 
+					  node_name,
                                           process_name=node_sec['process'])
         for from_node_name in from_nodes:
             from_node = self.get_node(from_node_name)
