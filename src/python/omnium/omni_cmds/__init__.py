@@ -13,6 +13,7 @@ commands = [
     'print-node-graph', 
     'process-batch', 
     'remote-node-sync', 
+    'remote-get-dir', 
     'run', 
     'shell', 
     'threed',
