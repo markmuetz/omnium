@@ -97,6 +97,26 @@ class PlotMultiTimeseries(Process):
             f.write('')
 
 
+class PlotLastProfile(Process):
+    name = 'plot_last_profile'
+    out_ext = 'png'
+
+    def run(self, node):
+        print('Plotting profile')
+
+        fig = plt.figure()
+        fig.canvas.set_window_title('profile') 
+        for i, from_node in enumerate(node.from_nodes):
+            profile = iris.load(from_node.filename(self.computer_name, self.config))[0][0]
+            plt.plot(profile.data, profile.coord('level_height').points, label=profile.name())
+
+        plt.legend()
+
+        plt.savefig(node.filename(self.computer_name, self.config))
+        with open(node.filename(self.computer_name, self.config) + '.done', 'w') as f:
+            f.write('')
+
+
 class ConvertMassToEnergyFlux(Process):
     name = 'convert_mass_to_energy_flux'
     out_ext = 'nc'
