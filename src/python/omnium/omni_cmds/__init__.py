@@ -5,7 +5,7 @@ commands = [
     'config-get', 
     'config-set', 
     'config-del',
-    'file-info',
+    'node-info',
     'gen-node-graph', 
     'list-files',
     'list-processes',
@@ -16,7 +16,7 @@ commands = [
     'remote-get-dir', 
     'run', 
     'shell', 
-    'threed',
+    #'threed',
     'verify-node-graph', 
     ]
 
