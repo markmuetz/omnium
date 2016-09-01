@@ -6,7 +6,10 @@ import inspect
 import importlib
 
 import iris
+import iris.util
 import pylab as plt
+
+from stash import stash
 
 class Process(object):
     name = None
@@ -70,6 +73,25 @@ class ConvertPpToNc(Process):
             f.write('{}'.format(cubes))
 
 
+class TimeDelta(Process):
+    name = 'time_delta'
+    out_ext = 'nc'
+
+    def run(self, node):
+        from_node = node.from_nodes[0]
+        field = iris.load(from_node.filename(self.computer_name, self.config))[0]
+        deltas = iris.util.delta(field.data, 0)
+
+        deltas_cube = field.copy()
+        deltas_cube.data[1:] = deltas
+        deltas_cube.rename(field.name() + '_time_delta')
+
+        filename = node.filename(self.computer_name, self.config)
+        iris.save(deltas_cube, filename)
+
+        with open(filename + '.done', 'w') as f:
+            f.write('{}'.format(deltas_cube))
+
 class PlotMultiTimeseries(Process):
     name = 'plot_multi_timeseries'
     out_ext = 'png'
@@ -107,7 +129,8 @@ class PlotLastProfile(Process):
         fig = plt.figure()
         fig.canvas.set_window_title('profile') 
         for i, from_node in enumerate(node.from_nodes):
-            profile = iris.load(from_node.filename(self.computer_name, self.config))[0][0]
+            profile = iris.load(from_node.filename(self.computer_name, self.config))[0][-1]
+            stash.rename_unknown_cube(profile)
             plt.plot(profile.data, profile.coord('level_height').points, label=profile.name())
 
         plt.legend()

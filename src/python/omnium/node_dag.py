@@ -20,11 +20,7 @@ class NodeDAG(object):
         self._connect_create_db()
 
     def _set_computer_name(self):
-        if 'current' in self._config['computers']:
-            computer_txt = self._config['computers']['current']
-            self.computer_name = open(computer_txt, 'r').read().strip()
-        else:
-            raise Exception('Not sure what computer this is running on')
+        self.computer_name = self._config['computer_name']
 
 
     def _connect_create_db(self):
@@ -51,6 +47,7 @@ class NodeDAG(object):
                    .filter_by(name=group_name).one()
 
     def get_node(self, node_name):
+        print(node_name)
         return self._session.query(Node)\
                    .filter_by(name=node_name).one()
 
@@ -109,22 +106,10 @@ class NodeDAG(object):
             node = self._create_node(rel_filename, group)
 
     def _generate_group_process_nodes(self, group, group_sec):
-        from_group = self.get_group(group_sec['from_group'])
         process_name = group_sec['process']
         process = self.process_classes[process_name](self._args, 
                                                      self._config, 
                                                      self.computer_name)
-        for node in from_group.nodes:
-            # TODO: Make smarter.
-            orig_filename = node.filename(self.computer_name, self._config)
-            filename = self._get_converted_filename(orig_filename)
-            base_dir = self._get_base_dir(group.base_dirname)
-            rel_filename = os.path.relpath(filename, base_dir)
-            next_node = self._create_node(rel_filename, 
-                                          group, 
-                                          process_name=process_name)
-            next_node.from_nodes.append(node)
-
 
     def _generate_from_group_nodes(self, group, node_name, node_sec):
         from_group = self.get_group(node_sec['from_group'])
@@ -141,17 +126,15 @@ class NodeDAG(object):
             next_node = self._create_node(rel_filename, group, 
                                           node_name,
                                           node_sec['process'], 
-                                          var_sec.as_int('section'), 
-                                          var_sec.as_int('item'))
+                                          var_sec['section'], 
+                                          var_sec['item'])
         else:
             next_node = self._create_node(rel_filename, group, 
                                           node_name,
                                           node_sec['process'])
-        for node in from_group.nodes:
-            next_node.from_nodes.append(node)
 
 
-    def _generate_from_nodes_nodes(self, group, node_name, node_sec, from_nodes):
+    def _generate_from_nodes_nodes(self, group, node_name, node_sec):
         process = self.process_classes[node_sec['process']](self._args, 
                                                             self._config, 
                                                             self.computer_name)
@@ -170,9 +153,6 @@ class NodeDAG(object):
             next_node = self._create_node(rel_filename, group, 
 					  node_name,
                                           process_name=node_sec['process'])
-        for from_node_name in from_nodes:
-            from_node = self.get_node(from_node_name)
-            next_node.from_nodes.append(from_node)
 
 
     def _generate_nodes_process_nodes(self, group, group_sec):
@@ -182,13 +162,9 @@ class NodeDAG(object):
             if 'from_group' in node_sec:
                 self._generate_from_group_nodes(group, node_name, node_sec)
             elif 'from_nodes' in node_sec:
-                from_nodes = node_sec['from_nodes']
-                self._generate_from_nodes_nodes(group, node_name, 
-                                                node_sec, from_nodes)
+                self._generate_from_nodes_nodes(group, node_name, node_sec)
             elif 'from_node' in node_sec:
-                from_nodes = [node_sec['from_node']]
-                self._generate_from_nodes_nodes(group, node_name, 
-                                                node_sec, from_nodes)
+                self._generate_from_nodes_nodes(group, node_name, node_sec)
 
     def generate_all_nodes(self, group_names):
         self.process_classes = get_process_classes(self._args.cwd)
@@ -213,6 +189,9 @@ class NodeDAG(object):
             batch = Batch(name=batch_name, index=batch_sec['index'])
             self._session.add(batch)
 
+        completed_groups = []
+        incomplete_groups = []
+        node_process_groups = []
         for group_name in group_names:
             group_sec = self._config['groups'][group_name]
 
@@ -227,10 +206,68 @@ class NodeDAG(object):
             group_type = group_sec['type']
             if group_type == 'init':
                 self._generate_init_nodes(group, group_sec) 
+                completed_groups.append(group)
             elif group_type == 'group_process':
                 self._generate_group_process_nodes(group, group_sec)
+                incomplete_groups.append(group)
             elif group_type == 'nodes_process':
                 self._generate_nodes_process_nodes(group, group_sec)
+                node_process_groups.append(group)
+                completed_groups.append(group)
+
+        # Work out group processing order:
+        group_processing = []
+        while incomplete_groups:
+            for group in incomplete_groups:
+                group_sec = self._config['groups'][group.name]
+                from_group = self.get_group(group_sec['from_group'])
+                if from_group in completed_groups:
+                    group_processing.append(group)
+                    completed_groups.append(group)
+                    incomplete_groups.remove(group)
+
+        # Hook up group_processing nodes.
+        for group in group_processing:
+            print('GP ' + group.__str__())
+            group_sec = self._config['groups'][group.name]
+
+            group_type = group_sec['type']
+            from_group = self.get_group(group_sec['from_group'])
+            for from_node in from_group.nodes:
+                process_name = group_sec['process']
+                orig_filename = from_node.filename(self.computer_name, self._config)
+                filename = self._get_converted_filename(orig_filename)
+                base_dir = self._get_base_dir(group.base_dirname)
+                rel_filename = os.path.relpath(filename, base_dir)
+                node = self._create_node(rel_filename, 
+                                              group, 
+                                              process_name=process_name)
+                node.from_nodes.append(from_node)
+
+
+        # Hook up remaining nodes.
+        for group in node_process_groups:
+            print('NP ' + group.__str__())
+            group_sec = self._config['groups'][group.name]
+            for node_name in group_sec['nodes']:
+                node = self.get_node(node_name)
+                node_sec = self._config['nodes'][node_name]
+                print(node_sec)
+                if 'from_group' in node_sec:
+                    from_group = self.get_group(node_sec['from_group'])
+                    for from_node in from_group.nodes:
+                        node.from_nodes.append(from_node)
+                else:
+                    if 'from_node' in node_sec:
+                        from_nodes = [node_sec['from_node']]
+                    else:
+                        from_nodes = node_sec['from_nodes']
+
+                    for from_node_name in from_nodes:
+                        from_node = self.get_node(from_node_name)
+                        node.from_nodes.append(from_node)
+
+
         self._session.commit()
 
 
@@ -278,7 +315,7 @@ def regenerate_node_dag(args, config):
 
 
 def generate_node_dag(args, config):
-    computer_name = open(config['computers']['current'], 'r').read().strip()
+    computer_name = config['computer_name']
     rm = ResultsManager(computer_name, config)
     dag = NodeDAG(args, config, rm, None)
 
@@ -288,7 +325,7 @@ def generate_node_dag(args, config):
 
 
 def get_node_dag(args, config, remote_computer_name=None):
-    computer_name = open(config['computers']['current'], 'r').read().strip()
+    computer_name = config['computer_name']
     rm = ResultsManager(computer_name, config)
     dag = NodeDAG(args, config, rm, remote_computer_name)
     return dag
