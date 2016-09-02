@@ -2,9 +2,10 @@ from collections import OrderedDict
 import importlib
 
 commands = [
-    'config-get', 
-    'config-set', 
-    'config-del',
+    'check-config', 
+    #'config-get', 
+    #'config-set', 
+    #'config-del',
     'node-info',
     'gen-node-graph', 
     'list-files',

@@ -1,7 +1,7 @@
 import os
 
 from command_parser import parse_commands
-from configobj import ConfigObj
+from check_config import ConfigChecker, ConfigError
 import imp
 
 import omni_cmds
@@ -19,10 +19,18 @@ def main():
     config_path = os.path.join(cwd, args.config_file)
     config_module = imp.load_source('omni_conf', config_path)
 
-    #config = ConfigObj(args.config_file)
     settings = [d for d in dir(config_module) if d[:2] not in ['__']]
     config = dict((s, getattr(config_module, s)) for s in settings)
-    #print(config)
+
+    if args.cmd_name != 'check-config':
+        checker = ConfigChecker(args, config)
+        try:
+            checker.run_checks()
+        except ConfigError as e:
+            print('CONFIG ERROR: {}'.format(e.message))
+            print(e.hint)
+            print('To check all config errors run:\nomni check-config')
+            exit(1)
 
     if config['settings']['ignore_warnings']:
         # DO NOT LEAVE IN!!!
@@ -37,8 +45,8 @@ def main():
     if not args.throw_exceptions:
         try:
             cmd.main(args, config)
-        except Exception, e:
-            print('ERROR: {}'.format(e.message))
+        except Exception as e:
+            print('ERROR: {}'.format(e))
             exit(1)
     else:
         cmd.main(args, config)
