@@ -7,12 +7,14 @@ from stash import stash
 
 class Req(object):
     def __init__(self, valname=None, value=None, 
-                       allowed=[], xref=None, valtype=None):
+                       allowed=[], xref=None, valtype=None,
+                       optional=False):
         self.valname = valname
         self.value = value
         self.allowed = allowed
         self.xref = xref
         self.valtype = valtype
+        self.optional = optional
 
     def check(self, section):
         if self.valname:
@@ -24,7 +26,8 @@ class Req(object):
 CONFIG_SCHEMA = odict([
     ('settings', {'type': 'dict',
                   'keys': {
-                      'ignore_warnings': Req(valtype=bool)
+                      'ignore_warnings': Req(valtype=bool),
+                      'ignore_commands': Req(optional=True)
         }
     }),
     ('computer_name', {'type': 'one',
@@ -75,7 +78,10 @@ CONFIG_SCHEMA = odict([
 class ConfigError(Exception):
     def __init__(self, message, hint):
         self.message = message
-        self.hint = '  -' + hint
+        if hint:
+            self.hint = '  -' + hint
+        else:
+            self.hint = ''
 
     def __str__(self):
         return self.message
@@ -122,15 +128,21 @@ class ConfigChecker(object):
             if secschema['type'] == 'one':
                 pass
             elif secschema['type'] == 'dict':
-                for key in secschema['keys']:
-                    if key not in conf_section:
-                        msg = 'Missing value: "{}" not present in {}'.format(key, secname)
+                for seckey, req in secschema['keys'].items():
+                    if seckey not in conf_section and not req.optional:
+                        msg = 'Missing value: "{}" not present in {}'.format(seckey, secname)
+                        self._add_error(msg)
+                for conf_key in conf_section.keys():
+                    if conf_key not in secschema['keys']:
+                        msg = 'Unrequired value in {}: "{}: {}"'.format(secname, conf_key, conf_section[conf_key])
+                        self._add_warning(msg)
+
             if secschema['type'] == 'many':
                 secvals = secschema['each']
                 for conf_seckey, conf_secvalues in conf_section.items():
                     for key, req in secvals.items():
                         required = req.check(conf_secvalues)
-                        if required and key not in conf_secvalues:
+                        if required and key not in conf_secvalues and not req.optional:
                             msg = '{}:{} Required value "{}" not present'.format(secname, conf_seckey, key)
                             hint = None
                             if req.valname:
