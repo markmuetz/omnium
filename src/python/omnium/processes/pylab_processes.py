@@ -1,8 +1,9 @@
+import subprocess as sp
+
 import pylab as plt
 import iris
 
 from stash import stash
-
 from omnium.processes import Process
 
 class PylabProcess(Process):
@@ -11,6 +12,10 @@ class PylabProcess(Process):
         filename = self.node.filename(self.config)
         plt.savefig(filename)
         self.saved = True
+
+    def view(self):
+        assert(self.node.status == 'done')
+        sp.call(['eog', self.node.filename(self.config)])
 
 
 class PlotMultiTimeseries(PylabProcess):
@@ -65,4 +70,3 @@ class PlotLastProfile(PylabProcess):
 
         plt.legend()
         self.processed_data = fig
-
