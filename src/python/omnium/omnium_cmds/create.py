@@ -9,7 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 
 OMNI_INFO_FILENAME = 'omni.info'
 OMNI_CONF_FILENAME = 'omni_conf.py'
-OMNI_COMP_FILENAME = 'computers.txt'
+OMNI_COMP_FILENAME = 'computer.txt'
 
 ARGS = [
         (['omniname'], {'nargs': 1,
