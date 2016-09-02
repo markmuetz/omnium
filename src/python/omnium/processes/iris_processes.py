@@ -35,17 +35,23 @@ class DomainMean(IrisProcess):
     num_vars = 'multi'
 
     def load(self):
-        super(DomainMean, self).load()
         first_node = self.node.from_nodes[0]
         filename = first_node.filename(self.config)
         cubes = iris.load(filename)
+	found = False
         for cube in cubes:
             cube_stash = cube.attributes['STASH']
+	    print(cube_stash)
             section, item = cube_stash.section, cube_stash.item
-            if section == first_node.section and item == first_node.item:
+            if section == self.node.section and item == self.node.item:
+		found = True
                 break
 
+	if not found:
+	    raise Exception('Could not find {}'.format(self.node))
+
         varname = cube.name()
+	print(varname)
         def cube_iter():
             for from_node in self.node.from_nodes:
                 filename = from_node.filename(self.config)

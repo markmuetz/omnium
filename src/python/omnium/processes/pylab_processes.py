@@ -19,13 +19,14 @@ class PlotMultiTimeseries(PylabProcess):
 
     def load(self):
         super(PlotMultiTimeseries, self).load()
-        filenames = [n.filename(self.config) for n in node.from_nodes]
+        filenames = [n.filename(self.config) for n in self.node.from_nodes]
         all_timeseries = iris.load(filenames)
         self.data = all_timeseries
         return all_timeseries
 
     def run(self):
         super(PlotMultiTimeseries, self).run()
+	all_timeseries = self.data
         fig, axes = plt.subplots(1, len(all_timeseries))
         if len(all_timeseries) == 1:
             axes = [axes]
