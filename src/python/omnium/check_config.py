@@ -202,11 +202,11 @@ class ConfigChecker(object):
 
     def variable_checks(self):
         for varname, varsec in self.config['variables'].items():
-            if varsec['section'] not in stash.stash_vars:
+            if varsec['section'] not in stash:
                 msg = 'Variable section not found in stash: {}:section:{}'.format(varname, varsec['section'])
                 self._add_error(msg)
                 continue
-            if varsec['item'] not in stash.stash_vars[varsec['section']]:
+            if varsec['item'] not in stash[varsec['section']]:
                 msg = 'Variable item not found in stash section {}: {}:item:{}'.format(varsec['section'], varname, varsec['item'])
                 self._add_error(msg)
 

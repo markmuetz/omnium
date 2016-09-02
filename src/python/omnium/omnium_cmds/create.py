@@ -3,11 +3,13 @@ import os
 import shutil
 from glob import glob
 import datetime as dt
+import socket
 
 from jinja2 import Environment, FileSystemLoader
 
 OMNI_INFO_FILENAME = 'omni.info'
-OMNI_CONF_FILENAME = 'omni.conf'
+OMNI_CONF_FILENAME = 'omni_conf.py'
+OMNI_COMP_FILENAME = 'computers.txt'
 
 ARGS = [
         (['omniname'], {'nargs': 1,
@@ -17,9 +19,12 @@ ARGS = [
            ]
 
 def main(args):
+    cwd = os.getcwd()
+    args.cwd = cwd
+
     omniname = args.omniname[0]
     user_dir = os.path.expandvars('$HOME')
-    omni_dir = os.path.join(user_dir, 'omnis', omniname)
+    omni_dir = os.path.join(cwd, omniname)
 
     if os.path.exists(omni_dir):
         msg = 'Omni dir {} already exists, please choose a different name'.format(omni_dir)
@@ -39,10 +44,16 @@ def main(args):
         }
 
     conf_context = {
+        'computer_name': socket.gethostname(),
+        }
+
+    comp_context = {
+        'computer_name': socket.gethostname(),
         }
 
     info_tpl_render = tpl_env.get_template(OMNI_INFO_FILENAME).render(info_context)
     conf_tpl_render = tpl_env.get_template(OMNI_CONF_FILENAME).render(conf_context)
+    comp_tpl_render = tpl_env.get_template(OMNI_COMP_FILENAME).render(comp_context)
 
     os.makedirs(omni_dir)
     with open(os.path.join(omni_dir, OMNI_INFO_FILENAME), 'w') as f:
@@ -50,3 +61,6 @@ def main(args):
 
     with open(os.path.join(omni_dir, OMNI_CONF_FILENAME), 'w') as f:
         f.write(conf_tpl_render)
+
+    with open(os.path.join(omni_dir, OMNI_COMP_FILENAME), 'w') as f:
+        f.write(comp_tpl_render)
