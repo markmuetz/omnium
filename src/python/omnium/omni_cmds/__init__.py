@@ -15,7 +15,7 @@ commands = [
     'process', 
     'remote-node-sync', 
     'remote-get-dir', 
-    'run', 
+    #'run', 
     'shell', 
     #'threed',
     'verify-node-graph', 

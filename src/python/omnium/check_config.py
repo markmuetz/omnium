@@ -151,7 +151,7 @@ class ConfigChecker(object):
                         else:
                             if req.allowed and conf_secvalues[key] not in req.allowed:
                                 msg = '{}:{} "{}: {}" not an allowed value'.format(secname, conf_seckey, key, conf_secvalues[key])
-                                hint = 'must be one of {}'.format(', '.join(allowed))
+                                hint = 'must be one of {}'.format(', '.join(req.allowed))
                                 self._add_error(msg, hint)
                         if req.valtype:
                             if type(conf_secvalues[key]) is not req.valtype:

@@ -301,7 +301,7 @@ class NodeDAG(object):
 
     def _get_converted_filename(self, conv_filename):
         pre, ext = os.path.splitext(conv_filename)
-        conv_config = self._config['process_options']['convert_pp_to_nc']
+        conv_config = self.config['process_options']['convert_pp_to_nc']
         if ext[:3] != conv_config['convert_from']:
             msg = 'File extension {} != {}'.format(ext[:3], 
                     conv_config['convert_from'])

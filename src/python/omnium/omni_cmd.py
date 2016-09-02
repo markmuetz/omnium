@@ -14,6 +14,7 @@ ARGS = [(['-c', '--config-file'], {'default': 'omni_conf.py'}),
 
 
 def main():
+    print('main')
     cmds, args = parse_commands('omni', ARGS, omni_cmds)
     cwd = os.getcwd()
     args.cwd = cwd
