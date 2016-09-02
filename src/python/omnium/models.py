@@ -73,7 +73,8 @@ class Node(Base):
                             backref="from_nodes"
     )
 
-    def filename(self, computer_name, config):
+    def filename(self, config):
+        computer_name = config['computer_name']
         base_dir = config['computers'][computer_name]['dirs'][self.group.base_dirname]
         return os.path.join(base_dir, self.rel_filename)
 

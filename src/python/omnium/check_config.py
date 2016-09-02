@@ -2,7 +2,7 @@
 from collections import OrderedDict as odict
 
 from dict_printer import pprint
-from processes import get_process_classes
+from omnium.processes import process_classes
 from stash import stash
 
 class Req(object):
@@ -196,7 +196,6 @@ class ConfigChecker(object):
                                     self._add_error(msg)
 
     def process_checks(self):
-        process_classes = get_process_classes(self.args.cwd)
         errors = []
         for groupname, groupsec in self.config['groups'].items():
             if groupsec['type'] == 'group_process':

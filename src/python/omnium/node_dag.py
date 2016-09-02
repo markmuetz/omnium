@@ -6,169 +6,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from results import ResultsManager
-from omnium.processes import get_process_classes
+from omnium.processes import process_classes
 from models import Base, Computer, Batch, Group, Node
 
 class NodeDAG(object):
     def __init__(self, args, config, rm, remote_computer_name):
-        self._args = args
-        self._config = config
+        self.args = args
+        self.config = config
         self._rm = rm
 
         self.remote_computer_name = remote_computer_name
         self._set_computer_name()
         self._connect_create_db()
 
-    def _set_computer_name(self):
-        self.computer_name = self._config['computer_name']
-
-
-    def _connect_create_db(self):
-        if not os.path.exists('.omni'):
-            os.makedirs('.omni')
-
-        if not self.remote_computer_name:
-            connection_string = 'sqlite:///.omni/sqlite3.db'
-            engine = create_engine(connection_string)
-            Base.metadata.create_all(engine)
-        else:
-            connection_string = 'sqlite:///.omni/{}_sqlite3.db'\
-                                .format(self.remote_computer_name)
-            engine = create_engine(connection_string)
-
-        Session = sessionmaker(bind=engine)
-        self._session = Session()
-
-    def commit(self):
-        self._session.commit()
-
-    def get_group(self, group_name):
-        return self._session.query(Group)\
-                   .filter_by(name=group_name).one()
-
-    def get_node(self, node_name):
-        print(node_name)
-        return self._session.query(Node)\
-                   .filter_by(name=node_name).one()
-
-    def get_batch(self, batch_name):
-        return self._session.query(Batch)\
-                   .filter_by(name=batch_name).one()
-
-    def _get_node_status(self, filename):
-        status = 'missing'
-        if os.path.exists(filename):
-            if os.path.exists(filename + '.done'):
-                status = 'done'
-            else:
-                status = 'processing'
-        return status
-
-    def verify_status(self):
-        self.errors = []
-        for node in self._session.query(Node).all():
-            filename = node.filename(self.computer_name, self._config)
-            status = self._get_node_status(filename)
-            if node.status != status:
-                self.errors.append((node, status))
-                print('{}: {} doesn\'t match {}'.format(node.name,
-                                                        node.status,
-                                                        status))
-                if self._args.update:
-                    node.status = status
-                    print('Updated: {}'.format(node))
-
-        if len(self.errors):
-            if self._args.update:
-                self.commit()
-                self.errors = []
-            else:
-                msg = 'Status doesn\'t match for {} node(s)\n'\
-                      'To fix run:\nomni verify-node-graph --update'\
-                      .format(len(self.errors))
-                raise Exception(msg)
-        else:
-            print('All nodes statuses verified')
-
-
-    def _get_base_dir(self, base_dirname):
-        base_dir = self._config['computers'][self.computer_name]\
-                               ['dirs'][base_dirname]
-        return base_dir
-
-    def _generate_init_nodes(self, group, group_sec):
-        base_dir = self._get_base_dir(group.base_dirname)
-        full_glob = os.path.join(base_dir,
-                                 group_sec['filename_glob'])
-        filenames = sorted(glob(full_glob))
-        for filename in filenames:
-            rel_filename = os.path.relpath(filename, base_dir)
-            node = self._create_node(rel_filename, group)
-
-    def _generate_group_process_nodes(self, group, group_sec):
-        process_name = group_sec['process']
-        process = self.process_classes[process_name](self._args, 
-                                                     self._config, 
-                                                     self.computer_name)
-
-    def _generate_from_group_nodes(self, group, node_name, node_sec):
-        from_group = self.get_group(node_sec['from_group'])
-        process = self.process_classes[node_sec['process']](self._args, 
-                                                            self._config, 
-                                                            self.computer_name)
-        fn_args = [from_group.name, node_name,
-                   node_sec['process']]
-        base_dir = self._get_base_dir(group.base_dirname)
-        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
-        rel_filename = os.path.relpath(filename, base_dir)
-        if 'variable' in node_sec:
-            var_sec = self._config['variables'][node_sec['variable']]
-            next_node = self._create_node(rel_filename, group, 
-                                          node_name,
-                                          node_sec['process'], 
-                                          var_sec['section'], 
-                                          var_sec['item'])
-        else:
-            next_node = self._create_node(rel_filename, group, 
-                                          node_name,
-                                          node_sec['process'])
-
-
-    def _generate_from_nodes_nodes(self, group, node_name, node_sec):
-        process = self.process_classes[node_sec['process']](self._args, 
-                                                            self._config, 
-                                                            self.computer_name)
-        fn_args = [group.name, node_name,
-                   node_sec['process']]
-        base_dir = self._get_base_dir(group.base_dirname)
-        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
-        rel_filename = os.path.relpath(filename, base_dir)
-        if 'section' in node_sec and 'item' in node_sec:
-            next_node = self._create_node(rel_filename, group, 
-                                          node_name,
-                                          process_name=node_sec['process'], 
-                                          section=node_sec['section'], 
-                                          item=node_sec['item'])
-        else:
-            next_node = self._create_node(rel_filename, group, 
-					  node_name,
-                                          process_name=node_sec['process'])
-
-
-    def _generate_nodes_process_nodes(self, group, group_sec):
-        for node_name in group_sec['nodes']:
-            node_sec = self._config['nodes'][node_name]
-
-            if 'from_group' in node_sec:
-                self._generate_from_group_nodes(group, node_name, node_sec)
-            elif 'from_nodes' in node_sec:
-                self._generate_from_nodes_nodes(group, node_name, node_sec)
-            elif 'from_node' in node_sec:
-                self._generate_from_nodes_nodes(group, node_name, node_sec)
-
     def generate_all_nodes(self, group_names):
-        self.process_classes = get_process_classes(self._args.cwd)
-
         computer_count = self._session.query(Computer)\
                              .filter_by(name=self.computer_name).count()
         if computer_count:
@@ -184,8 +35,8 @@ class NodeDAG(object):
         computer = Computer(name=self.computer_name)
         self._session.add(computer)
 
-        for batch_name in self._config['batches'].keys():
-            batch_sec = self._config['batches'][batch_name]
+        for batch_name in self.config['batches'].keys():
+            batch_sec = self.config['batches'][batch_name]
             batch = Batch(name=batch_name, index=batch_sec['index'])
             self._session.add(batch)
 
@@ -193,7 +44,7 @@ class NodeDAG(object):
         incomplete_groups = []
         node_process_groups = []
         for group_name in group_names:
-            group_sec = self._config['groups'][group_name]
+            group_sec = self.config['groups'][group_name]
 
             batch = self.get_batch(group_sec['batch'])
 
@@ -219,7 +70,7 @@ class NodeDAG(object):
         group_processing = []
         while incomplete_groups:
             for group in incomplete_groups:
-                group_sec = self._config['groups'][group.name]
+                group_sec = self.config['groups'][group.name]
                 from_group = self.get_group(group_sec['from_group'])
                 if from_group in completed_groups:
                     group_processing.append(group)
@@ -228,14 +79,14 @@ class NodeDAG(object):
 
         # Hook up group_processing nodes.
         for group in group_processing:
-            print('GP ' + group.__str__())
-            group_sec = self._config['groups'][group.name]
+            #print('GP ' + group.__str__())
+            group_sec = self.config['groups'][group.name]
 
             group_type = group_sec['type']
             from_group = self.get_group(group_sec['from_group'])
             for from_node in from_group.nodes:
                 process_name = group_sec['process']
-                orig_filename = from_node.filename(self.computer_name, self._config)
+                orig_filename = from_node.filename(self.config)
                 filename = self._get_converted_filename(orig_filename)
                 base_dir = self._get_base_dir(group.base_dirname)
                 rel_filename = os.path.relpath(filename, base_dir)
@@ -247,12 +98,12 @@ class NodeDAG(object):
 
         # Hook up remaining nodes.
         for group in node_process_groups:
-            print('NP ' + group.__str__())
-            group_sec = self._config['groups'][group.name]
+            #print('NP ' + group.__str__())
+            group_sec = self.config['groups'][group.name]
             for node_name in group_sec['nodes']:
                 node = self.get_node(node_name)
-                node_sec = self._config['nodes'][node_name]
-                print(node_sec)
+                node_sec = self.config['nodes'][node_name]
+                #print(node_sec)
                 if 'from_group' in node_sec:
                     from_group = self.get_group(node_sec['from_group'])
                     for from_node in from_group.nodes:
@@ -279,6 +130,157 @@ class NodeDAG(object):
                 for node in group.nodes:
                     print('    ' + node.__repr__())
         print('')
+
+    def get_proc(self, node_name):
+        node = self.get_node(node_name)
+        return process_classes[node.process](self.args, 
+                                             self.config, 
+                                             node)
+
+    def commit(self):
+        self._session.commit()
+
+    def get_group(self, group_name):
+        return self._session.query(Group)\
+                   .filter_by(name=group_name).one()
+
+    def get_node(self, node_name):
+        return self._session.query(Node)\
+                   .filter_by(name=node_name).one()
+
+    def get_batch(self, batch_name):
+        return self._session.query(Batch)\
+                   .filter_by(name=batch_name).one()
+
+    def verify_status(self):
+        self.errors = []
+        for node in self._session.query(Node).all():
+            filename = node.filename(self.config)
+            status = self._get_node_status(filename)
+            if node.status != status:
+                self.errors.append((node, status))
+                print('{}: {} doesn\'t match {}'.format(node.name,
+                                                        node.status,
+                                                        status))
+                if self.args.update:
+                    node.status = status
+                    print('Updated: {}'.format(node))
+
+        if len(self.errors):
+            if self.args.update:
+                self.commit()
+                self.errors = []
+            else:
+                msg = 'Status doesn\'t match for {} node(s)\n'\
+                      'To fix run:\nomni verify-node-graph --update'\
+                      .format(len(self.errors))
+                raise Exception(msg)
+        else:
+            print('All nodes statuses verified')
+
+
+    def _set_computer_name(self):
+        self.computer_name = self.config['computer_name']
+
+    def _connect_create_db(self):
+        if not os.path.exists('.omni'):
+            os.makedirs('.omni')
+
+        if not self.remote_computer_name:
+            connection_string = 'sqlite:///.omni/sqlite3.db'
+            engine = create_engine(connection_string)
+            Base.metadata.create_all(engine)
+        else:
+            connection_string = 'sqlite:///.omni/{}_sqlite3.db'\
+                                .format(self.remote_computer_name)
+            engine = create_engine(connection_string)
+
+        Session = sessionmaker(bind=engine)
+        self._session = Session()
+
+    def _get_node_status(self, filename):
+        status = 'missing'
+        if os.path.exists(filename):
+            if os.path.exists(filename + '.done'):
+                status = 'done'
+            else:
+                status = 'processing'
+        return status
+
+    def _get_base_dir(self, base_dirname):
+        base_dir = self.config['computers'][self.computer_name]\
+                               ['dirs'][base_dirname]
+        return base_dir
+
+    def _generate_init_nodes(self, group, group_sec):
+        base_dir = self._get_base_dir(group.base_dirname)
+        full_glob = os.path.join(base_dir,
+                                 group_sec['filename_glob'])
+        filenames = sorted(glob(full_glob))
+        for filename in filenames:
+            rel_filename = os.path.relpath(filename, base_dir)
+            node = self._create_node(rel_filename, group)
+
+    def _generate_group_process_nodes(self, group, group_sec):
+        process_name = group_sec['process']
+        process = process_classes[process_name](self.args, 
+                                                     self.config, 
+                                                     self.computer_name)
+
+    def _generate_from_group_nodes(self, group, node_name, node_sec):
+        from_group = self.get_group(node_sec['from_group'])
+        process = process_classes[node_sec['process']](self.args, 
+                                                            self.config, 
+                                                            self.computer_name)
+        fn_args = [from_group.name, node_name,
+                   node_sec['process']]
+        base_dir = self._get_base_dir(group.base_dirname)
+        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
+        rel_filename = os.path.relpath(filename, base_dir)
+        if 'variable' in node_sec:
+            var_sec = self.config['variables'][node_sec['variable']]
+            next_node = self._create_node(rel_filename, group, 
+                                          node_name,
+                                          node_sec['process'], 
+                                          var_sec['section'], 
+                                          var_sec['item'])
+        else:
+            next_node = self._create_node(rel_filename, group, 
+                                          node_name,
+                                          node_sec['process'])
+
+
+    def _generate_from_nodes_nodes(self, group, node_name, node_sec):
+        process = process_classes[node_sec['process']](self.args, 
+                                                            self.config, 
+                                                            self.computer_name)
+        fn_args = [group.name, node_name,
+                   node_sec['process']]
+        base_dir = self._get_base_dir(group.base_dirname)
+        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
+        rel_filename = os.path.relpath(filename, base_dir)
+        if 'section' in node_sec and 'item' in node_sec:
+            next_node = self._create_node(rel_filename, group, 
+                                          node_name,
+                                          process_name=node_sec['process'], 
+                                          section=node_sec['section'], 
+                                          item=node_sec['item'])
+        else:
+            next_node = self._create_node(rel_filename, group, 
+					  node_name,
+                                          process_name=node_sec['process'])
+
+
+    def _generate_nodes_process_nodes(self, group, group_sec):
+        for node_name in group_sec['nodes']:
+            node_sec = self.config['nodes'][node_name]
+
+            if 'from_group' in node_sec:
+                self._generate_from_group_nodes(group, node_name, node_sec)
+            elif 'from_nodes' in node_sec:
+                self._generate_from_nodes_nodes(group, node_name, node_sec)
+            elif 'from_node' in node_sec:
+                self._generate_from_nodes_nodes(group, node_name, node_sec)
 
     def _create_node(self, rel_filename, group, name=None, process_name=None, 
                      section=None, item=None):
@@ -311,7 +313,8 @@ class NodeDAG(object):
 def regenerate_node_dag(args, config):
     if os.path.exists('.omni/sqlite3.db'):
         os.remove('.omni/sqlite3.db')
-    return generate_node_dag(args, config)
+    dag = generate_node_dag(args, config)
+    return dag
 
 
 def generate_node_dag(args, config):

@@ -12,7 +12,7 @@ commands = [
     'list-processes',
     'print-config', 
     'print-node-graph', 
-    'process-batch', 
+    'process', 
     'remote-node-sync', 
     'remote-get-dir', 
     'run', 

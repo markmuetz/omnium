@@ -1,4 +1,5 @@
 import os
+import sys
 
 from command_parser import parse_commands
 from check_config import ConfigChecker, ConfigError
@@ -17,7 +18,11 @@ def main():
     cwd = os.getcwd()
     args.cwd = cwd
     config_path = os.path.join(cwd, args.config_file)
+
+    # Stops .pyc file from being created.
+    sys.dont_write_bytecode = True
     config_module = imp.load_source('omni_conf', config_path)
+    sys.dont_write_bytecode = False
 
     settings = [d for d in dir(config_module) if d[:2] not in ['__']]
     config = dict((s, getattr(config_module, s)) for s in settings)

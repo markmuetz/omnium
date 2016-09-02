@@ -18,7 +18,7 @@ def main(args, config):
         try:
             node = dag.get_node(node_name)
             print(node)
-            print(node.filename(dag.computer_name, config))
+            print(node.filename(config))
             print('')
         except NoResultFound:
             print('No node with name {}'.format(node_name))

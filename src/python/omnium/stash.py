@@ -31,12 +31,12 @@ class STASH(OrderedDict):
     def get_name(self, section, item):
         return self[section][item]
 
-    def rename_unknown_cubes(self, cubes):
+    def rename_unknown_cubes(self, cubes, force=False):
         for cube in cubes:
-            self.rename_unknown_cube(cube)
+            self.rename_unknown_cube(cube, force)
 
-    def rename_unknown_cube(self, cube):
-        if cube.name()[:7] == 'unknown':
+    def rename_unknown_cube(self, cube, force=False):
+        if force or cube.name()[:7] == 'unknown':
             section = cube.attributes['STASH'].section 
             item = cube.attributes['STASH'].item
             name = self[section][item]
