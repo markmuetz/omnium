@@ -5,7 +5,7 @@ import subprocess as sp
 ARGS = [(['dirname'], {'nargs': 1})]
 
 def main(args, config):
-    computer_name = open(config['computers']['current'], 'r').read().strip()
+    computer_name = config['computer_name']
     remote_computer_name = config['computers'][computer_name]['remote']
     remote_address = config['computers'][computer_name]['remote_address']
 
