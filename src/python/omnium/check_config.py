@@ -26,14 +26,19 @@ class Req(object):
 CONFIG_SCHEMA = odict([
     ('settings', {'type': 'dict',
                   'keys': {
-                      'ignore_warnings': Req(valtype=bool),
-                      'ignore_commands': Req(optional=True)
+                      'ignore_warnings': Req(valtype=bool, optional=True),
+                      'ignore_commands': Req(optional=True),
+                      'console_log_level': Req(optional=True),
+                      'file_log_level': Req(optional=True),
+                      'disable_colour_log_output': Req(valtype=bool, optional=True),
         }
     }),
     ('computer_name', {'type': 'one',
                        'one': Req(xref='computers')}),
     ('computers', {'type': 'many',
         'each': {
+            'remote': Req(optional=True),
+            'remote_address': Req(optional=True),
             'dirs': Req(),
         }
     }),
@@ -139,7 +144,16 @@ class ConfigChecker(object):
 
             if secschema['type'] == 'many':
                 secvals = secschema['each']
+
                 for conf_seckey, conf_secvalues in conf_section.items():
+                    dont_check = []
+                    for key, req in secvals.items():
+                        # Check all config_secvalues have the required non-optional keys.
+                        if req.valname and req.valname not in conf_secvalues and not req.optional:
+                            msg = '{}:{} Required value "{}" not present'.format(secname, conf_seckey, req.valname)
+                            self._add_error(msg)
+                            dont_check.append(key)
+
                     for key, req in secvals.items():
                         required = req.check(conf_secvalues)
                         if required and key not in conf_secvalues and not req.optional:

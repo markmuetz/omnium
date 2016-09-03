@@ -32,7 +32,7 @@ class Window(QtGui.QWidget):
         glob_full = os.path.join(work_dir, filename_glob)
         filenames = glob(glob_full)
 
-        print(glob_full)
+        logger.debug(glob_full)
         self.umo.load_cubes(filenames[0])
         self.cube = self.umo.cube[self.cube_index]
 
@@ -162,7 +162,7 @@ class Window(QtGui.QWidget):
 def main(args, config):
     import sys
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        print('Starting app')
+        logger.info('Starting app')
         app = QtGui.QApplication(sys.argv)
         window = Window(config)
         window.show()

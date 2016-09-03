@@ -1,5 +1,8 @@
 """Deletes section or option from config"""
 import os
+from logging import getLogger
+
+logger = getLogger('omni')
 
 ARGS = [
         (['section'], {'nargs': 1, 'help': 'Section to delete'}),
@@ -20,9 +23,9 @@ def main(args, config):
         r = raw_input(msg)
         if r == 'y':
             config.write()
-            print('{} deleted.'.format(sec_opt))
+            logger.info('{} deleted.'.format(sec_opt))
         else:
-            print('{} not deleted.'.format(sec_opt))
+            logger.info('{} not deleted.'.format(sec_opt))
     else:
         # Deleting section.
         sec = '[{}]'.format(args.section[0])
@@ -31,7 +34,7 @@ def main(args, config):
         if r == 'y':
             config.delete(args.section[0])
             config.save()
-            print('{} deleted.'.format(sec))
+            logger.info('{} deleted.'.format(sec))
         else:
-            print('{} not deleted.'.format(sec))
+            logger.info('{} not deleted.'.format(sec))
 

@@ -4,8 +4,11 @@ import shutil
 from glob import glob
 import datetime as dt
 import socket
+from logging import getLogger
 
 from jinja2 import Environment, FileSystemLoader
+
+logger = getLogger('omni')
 
 OMNI_INFO_FILENAME = 'omni.info'
 OMNI_CONF_FILENAME = 'omni_conf.py'
@@ -28,7 +31,7 @@ def main(args):
 
     if os.path.exists(omni_dir):
         msg = 'Omni dir {} already exists, please choose a different name'.format(omni_dir)
-        print(msg)
+        logger.info(msg)
         return
 
     omni_home = os.path.expandvars('$OMNI_HOME')

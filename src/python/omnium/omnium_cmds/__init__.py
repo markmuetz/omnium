@@ -1,7 +1,10 @@
 from collections import OrderedDict
 import importlib
+from logging import getLogger
 
 commands = ['ls', 'create']
+
+logger = getLogger('omni')
 
 modules = OrderedDict()
 for command in commands:
@@ -9,5 +12,5 @@ for command in commands:
     try:
         modules[command] = importlib.import_module(command_name)
     except ImportError, e:
-        print('Cannot load module {}'.format(command_name))
-        print(e)
+        logger.error('Cannot load module {}'.format(command_name))
+        logger.error(e)

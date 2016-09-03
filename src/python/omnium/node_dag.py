@@ -1,6 +1,8 @@
+from __future__ import print_function
 import os
 from collections import OrderedDict
 from glob import glob
+from logging import getLogger
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -8,6 +10,8 @@ from sqlalchemy.orm import sessionmaker
 from results import ResultsManager
 from omnium.processes import process_classes
 from models import Base, Computer, Batch, Group, Node
+
+logger = getLogger('omni')
 
 class NodeDAG(object):
     def __init__(self, args, config, rm, remote_computer_name):
@@ -122,14 +126,20 @@ class NodeDAG(object):
         self._session.commit()
 
 
-    def print_nodes(self):
+    def _show_nodes(self, printer):
         for batch in self._session.query(Batch).all():
-            print(batch.__repr__())
+            printer(batch.__repr__())
             for group in batch.groups:
-                print('  ' + group.__repr__())
+                printer('  ' + group.__repr__())
                 for node in group.nodes:
-                    print('    ' + node.__repr__())
-        print('')
+                    printer('    ' + node.__repr__())
+        printer('')
+
+    def print_nodes(self):
+        self._show_nodes(print)
+
+    def log_nodes(self):
+        self._show_nodes(logger.debug)
 
     def get_proc(self, node_name):
         node = self.get_node(node_name)
@@ -159,12 +169,12 @@ class NodeDAG(object):
             status = self._get_node_status(filename)
             if node.status != status:
                 self.errors.append((node, status))
-                print('{}: {} doesn\'t match {}'.format(node.name,
+                logger.info('{}: {} doesn\'t match {}'.format(node.name,
                                                         node.status,
                                                         status))
                 if self.args.update:
                     node.status = status
-                    print('Updated: {}'.format(node))
+                    logger.info('Updated: {}'.format(node))
 
         if len(self.errors):
             if self.args.update:
@@ -176,7 +186,7 @@ class NodeDAG(object):
                       .format(len(self.errors))
                 raise Exception(msg)
         else:
-            print('All nodes statuses verified')
+            logger.info('All nodes statuses verified')
 
 
     def _set_computer_name(self):
@@ -324,6 +334,7 @@ def generate_node_dag(args, config):
 
     group_names = config['groups'].keys()
     dag.generate_all_nodes(group_names)
+    dag.log_nodes()
     return dag
 
 

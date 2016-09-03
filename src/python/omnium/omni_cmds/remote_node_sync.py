@@ -1,6 +1,9 @@
 """syncs nodes from remote machine defined in omni.conf"""
 import os
 import subprocess as sp
+from logging import getLogger
+
+logger = getLogger('omni')
 
 ARGS = []
 
@@ -14,5 +17,5 @@ def main(args, config):
     local_path = os.path.join('.omni', '{}_sqlite3.db'.format(remote_computer_name))
 
     cmd = 'scp {}:{} {}'.format(remote_address, sqlit3_remote_path, local_path)
-    print(cmd)
+    logger.info(cmd)
     sp.call(cmd.split())

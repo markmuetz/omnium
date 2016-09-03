@@ -1,5 +1,8 @@
 from collections import OrderedDict
 import importlib
+from logging import getLogger
+
+logger = getLogger('omni')
 
 commands = [
     'check-config', 
@@ -27,5 +30,5 @@ for command in commands:
     try:
         modules[command] = importlib.import_module(command_name)
     except ImportError, e:
-        print('Cannot load module {}'.format(command_name))
-        print(e)
+        logger.info('Cannot load module {}'.format(command_name))
+        logger.info(e)

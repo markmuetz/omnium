@@ -1,7 +1,10 @@
 import iris
 import iris.util
+from logging import getLogger
 
 from omnium.processes import Process
+
+logger = getLogger('omni')
 
 class IrisProcess(Process):
     num_files = 'single'
@@ -41,7 +44,7 @@ class DomainMean(IrisProcess):
 	found = False
         for cube in cubes:
             cube_stash = cube.attributes['STASH']
-	    print(cube_stash)
+	    logger.info(cube_stash)
             section, item = cube_stash.section, cube_stash.item
             if section == self.node.section and item == self.node.item:
 		found = True
@@ -51,7 +54,6 @@ class DomainMean(IrisProcess):
 	    raise Exception('Could not find {}'.format(self.node))
 
         varname = cube.name()
-	print(varname)
         def cube_iter():
             for from_node in self.node.from_nodes:
                 filename = from_node.filename(self.config)
@@ -83,7 +85,7 @@ class ConvertPpToNc(IrisProcess):
         super(ConvertPpToNc, self).run()
         cubes = self.data
         if not len(cubes):
-            print('Cubes is empty')
+            logger.warn('Cubes is empty')
             return
         self.processed_data = cubes
         return cubes

@@ -1,8 +1,11 @@
 """Run processing"""
 import os
+from logging import getLogger
 
 from omnium.node_dag import get_node_dag
 from omnium.processes import process_classes
+
+logger = getLogger('omni')
 
 ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
         (['-g', '--group'], {'help': 'Group to process', 'nargs': '?'}),
@@ -30,27 +33,27 @@ def main(args, config):
 
 
 def process_batch(args, config, dag, batch):
-    print('Processing batch {}'.format(batch))
+    logger.info('Processing batch {}'.format(batch))
     for group in batch.groups:
         process_group(args, config, dag, group)
     batch.status = 'done'
     dag.commit()
-    print('Processed batch {}'.format(batch))
+    logger.info('Processed batch {}'.format(batch))
 
 
 def process_group(args, config, dag, group, indent=1):
-    print('  '*indent + 'Processing group {}'.format(group))
+    logger.info('  '*indent + 'Processing group {}'.format(group))
     for node in group.nodes:
         process_node(args, config, dag, node, indent+1)
     group.status = 'done'
     dag.commit()
-    print('  '*indent + 'Processed group {}'.format(group))
+    logger.info('  '*indent + 'Processed group {}'.format(group))
 
 
 def process_node(args, config, dag, node, indent=2):
-    print('  '*indent + 'Processing node {}'.format(node))
+    logger.info('  '*indent + 'Processing node {}'.format(node))
     if not args.force and node.status == 'done':
-        print('  '*(indent + 1) + 'Node {} already processed, skipping'.format(node))
+        logger.info('  '*(indent + 1) + 'Node {} already processed, skipping'.format(node))
         return
     elif node.status == 'processing':
         raise Exception('Node {} currently being processed'.format(node))
@@ -61,7 +64,7 @@ def process_node(args, config, dag, node, indent=2):
     if node.process == None:
         raise Exception('Node {} does not not have a process\n(is it an init node?)'.format(node))
 
-    print('  '*(indent+1) + 'Using process {}'.format(node.process))
+    logger.info('  '*(indent+1) + 'Using process {}'.format(node.process))
     process_class = process_classes[node.process]
     process = process_class(args, config, node)
 
@@ -71,5 +74,4 @@ def process_node(args, config, dag, node, indent=2):
     process.done()
 
     dag.commit()
-    print('  '*indent + 'Processed {}'.format(node))
-
+    logger.info('  '*indent + 'Processed {}'.format(node))

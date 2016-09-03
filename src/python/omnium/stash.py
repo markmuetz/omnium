@@ -1,6 +1,9 @@
 import os
 import re
 from collections import OrderedDict
+from logging import getLogger
+
+logger = getLogger('omni')
 
 class STASH(OrderedDict):
     def __init__(self):
@@ -40,7 +43,7 @@ class STASH(OrderedDict):
             section = cube.attributes['STASH'].section 
             item = cube.attributes['STASH'].item
             name = self[section][item]
-            print('Renaming {}->{}'.format(cube.name(), name))
+            logger.info('Renaming {}->{}'.format(cube.name(), name))
             cube.rename(name)
 
 

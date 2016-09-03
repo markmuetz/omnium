@@ -1,9 +1,11 @@
 import os
 from glob import glob
 from collections import OrderedDict
+from logging import getLogger
 
 import iris
 
+logger = getLogger('omni')
 
 class UMO(object):
     def __init__(self, config):
@@ -25,7 +27,7 @@ class UMO(object):
             self.all_cubes.append(cube)
             cube_stash = cube.attributes['STASH']
             section, item = cube_stash.section, cube_stash.item
-            print('{0:>4}{1:>4} {2}'.format(section, item, cube.shape))
+            logger.info('{0:>4}{1:>4} {2}'.format(section, item, cube.shape))
 	self.cube = self.cubes[self.cube_index]
 
 
@@ -37,9 +39,9 @@ class UMO(object):
 	    cube_stash = test_cube.attributes['STASH']
 	    cube_section, cube_item = cube_stash.section, cube_stash.item
 	    if cube_section == section and cube_item == item:
-		print('Found cube {0:>3} {1:>3}'.format(section, item))
+		logger.info('Found cube {0:>3} {1:>3}'.format(section, item))
 		if cube != None:
-		    print('Found duplicates')
+		    logger.warn('Found duplicates')
 		cube = test_cube
 
 	if not cube:

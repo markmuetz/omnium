@@ -1,6 +1,9 @@
 """syncs nodes from remote machine defined in omni.conf"""
 import os
 import subprocess as sp
+from logging import getLogger
+
+logger = getLogger('omni')
 
 ARGS = [(['dirname'], {'nargs': 1})]
 
@@ -17,5 +20,5 @@ def main(args, config):
     # N.B trailing slash on source dir is important. Tells rsync to not 
     # create new dir e.g. results/results/
     cmd = 'rsync -avz {}:{}/ {}'.format(remote_address, remote_dir, local_dir)
-    print(cmd)
-    sp.call(cmd.split())
+    logger.info(cmd)
+    logger.debug('\n' + sp.check_output(cmd.split()))
