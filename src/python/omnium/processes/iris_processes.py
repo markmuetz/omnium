@@ -4,7 +4,10 @@ from logging import getLogger
 
 import iris
 import iris.util
-import cf_units
+try:
+    import cf_units as units
+except ImportError:
+    import iris.units as units
 
 from omnium.processes import Process
 
@@ -148,7 +151,7 @@ class ConvertMassToEnergyFlux(IrisProcess):
         L = iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
 	# Order of precip, L seems to be important!
         precip_energy_flux = precip * L
-        precip_energy_flux.convert_units(cf_units.Unit('W m-2'))
+        precip_energy_flux.convert_units(units.Unit('W m-2'))
         precip_energy_flux.rename('precip_energy_flux')
 
         self.processed_data = precip_energy_flux
