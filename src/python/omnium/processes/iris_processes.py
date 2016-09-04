@@ -1,6 +1,10 @@
+import os
+import re
+from logging import getLogger
+
 import iris
 import iris.util
-from logging import getLogger
+import cf_units
 
 from omnium.processes import Process
 
@@ -38,13 +42,15 @@ class DomainMean(IrisProcess):
     num_vars = 'multi'
 
     def load(self):
+        super(IrisProcess, self).load()
+
         first_node = self.node.from_nodes[0]
         filename = first_node.filename(self.config)
         cubes = iris.load(filename)
 	found = False
         for cube in cubes:
             cube_stash = cube.attributes['STASH']
-	    logger.info(cube_stash)
+	    logger.debug(cube_stash)
             section, item = cube_stash.section, cube_stash.item
             if section == self.node.section and item == self.node.item:
 		found = True
@@ -53,10 +59,19 @@ class DomainMean(IrisProcess):
 	if not found:
 	    raise Exception('Could not find {}'.format(self.node))
 
+        self.cube = cube
+        coords = ['grid_latitude', 'grid_longitude']
+        for coord_name in coords:
+            try:
+                coord = cube.coord(coord_name)
+            except iris.exceptions.CoordinateNotFoundError:
+                raise Exception('Cube does not have coord {}'.format(coord_name))
+
         varname = cube.name()
         def cube_iter():
             for from_node in self.node.from_nodes:
                 filename = from_node.filename(self.config)
+                logger.debug('Loading cube {}'.format(filename))
                 yield iris.load(filename, varname)[0]
 
         self.data = cube_iter()
@@ -78,8 +93,20 @@ class DomainMean(IrisProcess):
 
 class ConvertPpToNc(IrisProcess):
     name = 'convert_pp_to_nc'
-    out_ext = 'nc'
+    out_ext = '.nc'
     num_vars = 'multi'
+
+    @staticmethod
+    def convert_filename(filename):
+        # e.g. atmos.000.pp3 => atmos.000.3.nc
+        filename = os.path.basename(filename)
+        if not re.match('pp\d', filename[-3:]):
+            raise Exception('Unrecognized filename {}'.format(filename))
+
+        pre, ext = os.path.splitext(filename)
+
+        return pre + '.' + ext[-1] + ConvertPpToNc.out_ext 
+
 
     def run(self):
         super(ConvertPpToNc, self).run()
@@ -121,7 +148,7 @@ class ConvertMassToEnergyFlux(IrisProcess):
         L = iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
 	# Order of precip, L seems to be important!
         precip_energy_flux = precip * L
-        precip_energy_flux.convert_units(iris.unit.Unit('W m-2'))
+        precip_energy_flux.convert_units(cf_units.Unit('W m-2'))
         precip_energy_flux.rename('precip_energy_flux')
 
         self.processed_data = precip_energy_flux

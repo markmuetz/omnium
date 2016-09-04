@@ -91,12 +91,17 @@ class NodeDAG(object):
             for from_node in from_group.nodes:
                 process_name = group_sec['process']
                 orig_filename = from_node.filename(self.config)
-                filename = self._get_converted_filename(orig_filename)
-                base_dir = self._get_base_dir(group.base_dirname)
-                rel_filename = os.path.relpath(filename, base_dir)
-                node = self._create_node(rel_filename, 
-                                              group, 
-                                              process_name=process_name)
+
+                process = process_classes[process_name]
+                new_filename = process.convert_filename(orig_filename)
+
+                # TODO: Causing problems.
+                #filename = self._get_converted_filename(orig_filename)
+                #base_dir = self._get_base_dir(group.base_dirname)
+                #rel_filename = os.path.relpath(filename, base_dir)
+                node = self._create_node(new_filename, 
+                                         group, 
+                                         process_name=process_name)
                 node.from_nodes.append(from_node)
 
 
@@ -152,6 +157,9 @@ class NodeDAG(object):
 
     def get_computers(self):
         return self._session.query(Computer).all()
+
+    def get_batches(self):
+        return self._session.query(Batch).order_by(Batch.index)
 
     def get_batch(self, batch_name):
         return self._session.query(Batch)\

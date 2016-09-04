@@ -66,7 +66,7 @@ def main():
         try:
             cmd.main(args, config)
         except Exception as e:
-            logger.error('ERROR: {}'.format(e))
+            logger.error('{}'.format(e))
             exit(1)
     else:
         cmd.main(args, config)

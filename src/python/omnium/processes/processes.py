@@ -1,3 +1,7 @@
+from logging import getLogger
+
+logger = getLogger('omni')
+
 class Process(object):
     name = None
     def __init__(self, args, config, node):
@@ -15,13 +19,20 @@ class Process(object):
             self.options = {}
 
     def load(self):
-        pass
+        logger.debug('loading {}'.format(self.node))
+        for from_node in self.node.from_nodes:
+            if not from_node.status == 'done':
+                logger.error('Node: {}'.format(self.node))
+                logger.error('From node not done: {}'.format(from_node))
+                raise Exception('Not all from nodes have been processed')
 
     def run(self):
+        logger.debug('running {}'.format(self.node))
         if not self.data:
             raise Exception('No data has been loaded yet for {}'.format(self))
 
     def save(self):
+        logger.debug('saving {}'.format(self.node))
         if not self.processed_data:
             raise Exception('No processed data has been made yet for {}'.format(self))
 
@@ -32,6 +43,7 @@ class Process(object):
         with open(filename + '.done', 'w') as f:
             f.write(self.comments)
         self.node.status = 'done'
+        logger.debug('finished {}'.format(self.node))
         return filename + '.done'
 
     def __str__(self):
@@ -39,5 +51,3 @@ class Process(object):
 
     def __repr__(self):
         return '<Process {} for Node {}>'.format(self.name, self.node.__repr__())
-
-

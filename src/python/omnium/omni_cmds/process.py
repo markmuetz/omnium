@@ -10,6 +10,7 @@ logger = getLogger('omni')
 ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
         (['-g', '--group'], {'help': 'Group to process', 'nargs': '?'}),
         (['-n', '--node'], {'help': 'Node to process', 'nargs': '?'}),
+        (['-a', '--all'], {'help': 'Process all nodes', 'action': 'store_true'}),
         (['-f', '--force'], {'help': 'Force processing for files that are already done',
                              'action': 'store_true',
                              'default': False}),
@@ -17,6 +18,12 @@ ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
 
 def main(args, config):
     dag = get_node_dag(args, config)
+
+    if args.all:
+        for batch in dag.get_batches():
+            process_batch(args, config, dag, batch)
+        return
+
     opts = [args.batch != None, args.group != None, args.node != None]
     if sum(opts) >= 2 or sum(opts) == 0:
         raise Exception('Please select exactly one of --batch, --group or --node')
