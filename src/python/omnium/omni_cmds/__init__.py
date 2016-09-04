@@ -21,6 +21,7 @@ commands = [
     'shell', 
     #'threed',
     'verify-node-graph', 
+    'view-log', 
     ]
 
 modules = OrderedDict()

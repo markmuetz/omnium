@@ -117,6 +117,7 @@ def setup_logger(config):
         # Add a method to (all) loggers that lets it log a file.
         logging.addLevelName(FILE_LEVEL_NUM, "FILE")
         logging.Logger.log_file = log_file
+        logging.FILE = FILE_LEVEL_NUM
 
         root_logger.is_setup = True
 

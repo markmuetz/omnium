@@ -183,7 +183,7 @@ class NodeDAG(object):
             if update:
                 self.commit()
                 self.errors = []
-                logger.debug('Successfully updated dag')
+                logger.info('Successfully updated dag')
             else:
                 msg = 'Status doesn\'t match for {} node(s)\n'\
                       'To fix run:\nomni verify-node-graph --update'\

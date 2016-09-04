@@ -99,6 +99,7 @@ def sync_node(args, config, remote, dag, node):
     local_filename = node.filename(config)
     dirname = os.path.dirname(local_filename)
     if not os.path.exists(dirname):
+        logger.debug('Creating dir {}'.format(dirname))
         os.makedirs(dirname)
     cmd = 'scp {}:{} {}'.format(remote.address, remote_filename, local_filename)
     logger.debug(cmd)
