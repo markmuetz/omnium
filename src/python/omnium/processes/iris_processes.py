@@ -7,7 +7,7 @@ import iris.util
 try:
     import cf_units as units
 except ImportError:
-    import iris.units as units
+    import iris.unit as units
 
 from omnium.processes import Process
 
