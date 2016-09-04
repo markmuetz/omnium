@@ -3,6 +3,7 @@ import iris
 from logging import getLogger
 
 from models import Node
+from processes import process_classes
 
 logger = getLogger('omni')
 
@@ -32,7 +33,7 @@ class ProcessEngine(object):
 
     def process_node(self, node, indent=2):
         logger.info('  '*indent + 'Processing node {}'.format(node))
-        if not force and node.status == 'done':
+        if not self.force and node.status == 'done':
             logger.info('  '*(indent + 1) + 'Node {} already processed, skipping'.format(node))
             return
         elif node.status == 'processing':
@@ -46,7 +47,7 @@ class ProcessEngine(object):
 
         logger.info('  '*(indent+1) + 'Using process {}'.format(node.process))
         process_class = process_classes[node.process]
-        process = process_class(config, self, node)
+        process = process_class(self.config, node)
 
         process.load_upstream()
         process.run()

@@ -3,7 +3,6 @@ import os
 from logging import getLogger
 
 from omnium.node_dag import get_node_dag
-from omnium.processes import process_classes
 from omnium.process_engine import ProcessEngine
 
 logger = getLogger('omni')
@@ -18,7 +17,7 @@ ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
         ]
 
 def main(args, config):
-    dag = get_node_dag(args, config)
+    dag = get_node_dag(config)
     proc_eng = ProcessEngine(args.force, config, dag)
 
     if args.all:
@@ -32,10 +31,10 @@ def main(args, config):
 
     if args.batch:
         batch = dag.get_batch(args.batch)
-        proc_eng.process_batch(args, config, dag, batch)
+        proc_eng.process_batch(batch)
     elif args.group:
         group = dag.get_group(args.group)
-        proc_eng.process_group(args, config, dag, group, 0)
+        proc_eng.process_group(dag, group, 0)
     elif args.node:
         node = dag.get_node(args.node)
-        proc_eng.process_node(args, config, dag, node, 0)
+        proc_eng.process_node(node, 0)

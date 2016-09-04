@@ -37,7 +37,7 @@ def main():
 
     if args.cmd_name != 'check-config':
         logger.debug('checking config')
-        checker = ConfigChecker(args, config)
+        checker = ConfigChecker(config)
         try:
             checker.run_checks()
             for warning in checker.warnings:

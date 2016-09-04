@@ -25,7 +25,7 @@ class PlotMultiTimeseries(PylabProcess):
     def load_upstream(self):
         super(PlotMultiTimeseries, self).load_upstream()
         filenames = [n.filename(self.config) for n in self.node.from_nodes]
-        all_timeseries = iris.load_upstream(filenames)
+        all_timeseries = iris.load(filenames)
         self.data = all_timeseries
         return all_timeseries
 
@@ -54,7 +54,7 @@ class PlotLastProfile(PylabProcess):
     def load_upstream(self):
         super(PlotLastProfile, self).load_upstream()
         filenames = [n.filename(self.config) for n in self.node.from_nodes]
-        profiles = iris.load_upstream(filenames)
+        profiles = iris.load(filenames)
         self.data = profiles
 
     def run(self):

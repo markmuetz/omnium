@@ -17,36 +17,35 @@ ARGS = [(['--all', '-a'], {'help': 'Perform full sync of nodes/files',
         ]
 
 def main(args, config):
-    remote = RemoteInfo(args, config)
-    syncher = Syncher(args.force, config, remote)
+    syncher = Syncher(args.force, config)
     if args.meta:
         syncher.sync_node_dag()
         logger.info('Synced node dag')
     else:
         opts = [args.batch != None, args.group != None, 
                 args.node != None, args.dir != None,
-                args.node_id == None]
+                args.node_id != None]
         if sum(opts) >= 2 or sum(opts) == 0:
             raise Exception('Please select exactly one of --batch, --group or --node')
-        dag = syncher.sync_node_dag(args, config, remote)
+        dag = syncher.sync_node_dag()
 
         if args.dir:
-            syncher.sync_dir(dag, args.dir)
+            syncher.sync_dir(args.dir)
             logger.info('Synced dir {}'.format(args.dir))
         elif args.batch:
             batch = dag.get_batch(args.batch)
-            batch = syncher.sync_batch(dag, batch)
+            batch = syncher.sync_batch(batch)
             if batch:
                 logger.info('Synced batch {}'.format(batch))
         elif args.group:
             group = dag.get_group(args.group)
-            group = syncher.sync_group(dag, group)
+            group = syncher.sync_group(group)
             if group:
                 logger.info('Synced group {}'.format(group))
         elif args.node or args.node_id:
             if args.node_id:
                 node = dag.get_node_from_id(args.node_id)
             node = dag.get_node(args.node)
-            node = syncher.sync_node(dag, node)
+            node = syncher.sync_node(node)
             if node:
                 logger.info('Synced node {}'.format(node))
