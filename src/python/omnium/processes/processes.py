@@ -1,3 +1,4 @@
+import os
 from logging import getLogger
 
 logger = getLogger('omni')
@@ -35,6 +36,10 @@ class Process(object):
         logger.debug('saving {}'.format(self.node))
         if not self.processed_data:
             raise Exception('No processed data has been made yet for {}'.format(self))
+        dirname = os.path.dirname(self.node.filename(self.config))
+        if not os.path.exists(dirname):
+            logger.debug('Creating dir {}'.format(dirname))
+            os.makedirs(dirname)
 
     def done(self):
         if not self.processed_data:
