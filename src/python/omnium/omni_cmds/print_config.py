@@ -3,6 +3,7 @@ import os
 from StringIO import StringIO
 
 from omnium.dict_printer import pprint
+from omnium.check_config import CONFIG_SCHEMA
 
 ARGS = [(['sections'], {'help': 'specify section(s) to print',
                        'nargs': '*'})]
@@ -23,4 +24,8 @@ def main(args, config):
         else:
             print(config_level)
     else:
-        pprint(config)
+        for key, value in CONFIG_SCHEMA.items():
+            if isinstance(config[key], str):
+                print(config[key])
+            else:
+                pprint({key: config[key]})
