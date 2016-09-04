@@ -150,6 +150,13 @@ class NodeDAG(object):
     def commit(self):
         self._session.commit()
 
+    def get_computers(self):
+        return self._session.query(Computer).all()
+
+    def get_batch(self, batch_name):
+        return self._session.query(Batch)\
+                   .filter_by(name=batch_name).one()
+
     def get_group(self, group_name):
         return self._session.query(Group)\
                    .filter_by(name=group_name).one()
@@ -158,28 +165,25 @@ class NodeDAG(object):
         return self._session.query(Node)\
                    .filter_by(name=node_name).one()
 
-    def get_batch(self, batch_name):
-        return self._session.query(Batch)\
-                   .filter_by(name=batch_name).one()
-
-    def verify_status(self):
+    def verify_status(self, update):
         self.errors = []
         for node in self._session.query(Node).all():
             filename = node.filename(self.config)
             status = self._get_node_status(filename)
             if node.status != status:
                 self.errors.append((node, status))
-                logger.info('{}: {} doesn\'t match {}'.format(node.name,
+                logger.debug('{}: {} doesn\'t match {}'.format(node.name,
                                                         node.status,
                                                         status))
-                if self.args.update:
+                if update:
                     node.status = status
-                    logger.info('Updated: {}'.format(node))
+                    logger.debug('Updated: {}'.format(node))
 
         if len(self.errors):
-            if self.args.update:
+            if update:
                 self.commit()
                 self.errors = []
+                logger.debug('Successfully updated dag')
             else:
                 msg = 'Status doesn\'t match for {} node(s)\n'\
                       'To fix run:\nomni verify-node-graph --update'\

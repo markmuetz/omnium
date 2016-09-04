@@ -33,10 +33,10 @@ def main():
         config['settings']['console_log_level'] = 'debug'
 
     logger = setup_logger(config)
-    logger.info('omni {}'.format(' '.join(sys.argv[1:])))
+    logger.debug('omni {}'.format(' '.join(sys.argv[1:])))
 
     if args.cmd_name != 'check-config':
-        logger.info('checking config')
+        logger.debug('checking config')
         checker = ConfigChecker(args, config)
         try:
             checker.run_checks()
@@ -48,13 +48,13 @@ def main():
                 logger.error(e.hint)
             logger.error('To check all config errors run:\nomni check-config')
             exit(1)
-        logger.info('config OK')
+        logger.debug('config OK')
 
     if config['settings']['ignore_warnings']:
         # DO NOT LEAVE IN!!!
         # Added so as orography warning not shown on iris.load.
         # Orography warning gone, now get iris warning about FUTURE promoting.
-        logger.warn('Disabling warnings')
+        logger.warn('Disabling Python warnings')
         import warnings
         warnings.filterwarnings("ignore")
 
@@ -66,7 +66,7 @@ def main():
         try:
             cmd.main(args, config)
         except Exception as e:
-            logger.warn('ERROR: {}'.format(e))
+            logger.error('ERROR: {}'.format(e))
             exit(1)
     else:
         cmd.main(args, config)

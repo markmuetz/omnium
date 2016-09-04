@@ -39,6 +39,7 @@ CONFIG_SCHEMA = odict([
         'each': {
             'remote': Req(optional=True),
             'remote_address': Req(optional=True),
+            'remote_path': Req(optional=True),
             'dirs': Req(),
         }
     }),

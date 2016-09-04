@@ -5,4 +5,4 @@ ARGS = [(['--update'], {'action': 'store_true'})]
 
 def main(args, config):
     dag = get_node_dag(args, config)
-    dag.verify_status()
+    dag.verify_status(args.update)
