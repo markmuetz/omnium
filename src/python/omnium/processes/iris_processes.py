@@ -41,7 +41,6 @@ class IrisProcess(Process):
 
 class DomainMean(IrisProcess):
     name = 'domain_mean'
-    out_ext = 'nc'
     num_vars = 'multi'
 
     def load(self):
@@ -123,7 +122,6 @@ class ConvertPpToNc(IrisProcess):
 
 class TimeDelta(IrisProcess):
     name = 'time_delta'
-    out_ext = 'nc'
     num_vars = 'single'
 
     def run(self):
@@ -141,12 +139,15 @@ class TimeDelta(IrisProcess):
 
 class ConvertMassToEnergyFlux(IrisProcess):
     name = 'convert_mass_to_energy_flux'
-    out_ext = 'nc'
     num_vars = 'single'
 
     def run(self):
         super(ConvertMassToEnergyFlux, self).run()
         precip = self.data
+        precip_units = units.Unit('kg m-2 s-1')
+        if not precip.units == precip_units:
+            raise Exception('Cube {} has the wrong units, is {}, should be {}'\
+                            .format(precip.name(), precip.units, precip_units))
 
         L = iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
 	# Order of precip, L seems to be important!

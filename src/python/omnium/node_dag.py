@@ -7,17 +7,19 @@ from logging import getLogger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from results import ResultsManager
+import iris
+
 from omnium.processes import process_classes
 from models import Base, Computer, Batch, Group, Node
 
 logger = getLogger('omni')
 
 class NodeDAG(object):
-    def __init__(self, args, config, rm, remote_computer_name):
+    SAVE_FILE_TPL = '{}.{}'
+
+    def __init__(self, args, config, remote_computer_name):
         self.args = args
         self.config = config
-        self._rm = rm
 
         self.remote_computer_name = remote_computer_name
         self._set_computer_name()
@@ -151,6 +153,23 @@ class NodeDAG(object):
                                              self.config, 
                                              node)
 
+    def load_node_data(self, node=None, group=None):
+        if isinstance(node, str):
+            node = self.get_node(node, group)
+        if not node or not isinstance(node, Node):
+            raise Exception('Name or node must be set')
+
+        if node.status != 'done':
+            raise Exception('Node data has not been processed yet')
+
+        ntype = node.node_type()
+        if ntype in ['fields_file', 'netcdf']:
+            return iris.load(node.filename(self.config))
+        elif ntype == 'png':
+            raise Exception('Cannot load png')
+        else:
+            raise Exception('Unknown node type {}'.format(ntype))
+
     def commit(self):
         self._session.commit()
 
@@ -168,9 +187,17 @@ class NodeDAG(object):
         return self._session.query(Group)\
                    .filter_by(name=group_name).one()
 
-    def get_node(self, node_name):
-        return self._session.query(Node)\
-                   .filter_by(name=node_name).one()
+    def get_node(self, node_name, group_name=None):
+        query = self._session.query(Node)\
+                    .filter_by(name=node_name)
+        if group_name:
+            query = query.join(Group).filter_by(name=group_name)
+        return query.one()
+
+    def get_nodes(self, node_name):
+        query = self._session.query(Node)\
+                    .filter_by(name=node_name)
+        return query.all()
 
     def verify_status(self, update):
         self.errors = []
@@ -249,6 +276,14 @@ class NodeDAG(object):
                                                      self.config, 
                                                      self.computer_name)
 
+    def _get_filename(self, results_dir, node_name, out_ext):
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+
+        save_file = os.path.join(results_dir,
+                                 self.SAVE_FILE_TPL.format(node_name, out_ext))
+        return save_file
+
     def _generate_from_group_nodes(self, group, node_name, node_sec):
         from_group = self.get_group(node_sec['from_group'])
         process = process_classes[node_sec['process']](self.args, 
@@ -257,7 +292,7 @@ class NodeDAG(object):
         fn_args = [from_group.name, node_name,
                    node_sec['process']]
         base_dir = self._get_base_dir(group.base_dirname)
-        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
+        filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
         if 'variable' in node_sec:
             var_sec = self.config['variables'][node_sec['variable']]
@@ -279,7 +314,7 @@ class NodeDAG(object):
         fn_args = [group.name, node_name,
                    node_sec['process']]
         base_dir = self._get_base_dir(group.base_dirname)
-        filename = self._rm.get_filename(base_dir, node_name, out_ext=process.out_ext)
+        filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
         if 'section' in node_sec and 'item' in node_sec:
             next_node = self._create_node(rel_filename, group, 
@@ -322,16 +357,6 @@ class NodeDAG(object):
         self._session.add(node)
         return node
 
-    def _get_converted_filename(self, conv_filename):
-        pre, ext = os.path.splitext(conv_filename)
-        conv_config = self.config['process_options']['convert_pp_to_nc']
-        if ext[:3] != conv_config['convert_from']:
-            msg = 'File extension {} != {}'.format(ext[:3], 
-                    conv_config['convert_from'])
-            raise Exception(msg)
-
-        return pre + '.' + ext[-1] + conv_config['convert_to'] 
-
 
 def regenerate_node_dag(args, config):
     if os.path.exists('.omni/sqlite3.db'):
@@ -341,9 +366,10 @@ def regenerate_node_dag(args, config):
 
 
 def generate_node_dag(args, config):
-    computer_name = config['computer_name']
-    rm = ResultsManager(computer_name, config)
-    dag = NodeDAG(args, config, rm, None)
+    if not os.path.exists('.omni'):
+        os.makedirs('.omni')
+
+    dag = NodeDAG(args, config, None)
 
     group_names = config['groups'].keys()
     dag.generate_all_nodes(group_names)
@@ -352,7 +378,5 @@ def generate_node_dag(args, config):
 
 
 def get_node_dag(args, config, remote_computer_name=None):
-    computer_name = config['computer_name']
-    rm = ResultsManager(computer_name, config)
-    dag = NodeDAG(args, config, rm, remote_computer_name)
+    dag = NodeDAG(args, config, remote_computer_name)
     return dag

@@ -1,8 +1,11 @@
 import os
+import re
 
 from sqlalchemy import Integer, ForeignKey, String, Column, Table, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+
+import iris
 
 Base = declarative_base()
 
@@ -78,6 +81,18 @@ class Node(Base):
             computer_name = config['computer_name']
         base_dir = config['computers'][computer_name]['dirs'][self.group.base_dirname]
         return os.path.join(base_dir, self.rel_filename)
+
+    def node_type(self):
+        ext = os.path.splitext(self.rel_filename)[-1]
+        if re.match('.pp?', ext):
+            return 'fields_file'
+        elif ext == '.nc':
+            return 'netcdf'
+        elif ext == '.png':
+            return 'png'
+
+    def set_config(self, config):
+        self.config = config
 
     def __repr__(self):
         return '<Node {} (id={}, status={})>'\
