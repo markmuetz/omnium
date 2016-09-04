@@ -13,7 +13,7 @@ ARGS = [(['node_names'], {'help': 'Name(s) of node to get info for',
         ]
 
 def main(args, config):
-    dag = get_node_dag(args, config)
+    dag = get_node_dag(config)
     for node_name in args.node_names:
         try:
             node = dag.get_node(node_name)

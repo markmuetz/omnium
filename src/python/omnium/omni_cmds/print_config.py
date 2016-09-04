@@ -6,7 +6,7 @@ from omnium.dict_printer import pprint
 from omnium.check_config import CONFIG_SCHEMA
 
 ARGS = [(['sections'], {'help': 'specify section(s) to print',
-                       'nargs': '*'})]
+                        'nargs': '*'})]
 
 
 def main(args, config):

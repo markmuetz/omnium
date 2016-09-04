@@ -22,9 +22,9 @@ def main(args, config):
         raise Exception(msg)
         
     if args.regen:
-        dag = regenerate_node_dag(args, config)
+        dag = regenerate_node_dag(config)
     else:
-        dag = generate_node_dag(args, config)
+        dag = generate_node_dag(config)
 
     if not args.disable_print:
         dag.print_nodes()

@@ -22,10 +22,10 @@ class PlotMultiTimeseries(PylabProcess):
     name = 'plot_multi_timeseries'
     out_ext = 'png'
 
-    def load(self):
-        super(PlotMultiTimeseries, self).load()
+    def load_upstream(self):
+        super(PlotMultiTimeseries, self).load_upstream()
         filenames = [n.filename(self.config) for n in self.node.from_nodes]
-        all_timeseries = iris.load(filenames)
+        all_timeseries = iris.load_upstream(filenames)
         self.data = all_timeseries
         return all_timeseries
 
@@ -51,10 +51,10 @@ class PlotLastProfile(PylabProcess):
     name = 'plot_last_profile'
     out_ext = 'png'
 
-    def load(self):
-        super(PlotLastProfile, self).load()
+    def load_upstream(self):
+        super(PlotLastProfile, self).load_upstream()
         filenames = [n.filename(self.config) for n in self.node.from_nodes]
-        profiles = iris.load(filenames)
+        profiles = iris.load_upstream(filenames)
         self.data = profiles
 
     def run(self):

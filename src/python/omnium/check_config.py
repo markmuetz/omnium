@@ -94,8 +94,7 @@ class ConfigError(Exception):
 
 
 class ConfigChecker(object):
-    def __init__(self, args, config, raise_errors=True, warnings_as_errors=False):
-        self.args = args
+    def __init__(self, config, raise_errors=True, warnings_as_errors=False):
         self.config = config
         self.raise_errors = raise_errors
         self.warnings_as_errors = warnings_as_errors

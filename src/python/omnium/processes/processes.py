@@ -5,8 +5,7 @@ logger = getLogger('omni')
 
 class Process(object):
     name = None
-    def __init__(self, args, config, node):
-        self.args = args
+    def __init__(self, config, node):
         self.config = config
         self.node = node
         self.comments = ''
@@ -19,7 +18,7 @@ class Process(object):
         else:
             self.options = {}
 
-    def load(self):
+    def load_upstream(self):
         logger.debug('loading {}'.format(self.node))
         for from_node in self.node.from_nodes:
             if not from_node.status == 'done':

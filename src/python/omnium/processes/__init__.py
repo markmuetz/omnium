@@ -37,8 +37,8 @@ def _get_process_classes(cwd=None):
 
 process_classes = _get_process_classes()
 
-def proc_instance(args, config, node):
+def proc_instance(config, node):
     assert(node.process)
-    return process_classes[node.process](args, config, node)
+    return process_classes[node.process](config, node)
 
 

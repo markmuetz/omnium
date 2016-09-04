@@ -16,8 +16,8 @@ logger = getLogger('omni')
 class IrisProcess(Process):
     num_files = 'single'
 
-    def load(self):
-        super(IrisProcess, self).load()
+    def load_upstream(self):
+        super(IrisProcess, self).load_upstream()
         assert(len(self.node.from_nodes) == 1)
 
         from_node = self.node.from_nodes[0]
@@ -43,8 +43,8 @@ class DomainMean(IrisProcess):
     name = 'domain_mean'
     num_vars = 'multi'
 
-    def load(self):
-        super(IrisProcess, self).load()
+    def load_upstream(self):
+        super(IrisProcess, self).load_upstream()
 
         first_node = self.node.from_nodes[0]
         filename = first_node.filename(self.config)

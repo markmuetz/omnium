@@ -15,8 +15,12 @@ def main(args, config):
         from omnium.models import Base, Computer, Batch, Group, Node
         from omnium.processes import process_classes, proc_instance
         from omnium.stash import stash
+        from omnium.process_engine import ProcessEngine
+        from omnium.syncher import Syncher
 
-        dag = get_node_dag(args, config)
+        dag = get_node_dag(config)
+        proc_eng = ProcessEngine(False, config, dag)
+        syncher = Syncher(False, config)
 
     # IPython.start_ipython(argv=[])
     # This is better because it allows you to access e.g. args, config.

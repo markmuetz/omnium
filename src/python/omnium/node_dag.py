@@ -17,8 +17,7 @@ logger = getLogger('omni')
 class NodeDAG(object):
     SAVE_FILE_TPL = '{}.{}'
 
-    def __init__(self, args, config, remote_computer_name):
-        self.args = args
+    def __init__(self, config, remote_computer_name):
         self.config = config
 
         self.remote_computer_name = remote_computer_name
@@ -149,26 +148,7 @@ class NodeDAG(object):
 
     def get_proc(self, node_name):
         node = self.get_node(node_name)
-        return process_classes[node.process](self.args, 
-                                             self.config, 
-                                             node)
-
-    def load_node_data(self, node=None, group=None):
-        if isinstance(node, str):
-            node = self.get_node(node, group)
-        if not node or not isinstance(node, Node):
-            raise Exception('Name or node must be set')
-
-        if node.status != 'done':
-            raise Exception('Node data has not been processed yet')
-
-        ntype = node.node_type()
-        if ntype in ['fields_file', 'netcdf']:
-            return iris.load(node.filename(self.config))
-        elif ntype == 'png':
-            raise Exception('Cannot load png')
-        else:
-            raise Exception('Unknown node type {}'.format(ntype))
+        return process_classes[node.process](self.config, node)
 
     def commit(self):
         self._session.commit()
@@ -192,6 +172,11 @@ class NodeDAG(object):
                     .filter_by(name=node_name)
         if group_name:
             query = query.join(Group).filter_by(name=group_name)
+        return query.one()
+
+    def get_node_from_id(self, node_id):
+        query = self._session.query(Node)\
+                    .filter_by(id=node_id)
         return query.one()
 
     def get_nodes(self, node_name):
@@ -272,9 +257,8 @@ class NodeDAG(object):
 
     def _generate_group_process_nodes(self, group, group_sec):
         process_name = group_sec['process']
-        process = process_classes[process_name](self.args, 
-                                                     self.config, 
-                                                     self.computer_name)
+        process = process_classes[process_name](self.config, 
+                                                self.computer_name)
 
     def _get_filename(self, results_dir, node_name, out_ext):
         if not os.path.exists(results_dir):
@@ -286,11 +270,8 @@ class NodeDAG(object):
 
     def _generate_from_group_nodes(self, group, node_name, node_sec):
         from_group = self.get_group(node_sec['from_group'])
-        process = process_classes[node_sec['process']](self.args, 
-                                                            self.config, 
-                                                            self.computer_name)
-        fn_args = [from_group.name, node_name,
-                   node_sec['process']]
+        process = process_classes[node_sec['process']](self.config, 
+                                                       self.computer_name)
         base_dir = self._get_base_dir(group.base_dirname)
         filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
@@ -308,11 +289,8 @@ class NodeDAG(object):
 
 
     def _generate_from_nodes_nodes(self, group, node_name, node_sec):
-        process = process_classes[node_sec['process']](self.args, 
-                                                            self.config, 
-                                                            self.computer_name)
-        fn_args = [group.name, node_name,
-                   node_sec['process']]
+        process = process_classes[node_sec['process']](self.config, 
+                                                       self.computer_name)
         base_dir = self._get_base_dir(group.base_dirname)
         filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
@@ -358,18 +336,18 @@ class NodeDAG(object):
         return node
 
 
-def regenerate_node_dag(args, config):
+def regenerate_node_dag(config):
     if os.path.exists('.omni/sqlite3.db'):
         os.remove('.omni/sqlite3.db')
-    dag = generate_node_dag(args, config)
+    dag = generate_node_dag(config)
     return dag
 
 
-def generate_node_dag(args, config):
+def generate_node_dag(config):
     if not os.path.exists('.omni'):
         os.makedirs('.omni')
 
-    dag = NodeDAG(args, config, None)
+    dag = NodeDAG(config, None)
 
     group_names = config['groups'].keys()
     dag.generate_all_nodes(group_names)
@@ -377,6 +355,6 @@ def generate_node_dag(args, config):
     return dag
 
 
-def get_node_dag(args, config, remote_computer_name=None):
-    dag = NodeDAG(args, config, remote_computer_name)
+def get_node_dag(config, remote_computer_name=None):
+    dag = NodeDAG(config, remote_computer_name)
     return dag
