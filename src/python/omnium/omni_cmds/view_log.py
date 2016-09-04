@@ -1,6 +1,7 @@
 """Views logs"""
 import os
 import logging
+import datetime as dt
 
 import pandas as pd
 
@@ -27,12 +28,17 @@ def parse_log(log_filename):
 
     for line in lines[1:]:
         try:
+            # Quick check.
+            first_digit = int(line[0])
             time_str = line[:23]
-            time = pd.datetools.parse_time_string(time_str)[0]
+            # e.g. '2016-09-03 11:08:38,501'
+            #time = pd.datetools.parse_time_string(time_str)[0]
+            # This is much faster:
+            time = dt.datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S,%f')
             continuation = False
-        except pd.tslib.DateParseError:
+        except ValueError:
             continuation = True
-            msg += line
+            msg += '\n' + line
 
         if not continuation:
             rows.append([lineno, time, logsec, level, getattr(logging, level), msg])
@@ -79,7 +85,7 @@ def main(args, config):
     if not args.computer:
         log_filename = os.path.join(logger.logging_dir, 'omni.log')
     else:
-        log_filename = os.path.join('logs', 'args.computer', 'omni.log')
+        log_filename = os.path.join('logs', args.computer, 'omni.log')
     if not os.path.exists(log_filename):
         raise Exception('Log file {} does not exist'.format(log_filename))
 
