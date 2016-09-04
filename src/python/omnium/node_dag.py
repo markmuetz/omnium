@@ -69,6 +69,7 @@ class NodeDAG(object):
                 self._generate_nodes_process_nodes(group, group_sec)
                 node_process_groups.append(group)
                 completed_groups.append(group)
+        self.commit()
 
         # Work out group processing order:
         group_processing = []
@@ -95,15 +96,11 @@ class NodeDAG(object):
                 process = process_classes[process_name]
                 new_filename = process.convert_filename(orig_filename)
 
-                # TODO: Causing problems.
-                #filename = self._get_converted_filename(orig_filename)
-                #base_dir = self._get_base_dir(group.base_dirname)
-                #rel_filename = os.path.relpath(filename, base_dir)
                 node = self._create_node(new_filename, 
                                          group, 
                                          process_name=process_name)
                 node.from_nodes.append(from_node)
-
+        self.commit()
 
         # Hook up remaining nodes.
         for group in node_process_groups:
@@ -123,12 +120,14 @@ class NodeDAG(object):
                     else:
                         from_nodes = node_sec['from_nodes']
 
+		    logger.debug(node)
                     for from_node_name in from_nodes:
+			logger.debug(from_node_name)
                         from_node = self.get_node(from_node_name)
                         node.from_nodes.append(from_node)
 
 
-        self._session.commit()
+        self.commit()
 
 
     def _show_nodes(self, printer):
@@ -238,6 +237,7 @@ class NodeDAG(object):
         base_dir = self._get_base_dir(group.base_dirname)
         full_glob = os.path.join(base_dir,
                                  group_sec['filename_glob'])
+	logger.debug('Using filename glob: {}'.format(full_glob))
         filenames = sorted(glob(full_glob))
         for filename in filenames:
             rel_filename = os.path.relpath(filename, base_dir)
@@ -306,6 +306,7 @@ class NodeDAG(object):
 
     def _create_node(self, rel_filename, group, name=None, process_name=None, 
                      section=None, item=None):
+	logger.debug('creating node {}: {}'.format(name, rel_filename))
         base_dir = self._get_base_dir(group.base_dirname)
         status = self._get_node_status(os.path.join(base_dir, rel_filename))
         if not name:
