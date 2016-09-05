@@ -1,8 +1,8 @@
 """Print all nodes grouped by batch, group"""
-from omnium.node_dag import get_node_dag
+from omnium.node_dag import NodeDAG
 
 ARGS = [(['--update'], {'action': 'store_true'})]
 
 def main(args, config):
-    dag = get_node_dag(config)
+    dag = NodeDAG(config)
     dag.verify_status(args.update)

@@ -1,11 +1,11 @@
 """Print all nodes grouped by batch, group"""
-from omnium.node_dag import get_node_dag
+from omnium.node_dag import NodeDAG
 
 ARGS = [(['--computer'], {'nargs': '?'})]
 
 def main(args, config):
     if args.computer:
-        dag = get_node_dag(args, config, args.computer)
+        dag = NodeDAG(config, args.computer)
     else:
-        dag = get_node_dag(args, config)
+        dag = NodeDAG(config)
     dag.print_nodes()

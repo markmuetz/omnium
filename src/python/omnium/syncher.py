@@ -3,7 +3,7 @@ import shutil
 import subprocess as sp
 from logging import getLogger
 
-from omnium.node_dag import get_node_dag
+from omnium.node_dag import NodeDAG
 
 logger = getLogger('omni')
 
@@ -50,7 +50,7 @@ class Syncher(object):
         shutil.copyfile(local_path, sqlite3_local_path)
 
         # Update (new) local dag.
-        dag = get_node_dag(self.config)
+        dag = NodeDAG(self.config)
         computers = dag.get_computers()
         assert(len(computers) == 1)
         computer = computers[0]
@@ -59,7 +59,7 @@ class Syncher(object):
         dag.commit()
 
         self.dag = dag
-        self.remote_dag = get_node_dag(self.config, self.remote.computer_name)
+        self.remote_dag = NodeDAG(self.config, self.remote.computer_name)
 
         return dag
 

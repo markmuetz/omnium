@@ -11,14 +11,14 @@ def main(args, config):
         import datetime as dt
         import pylab as plt
         import numpy as np
-        from omnium.node_dag import get_node_dag
+        from omnium.node_dag import NodeDAG
         from omnium.models import Base, Computer, Batch, Group, Node
         from omnium.processes import process_classes, proc_instance
         from omnium.stash import stash
         from omnium.process_engine import ProcessEngine
         from omnium.syncher import Syncher
 
-        dag = get_node_dag(config)
+        dag = NodeDAG(config)
         proc_eng = ProcessEngine(False, config, dag)
         syncher = Syncher(False, config)
 

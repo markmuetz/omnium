@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 import iris
 
-from omnium.node_dag import get_node_dag
+from omnium.node_dag import NodeDAG
 from omnium.models import Node
 
 ARGS = [(['node_names'], {'help': 'Name(s) of node to get info for', 
@@ -13,7 +13,7 @@ ARGS = [(['node_names'], {'help': 'Name(s) of node to get info for',
         ]
 
 def main(args, config):
-    dag = get_node_dag(config)
+    dag = NodeDAG(config)
     for node_name in args.node_names:
         try:
             node = dag.get_node(node_name)

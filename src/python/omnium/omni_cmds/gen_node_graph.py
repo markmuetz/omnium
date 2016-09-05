@@ -1,5 +1,5 @@
 """Print all nodes grouped by batch, group"""
-from omnium.node_dag import regenerate_node_dag, generate_node_dag
+from omnium.node_dag import NodeDAG
 
 ARGS = [(['--disable-print'], {'help': 'Disable printing of graph',
                                'action': 'store_true',
@@ -22,9 +22,9 @@ def main(args, config):
         raise Exception(msg)
         
     if args.regen:
-        dag = regenerate_node_dag(config)
+        dag = NodeDAG.regenerate(config)
     else:
-        dag = generate_node_dag(config)
+        dag = NodeDAG.generate(config)
 
     if not args.disable_print:
         dag.print_nodes()

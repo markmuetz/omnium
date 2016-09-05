@@ -8,7 +8,8 @@ logger = getLogger('omni')
 class STASH(OrderedDict):
     def __init__(self):
         super(STASH, self).__init__()
-        omni_home = os.path.expandvars('$OMNI_HOME')
+        omni_home = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', '..')
+        #omni_home = os.path.expandvars('$OMNI_HOME')
         stash_master_path = os.path.join(omni_home, 'files/vn10.5/STASHmaster_A')
 
         with open(stash_master_path) as f:

@@ -3,7 +3,7 @@ import subprocess as sp
 import pylab as plt
 import iris
 
-from stash import stash
+from omnium.stash import stash
 from omnium.processes import Process
 
 class PylabProcess(Process):

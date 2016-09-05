@@ -17,7 +17,25 @@ logger = getLogger('omni')
 class NodeDAG(object):
     SAVE_FILE_TPL = '{}.{}'
 
-    def __init__(self, config, remote_computer_name):
+    @staticmethod
+    def regenerate(config):
+        if os.path.exists('.omni/sqlite3.db'):
+            os.remove('.omni/sqlite3.db')
+        return NodeDAG.generate(config)
+
+    @staticmethod
+    def generate(config):
+        if not os.path.exists('.omni'):
+            os.makedirs('.omni')
+
+        dag = NodeDAG(config, None)
+
+        group_names = config['groups'].keys()
+        dag.generate_all_nodes(group_names)
+        dag.log_nodes()
+        return dag
+
+    def __init__(self, config, remote_computer_name=None):
         self.config = config
 
         self.remote_computer_name = remote_computer_name
@@ -334,27 +352,3 @@ class NodeDAG(object):
 
         self._session.add(node)
         return node
-
-
-def regenerate_node_dag(config):
-    if os.path.exists('.omni/sqlite3.db'):
-        os.remove('.omni/sqlite3.db')
-    dag = generate_node_dag(config)
-    return dag
-
-
-def generate_node_dag(config):
-    if not os.path.exists('.omni'):
-        os.makedirs('.omni')
-
-    dag = NodeDAG(config, None)
-
-    group_names = config['groups'].keys()
-    dag.generate_all_nodes(group_names)
-    dag.log_nodes()
-    return dag
-
-
-def get_node_dag(config, remote_computer_name=None):
-    dag = NodeDAG(config, remote_computer_name)
-    return dag
