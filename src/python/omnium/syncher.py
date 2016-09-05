@@ -39,7 +39,7 @@ class Syncher(object):
         logger.debug(cmd)
         try:
             logger.debug(sp.check_output(cmd.split()))
-        except sp.CalledProcessError as e:                                                                                                   
+        except sp.CalledProcessError as e:
             msg = 'error code {}'.format(e.returncode)
             logger.error(msg)
             msg = 'output\n{}'.format(e.output)
@@ -63,7 +63,6 @@ class Syncher(object):
 
         return dag
 
-
     def sync_batch(self, batch):
         for group in batch.groups:
             self.sync_group(group)
@@ -71,14 +70,12 @@ class Syncher(object):
         self.dag.commit()
         return batch
 
-
     def sync_group(self, group):
         for node in group.nodes:
             self.sync_node(node)
         group.status == 'done'
         self.dag.commit()
         return group
-
 
     def sync_node(self, node):
         if node.status == 'done':
@@ -104,7 +101,7 @@ class Syncher(object):
         logger.debug(cmd)
         try:
             logger.debug(sp.check_output(cmd.split()))
-        except sp.CalledProcessError as e:                                                                                                   
+        except sp.CalledProcessError as e:
             msg = 'error code {}'.format(e.returncode)
             logger.error(msg)
             msg = 'output\n{}'.format(e.output)
@@ -117,7 +114,6 @@ class Syncher(object):
         self.dag.commit()
         return node
 
-
     def sync_dir(self, dirname):
         computer_name = self.config['computer_name']
         local_dir = self.config['computers'][computer_name]['dirs'][dirname]
@@ -126,13 +122,10 @@ class Syncher(object):
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        # N.B trailing slash on source dir is important. Tells rsync to not 
+        # N.B trailing slash on source dir is important. Tells rsync to not
         # create new dir e.g. results/results/
         cmd = 'rsync -avz {}:{}/ {}'.format(self.remote.address, remote_dir, local_dir)
         logger.debug(cmd)
         logger.debug('\n' + sp.check_output(cmd.split()))
 
         self.dag.verify_status(update=True)
-
-
-

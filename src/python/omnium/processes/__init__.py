@@ -10,6 +10,7 @@ from iris_processes import (ConvertPpToNc, ConvertMassToEnergyFlux,
                             TimeDelta, DomainMean)
 from pylab_processes import PlotMultiTimeseries, PlotLastProfile
 
+
 def _get_process_classes(cwd=None):
     if not cwd:
         cwd = os.getcwd()
@@ -29,16 +30,15 @@ def _get_process_classes(cwd=None):
     process_classes = OrderedDict()
     for module in modules:
         for name, obj in inspect.getmembers(module):
-            if (inspect.isclass(obj) and 
-                issubclass(obj, Process) and
-                not obj == Process):
-                    process_classes[obj.name] = obj
+            if inspect.isclass(obj) and\
+               issubclass(obj, Process) and\
+               not obj == Process:
+                process_classes[obj.name] = obj
     return process_classes
 
 process_classes = _get_process_classes()
 
+
 def proc_instance(config, node):
     assert(node.process)
     return process_classes[node.process](config, node)
-
-

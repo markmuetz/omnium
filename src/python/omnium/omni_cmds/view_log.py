@@ -32,7 +32,7 @@ def parse_log(log_filename):
             first_digit = int(line[0])
             time_str = line[:23]
             # e.g. '2016-09-03 11:08:38,501'
-            #time = pd.datetools.parse_time_string(time_str)[0]
+            # time = pd.datetools.parse_time_string(time_str)[0]
             # This is much faster:
             time = dt.datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S,%f')
             continuation = False
@@ -51,6 +51,7 @@ def parse_log(log_filename):
     rows.append([lineno, time, logsec, level, getattr(logging, level), msg])
 
     return pd.DataFrame(rows, columns=['lineno', 'time', 'logsec', 'level', 'level_num', 'msg'])
+
 
 def filter_df(args, df):
     level_num = getattr(logging, args.level.upper())
@@ -72,6 +73,7 @@ def filter_df(args, df):
         df = df[df.msg.str.contains(args.search, case=False)]
     return df
 
+
 def print_df(args, df):
     for row in df.iterrows():
         row_data = row[1]
@@ -80,6 +82,7 @@ def print_df(args, df):
                                                     row_data.logsec,
                                                     row_data.level,
                                                     row_data.msg))
+
 
 def main(args, config):
     if not args.computer:

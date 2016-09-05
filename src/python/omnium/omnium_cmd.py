@@ -3,6 +3,7 @@ import omnium_cmds
 
 ARGS = []
 
+
 def main():
     cmds, args = parse_commands('omnium', ARGS, omnium_cmds)
     # dispatch on arg

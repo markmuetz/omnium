@@ -5,10 +5,11 @@ from dict_printer import pprint
 from omnium.processes import process_classes
 from stash import stash
 
+
 class Req(object):
-    def __init__(self, valname=None, value=None, 
-                       allowed=[], xref=None, valtype=None,
-                       optional=False):
+    def __init__(self, valname=None, value=None,
+                 allowed=[], xref=None, valtype=None,
+                 optional=False):
         self.valname = valname
         self.value = value
         self.allowed = allowed
@@ -31,54 +32,53 @@ CONFIG_SCHEMA = odict([
                       'console_log_level': Req(optional=True),
                       'file_log_level': Req(optional=True),
                       'disable_colour_log_output': Req(valtype=bool, optional=True),
-        }
-    }),
+                      }
+                  }),
     ('computer_name', {'type': 'one',
                        'one': Req(xref='computers')}),
     ('computers', {'type': 'many',
-        'each': {
-            'remote': Req(optional=True),
-            'remote_address': Req(optional=True),
-            'remote_path': Req(optional=True),
-            'dirs': Req(),
-        }
-    }),
+                   'each': {
+                       'remote': Req(optional=True),
+                       'remote_address': Req(optional=True),
+                       'remote_path': Req(optional=True),
+                       'dirs': Req(),
+                       }
+                   }),
     ('batches', {'type': 'many',
-        'each': {
-            'index': Req(),
-        }
-    }),
+                 'each': {
+                     'index': Req(),
+                     }
+                 }),
     ('groups', {'type': 'many',
-        'each': {
-            'type': Req(allowed=['init', 'group_process', 'nodes_process']),
-            'base_dir': Req(),
-            'batch': Req(xref='batches'),
-            'filename_glob': Req('type', 'init'),
-            'from_group': Req('type', 'group_process', xref='groups'),
-            'process': Req('type', 'group_process'),
-            'nodes': Req('type', 'nodes_process', xref='nodes'),
-        }
-    }),
+                'each': {
+                    'type': Req(allowed=['init', 'group_process', 'nodes_process']),
+                    'base_dir': Req(),
+                    'batch': Req(xref='batches'),
+                    'filename_glob': Req('type', 'init'),
+                    'from_group': Req('type', 'group_process', xref='groups'),
+                    'process': Req('type', 'group_process'),
+                    'nodes': Req('type', 'nodes_process', xref='nodes'),
+                    }
+                }),
     ('nodes', {'type': 'many',
-        'each': {
-            'type': Req(allowed=['from_nodes', 'from_group']),
-            'from_nodes': Req('type', 'from_nodes', xref='nodes'),
-            'from_group': Req('type', 'from_group', xref='groups'),
-            'variable': Req('type', 'from_group', xref='variables'),
-            'process': Req(),
-        }
-    }),
+               'each': {
+                   'type': Req(allowed=['from_nodes', 'from_group']),
+                   'from_nodes': Req('type', 'from_nodes', xref='nodes'),
+                   'from_group': Req('type', 'from_group', xref='groups'),
+                   'variable': Req('type', 'from_group', xref='variables'),
+                   'process': Req(),
+                   }
+               }),
     ('variables', {'type': 'many',
-        'each': {
-            'section': Req(valtype=int),
-            'item': Req(valtype=int),
-        }
-    }),
+                   'each': {
+                       'section': Req(valtype=int),
+                       'item': Req(valtype=int),
+                       }
+                   }),
     ('process_options', {'type': 'any',
-        'each': { } 
-    }),
-])
-
+                         'each': {}
+                         }),
+    ])
 
 
 class ConfigError(Exception):
@@ -107,7 +107,7 @@ class ConfigChecker(object):
         self.process_checks()
         self.variable_checks()
         self.computer_name_checks()
-        
+
         return self.warnings, self.errors
 
     def _add_warning(self, msg):
@@ -139,7 +139,8 @@ class ConfigChecker(object):
                         self._add_error(msg)
                 for conf_key in conf_section.keys():
                     if conf_key not in secschema['keys']:
-                        msg = 'Unrequired value in {}: "{}: {}"'.format(secname, conf_key, conf_section[conf_key])
+                        msg = 'Unrequired value in {}: "{}: {}"'\
+                              .format(secname, conf_key, conf_section[conf_key])
                         self._add_warning(msg)
 
             if secschema['type'] == 'many':
@@ -150,40 +151,45 @@ class ConfigChecker(object):
                     for key, req in secvals.items():
                         # Check all config_secvalues have the required non-optional keys.
                         if req.valname and req.valname not in conf_secvalues and not req.optional:
-                            msg = '{}:{} Required value "{}" not present'.format(secname, conf_seckey, req.valname)
+                            msg = '{}:{} Required value "{}" not present'\
+                                  .format(secname, conf_seckey, req.valname)
                             self._add_error(msg)
                             dont_check.append(key)
 
                     for key, req in secvals.items():
                         required = req.check(conf_secvalues)
                         if required and key not in conf_secvalues and not req.optional:
-                            msg = '{}:{} Required value "{}" not present'.format(secname, conf_seckey, key)
+                            msg = '{}:{} Required value "{}" not present'\
+                                  .format(secname, conf_seckey, key)
                             hint = None
                             if req.valname:
                                 hint = 'required if {} == {}'.format(req.valname, req.value)
                             self._add_error(msg, hint)
                         else:
                             if req.allowed and conf_secvalues[key] not in req.allowed:
-                                msg = '{}:{} "{}: {}" not an allowed value'.format(secname, conf_seckey, key, conf_secvalues[key])
+                                msg = '{}:{} "{}: {}" not an allowed value'\
+                                      .format(secname, conf_seckey, key, conf_secvalues[key])
                                 hint = 'must be one of {}'.format(', '.join(req.allowed))
                                 self._add_error(msg, hint)
                         if req.valtype:
                             if type(conf_secvalues[key]) is not req.valtype:
-                                msg = 'Wrong type {}:{} value "{}" is {}, should be {}'.format(secname, conf_seckey, key, type(conf_secvalues[key]), req.valtype)
+                                msg = 'Wrong type {}:{} value "{}" is {}, should be {}'\
+                                      .format(secname, conf_seckey, key,
+                                              type(conf_secvalues[key]), req.valtype)
                                 self._add_error(msg)
-
 
                     for key in conf_secvalues.keys():
                         if key not in secvals:
-                            msg = '{}:{} Unknown value "{}: {}"'.format(secname, conf_seckey, key, conf_secvalues[key])
+                            msg = '{}:{} Unknown value "{}: {}"'\
+                                  .format(secname, conf_seckey, key, conf_secvalues[key])
                             self._add_warning(msg)
                         else:
                             req = secvals[key]
                             required = req.check(conf_secvalues)
                             if not required:
-                                msg = '{}:{} Unrequired value "{}: {}"'.format(secname, seckey, key, conf_secvalues[key])
+                                msg = '{}:{} Unrequired value "{}: {}"'\
+                                      .format(secname, seckey, key, conf_secvalues[key])
                                 self._add_warning(msg)
-
 
     def xref_checks(self):
         for secname, secschema in CONFIG_SCHEMA.items():
@@ -201,12 +207,14 @@ class ConfigChecker(object):
                         conf_vals = conf_secvalues[key]
                         if type(conf_vals) is str:
                             if conf_vals not in self.config[req.xref]:
-                                msg = 'XRef {0} missing from {3}: {1}:{0}:{2}'.format(key, conf_seckey, conf_vals, secname)
+                                msg = 'XRef {0} missing from {3}: {1}:{0}:{2}'\
+                                      .format(key, conf_seckey, conf_vals, secname)
                                 self._add_error(msg)
                         else:
                             for conf_val in conf_vals:
                                 if conf_val not in self.config[req.xref]:
-                                    msg = 'XRef {0} missing from {3}: {1}:{0}:{2}'.format(key, conf_seckey, conf_val, secname)
+                                    msg = 'XRef {0} missing from {3}: {1}:{0}:{2}'\
+                                          .format(key, conf_seckey, conf_val, secname)
                                     self._add_error(msg)
 
     def process_checks(self):
@@ -214,31 +222,37 @@ class ConfigChecker(object):
         for groupname, groupsec in self.config['groups'].items():
             if groupsec['type'] == 'group_process':
                 if groupsec['process'] not in process_classes:
-                    msg = 'Process not found from group: {}:process:{}'.format(groupname, groupsec['process'])
-                    hint = 'available processes are:\n    {}'.format('\n    '.join(process_classes.keys()))
+                    msg = 'Process not found from group: {}:process:{}'\
+                          .format(groupname, groupsec['process'])
+                    hint = 'available processes are:\n    {}'\
+                           .format('\n    '.join(process_classes.keys()))
                     self._add_error(msg, hint)
 
         for nodename, nodesec in self.config['nodes'].items():
             if nodesec['process'] not in process_classes:
-                msg = 'Process not found from node: {}:process:{}'.format(nodename, nodesec['process'])
-                hint = 'available processes are:\n    {}'.format('\n    '.join(process_classes.keys()))
+                msg = 'Process not found from node: {}:process:{}'\
+                      .format(nodename, nodesec['process'])
+                hint = 'available processes are:\n    {}'\
+                       .format('\n    '.join(process_classes.keys()))
                 self._add_error(msg, hint)
-
 
     def variable_checks(self):
         for varname, varsec in self.config['variables'].items():
             if varsec['section'] not in stash:
-                msg = 'Variable section not found in stash: {}:section:{}'.format(varname, varsec['section'])
+                msg = 'Variable section not found in stash: {}:section:{}'\
+                      .format(varname, varsec['section'])
                 self._add_error(msg)
                 continue
             if varsec['item'] not in stash[varsec['section']]:
-                msg = 'Variable item not found in stash section {}: {}:item:{}'.format(varsec['section'], varname, varsec['item'])
+                msg = 'Variable item not found in stash section {}: {}:item:{}'\
+                      .format(varsec['section'], varname, varsec['item'])
                 self._add_error(msg)
 
-        
     def computer_name_checks(self):
         computer_name = self.config['computer_name']
         if computer_name not in self.config['computers']:
-            msg = 'Computer name not found in computers: {}'.format(computer_name)
-            hint = 'available computers are:\n    {}'.format('\n    '.join(self.config['computers'].keys()))
+            msg = 'Computer name not found in computers: {}'\
+                  .format(computer_name)
+            hint = 'available computers are:\n    {}'\
+                   .format('\n    '.join(self.config['computers'].keys()))
             self._add_error(msg, hint)

@@ -7,8 +7,8 @@ logger = getLogger('omni')
 
 ARGS = [(['--warnings-as-errors'], {'help': 'Treat all warnings as errors',
                                     'action': 'store_true',
-                                    'default': False}),
-         ]
+                                    'default': False})]
+
 
 def main(args, config):
     checker = ConfigChecker(config, False, args.warnings_as_errors)

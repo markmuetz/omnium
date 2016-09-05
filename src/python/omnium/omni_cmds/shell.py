@@ -1,8 +1,8 @@
 """Launches IPython shell"""
 import IPython
 
-ARGS = [ (['--failsafe' ], {'action': 'store_true'}),
-        ]
+ARGS = [(['--failsafe'], {'action': 'store_true'})]
+
 
 def main(args, config):
     if not args.failsafe:

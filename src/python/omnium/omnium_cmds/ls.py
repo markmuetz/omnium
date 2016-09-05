@@ -6,9 +6,9 @@ ARGS = [(['--full-path'], {'help': 'show full path of files',
                            'action': 'store_true',
                            'default': False}),
         (['-l', '--long'], {'help': 'show more info',
-                           'action': 'store_true',
-                           'default': False}),
-        ]
+                            'action': 'store_true',
+                            'default': False})]
+
 
 def main(args):
     user_dir = os.path.expandvars('$HOME')

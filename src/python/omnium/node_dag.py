@@ -14,6 +14,7 @@ from models import Base, Computer, Batch, Group, Node
 
 logger = getLogger('omni')
 
+
 class NodeDAG(object):
     SAVE_FILE_TPL = '{}.{}'
 
@@ -72,14 +73,14 @@ class NodeDAG(object):
             batch = self.get_batch(group_sec['batch'])
 
             base_dirname = group_sec['base_dir']
-            group = Group(name=group_name, 
-                          batch=batch, 
+            group = Group(name=group_name,
+                          batch=batch,
                           base_dirname=base_dirname)
             self._session.add(group)
 
             group_type = group_sec['type']
             if group_type == 'init':
-                self._generate_init_nodes(group, group_sec) 
+                self._generate_init_nodes(group, group_sec)
                 completed_groups.append(group)
             elif group_type == 'group_process':
                 self._generate_group_process_nodes(group, group_sec)
@@ -103,7 +104,6 @@ class NodeDAG(object):
 
         # Hook up group_processing nodes.
         for group in group_processing:
-            #print('GP ' + group.__str__())
             group_sec = self.config['groups'][group.name]
 
             group_type = group_sec['type']
@@ -115,20 +115,18 @@ class NodeDAG(object):
                 process = process_classes[process_name]
                 new_filename = process.convert_filename(orig_filename)
 
-                node = self._create_node(new_filename, 
-                                         group, 
+                node = self._create_node(new_filename,
+                                         group,
                                          process_name=process_name)
                 node.from_nodes.append(from_node)
         self.commit()
 
         # Hook up remaining nodes.
         for group in node_process_groups:
-            #print('NP ' + group.__str__())
             group_sec = self.config['groups'][group.name]
             for node_name in group_sec['nodes']:
                 node = self.get_node(node_name)
                 node_sec = self.config['nodes'][node_name]
-                #print(node_sec)
                 if 'from_group' in node_sec:
                     from_group = self.get_group(node_sec['from_group'])
                     for from_node in from_group.nodes:
@@ -139,15 +137,13 @@ class NodeDAG(object):
                     else:
                         from_nodes = node_sec['from_nodes']
 
-		    logger.debug(node)
+                    logger.debug(node)
                     for from_node_name in from_nodes:
-			logger.debug(from_node_name)
+                        logger.debug(from_node_name)
                         from_node = self.get_node(from_node_name)
                         node.from_nodes.append(from_node)
 
-
         self.commit()
-
 
     def _show_nodes(self, printer):
         for batch in self._session.query(Batch).all():
@@ -210,8 +206,8 @@ class NodeDAG(object):
             if node.status != status:
                 self.errors.append((node, status))
                 logger.debug('{}: {} doesn\'t match {}'.format(node.name,
-                                                        node.status,
-                                                        status))
+                                                               node.status,
+                                                               status))
                 if update:
                     node.status = status
                     logger.debug('Updated: {}'.format(node))
@@ -228,7 +224,6 @@ class NodeDAG(object):
                 raise Exception(msg)
         else:
             logger.info('All nodes statuses verified')
-
 
     def _set_computer_name(self):
         self.computer_name = self.config['computer_name']
@@ -259,15 +254,15 @@ class NodeDAG(object):
         return status
 
     def _get_base_dir(self, base_dirname):
-        base_dir = self.config['computers'][self.computer_name]\
-                               ['dirs'][base_dirname]
+        comp_sec = self.config['computers'][self.computer_name]
+        base_dir = comp_sec['dirs'][base_dirname]
         return base_dir
 
     def _generate_init_nodes(self, group, group_sec):
         base_dir = self._get_base_dir(group.base_dirname)
         full_glob = os.path.join(base_dir,
                                  group_sec['filename_glob'])
-	logger.debug('Using filename glob: {}'.format(full_glob))
+        logger.debug('Using filename glob: {}'.format(full_glob))
         filenames = sorted(glob(full_glob))
         for filename in filenames:
             rel_filename = os.path.relpath(filename, base_dir)
@@ -275,7 +270,7 @@ class NodeDAG(object):
 
     def _generate_group_process_nodes(self, group, group_sec):
         process_name = group_sec['process']
-        process = process_classes[process_name](self.config, 
+        process = process_classes[process_name](self.config,
                                                 self.computer_name)
 
     def _get_filename(self, results_dir, node_name, out_ext):
@@ -288,41 +283,39 @@ class NodeDAG(object):
 
     def _generate_from_group_nodes(self, group, node_name, node_sec):
         from_group = self.get_group(node_sec['from_group'])
-        process = process_classes[node_sec['process']](self.config, 
+        process = process_classes[node_sec['process']](self.config,
                                                        self.computer_name)
         base_dir = self._get_base_dir(group.base_dirname)
         filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
         if 'variable' in node_sec:
             var_sec = self.config['variables'][node_sec['variable']]
-            next_node = self._create_node(rel_filename, group, 
+            next_node = self._create_node(rel_filename, group,
                                           node_name,
-                                          node_sec['process'], 
-                                          var_sec['section'], 
+                                          node_sec['process'],
+                                          var_sec['section'],
                                           var_sec['item'])
         else:
-            next_node = self._create_node(rel_filename, group, 
+            next_node = self._create_node(rel_filename, group,
                                           node_name,
                                           node_sec['process'])
 
-
     def _generate_from_nodes_nodes(self, group, node_name, node_sec):
-        process = process_classes[node_sec['process']](self.config, 
+        process = process_classes[node_sec['process']](self.config,
                                                        self.computer_name)
         base_dir = self._get_base_dir(group.base_dirname)
         filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
         if 'section' in node_sec and 'item' in node_sec:
-            next_node = self._create_node(rel_filename, group, 
+            next_node = self._create_node(rel_filename, group,
                                           node_name,
-                                          process_name=node_sec['process'], 
-                                          section=node_sec['section'], 
+                                          process_name=node_sec['process'],
+                                          section=node_sec['section'],
                                           item=node_sec['item'])
         else:
-            next_node = self._create_node(rel_filename, group, 
-					  node_name,
+            next_node = self._create_node(rel_filename, group,
+                                          node_name,
                                           process_name=node_sec['process'])
-
 
     def _generate_nodes_process_nodes(self, group, group_sec):
         for node_name in group_sec['nodes']:
@@ -335,14 +328,14 @@ class NodeDAG(object):
             elif 'from_node' in node_sec:
                 self._generate_from_nodes_nodes(group, node_name, node_sec)
 
-    def _create_node(self, rel_filename, group, name=None, process_name=None, 
+    def _create_node(self, rel_filename, group, name=None, process_name=None,
                      section=None, item=None):
-	logger.debug('creating node {}: {}'.format(name, rel_filename))
+        logger.debug('creating node {}: {}'.format(name, rel_filename))
         base_dir = self._get_base_dir(group.base_dirname)
         status = self._get_node_status(os.path.join(base_dir, rel_filename))
         if not name:
             name = os.path.basename(rel_filename)
-        node = Node(name=name, 
+        node = Node(name=name,
                     rel_filename=rel_filename,
                     process=process_name,
                     status=status,

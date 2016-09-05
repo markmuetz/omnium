@@ -8,9 +8,9 @@ import iris
 from omnium.node_dag import NodeDAG
 from omnium.models import Node
 
-ARGS = [(['node_names'], {'help': 'Name(s) of node to get info for', 
-                         'nargs': '+'}),
-        ]
+ARGS = [(['node_names'], {'help': 'Name(s) of node to get info for',
+                          'nargs': '+'})]
+
 
 def main(args, config):
     dag = NodeDAG(config)

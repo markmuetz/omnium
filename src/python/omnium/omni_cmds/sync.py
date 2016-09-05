@@ -13,8 +13,8 @@ ARGS = [(['--all', '-a'], {'help': 'Perform full sync of nodes/files',
         (['--node-id'], {'help': 'Sync of node by id', 'nargs': '?', 'type': int}),
         (['--dir', '-d'], {'help': 'Sync of directory in config', 'nargs': '?'}),
         (['--meta', '-m'], {'help': 'Sync of node dag only', 'action': 'store_true'}),
-        (['--force', '-f'], {'help': 'Force re-transfer of files', 'action': 'store_true'}),
-        ]
+        (['--force', '-f'], {'help': 'Force re-transfer of files', 'action': 'store_true'})]
+
 
 def main(args, config):
     syncher = Syncher(args.force, config)
@@ -22,9 +22,9 @@ def main(args, config):
         syncher.sync_node_dag()
         logger.info('Synced node dag')
     else:
-        opts = [args.batch != None, args.group != None, 
-                args.node != None, args.dir != None,
-                args.node_id != None]
+        opts = [args.batch is not None, args.group is not None,
+                args.node is not None, args.dir is not None,
+                args.node_id is not None]
         if sum(opts) >= 2 or sum(opts) == 0:
             raise Exception('Please select exactly one of --batch, --group or --node')
         dag = syncher.sync_node_dag()

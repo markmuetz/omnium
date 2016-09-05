@@ -3,8 +3,10 @@ from logging import getLogger
 
 logger = getLogger('omni')
 
+
 class Process(object):
     name = None
+
     def __init__(self, config, node):
         self.config = config
         self.node = node

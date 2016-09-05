@@ -3,7 +3,8 @@ import datetime as dt
 import shutil
 import logging
 
-FILE_LEVEL_NUM = 21 
+FILE_LEVEL_NUM = 21
+
 
 # Thanks: http://stackoverflow.com/a/13638084/54557
 def log_file(self, filename, message=None, *args, **kwargs):
@@ -16,9 +17,11 @@ def log_file(self, filename, message=None, *args, **kwargs):
         fmt = '%Y%m%dT%H%M%S'
         timestamp = dt.datetime.now().strftime(fmt)
 
-        new_filename = os.path.join(self.logging_dir, '{1}_{0}{2}'.format(timestamp, *os.path.splitext(filename)))
+        new_filename = os.path.join(self.logging_dir, '{1}_{0}{2}'
+                                    .format(timestamp, *os.path.splitext(filename)))
 
-        self._log(FILE_LEVEL_NUM, 'Copy file from {} to {}'.format(filename, new_filename), [], **{})
+        self._log(FILE_LEVEL_NUM, 'Copy file from {} to {}'
+                  .format(filename, new_filename), [], **{})
         shutil.copyfile(filename, new_filename)
         self._log(FILE_LEVEL_NUM, 'Message: '.format(message), [], **{})
 
@@ -34,6 +37,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 # Thanks: # http://stackoverflow.com/a/8349076/54557
 class ColourConsoleFormatter(logging.Formatter):
     '''Format messages in colour based on their level'''
@@ -41,8 +45,8 @@ class ColourConsoleFormatter(logging.Formatter):
     info_fmt = bcolors.OKGREEN + '%(levelname)-8s' + bcolors.ENDC + ': %(message)s'
     file_fmt = bcolors.HEADER + '%(levelname)-8s' + bcolors.ENDC + ': %(message)s'
     warn_fmt = bcolors.WARNING + '%(levelname)-8s' + bcolors.ENDC + ': %(message)s'
-    err_fmt = bcolors.FAIL + '%(levelname)-8s' + bcolors.ENDC\
-              + bcolors.BOLD +  ': %(message)s' + bcolors.ENDC
+    err_fmt = (bcolors.FAIL + '%(levelname)-8s' + bcolors.ENDC + bcolors.BOLD +
+               ': %(message)s' + bcolors.ENDC)
 
     def __init__(self, fmt="%(levelno)s: %(msg)s"):
         logging.Formatter.__init__(self, fmt)
@@ -72,6 +76,7 @@ class ColourConsoleFormatter(logging.Formatter):
 
         return result
 
+
 def setup_logger(config):
     '''Gets a logger. Sets up root logger ('omni') if nec.'''
     cwd = os.getcwd()
@@ -80,7 +85,7 @@ def setup_logger(config):
 
     if getattr(root_logger, 'is_setup', False):
         # Stops log being setup for a 2nd time during ipython reload(...)
-	root_logger.debug('Root logger already setup')
+        root_logger.debug('Root logger already setup')
     else:
         logging_dir = os.path.join(cwd, 'logs', config['computer_name'])
         root_logger.logging_dir = logging_dir

@@ -13,6 +13,7 @@ from omnium.processes import Process
 
 logger = getLogger('omni')
 
+
 class IrisProcess(Process):
     num_files = 'single'
 
@@ -49,17 +50,17 @@ class DomainMean(IrisProcess):
         first_node = self.node.from_nodes[0]
         filename = first_node.filename(self.config)
         cubes = iris.load(filename)
-	found = False
+        found = False
         for cube in cubes:
             cube_stash = cube.attributes['STASH']
-	    logger.debug(cube_stash)
+            logger.debug(cube_stash)
             section, item = cube_stash.section, cube_stash.item
             if section == self.node.section and item == self.node.item:
-		found = True
+                found = True
                 break
 
-	if not found:
-	    raise Exception('Could not find {}'.format(self.node))
+        if not found:
+            raise Exception('Could not find {}'.format(self.node))
 
         self.cube = cube
         coords = ['grid_latitude', 'grid_longitude']
@@ -70,6 +71,7 @@ class DomainMean(IrisProcess):
                 raise Exception('Cube does not have coord {}'.format(coord_name))
 
         varname = cube.name()
+
         def cube_iter():
             for from_node in self.node.from_nodes:
                 filename = from_node.filename(self.config)
@@ -84,7 +86,7 @@ class DomainMean(IrisProcess):
 
         results = []
         for cube in all_cubes:
-            result = cube.collapsed(['grid_latitude', 'grid_longitude'], 
+            result = cube.collapsed(['grid_latitude', 'grid_longitude'],
                                     iris.analysis.MEAN)
             results.append(result)
 
@@ -107,8 +109,7 @@ class ConvertPpToNc(IrisProcess):
 
         pre, ext = os.path.splitext(filename)
 
-        return pre + '.' + ext[-1] + ConvertPpToNc.out_ext 
-
+        return pre + '.' + ext[-1] + ConvertPpToNc.out_ext
 
     def run(self):
         super(ConvertPpToNc, self).run()
@@ -146,11 +147,11 @@ class ConvertMassToEnergyFlux(IrisProcess):
         precip = self.data
         precip_units = units.Unit('kg m-2 s-1')
         if not precip.units == precip_units:
-            raise Exception('Cube {} has the wrong units, is {}, should be {}'\
+            raise Exception('Cube {} has the wrong units, is {}, should be {}'
                             .format(precip.name(), precip.units, precip_units))
 
         L = iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
-	# Order of precip, L seems to be important!
+        # Order of precip, L seems to be important!
         precip_energy_flux = precip * L
         precip_energy_flux.convert_units(units.Unit('W m-2'))
         precip_energy_flux.rename('precip_energy_flux')

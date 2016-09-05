@@ -7,14 +7,16 @@ from sqlalchemy.orm import relationship
 
 import iris
 
+
 Base = declarative_base()
 
 node_to_node = Table("node_to_node", Base.metadata,
-    Column("from_node_id", Integer, ForeignKey("nodes.id"), primary_key=True),
-    Column("to_node_id", Integer, ForeignKey("nodes.id"), primary_key=True)
-)
+                     Column("from_node_id", Integer, ForeignKey("nodes.id"), primary_key=True),
+                     Column("to_node_id", Integer, ForeignKey("nodes.id"), primary_key=True)
+                     )
 
 statuses = Enum('missing', 'processing', 'done', name='statuses')
+
 
 class Computer(Base):
     __tablename__ = 'computers'
@@ -26,6 +28,7 @@ class Computer(Base):
 
     def __repr__(self):
         return '<Computer {} (id={})>'.format(self.name, self.id)
+
 
 class Batch(Base):
     __tablename__ = 'batches'
@@ -42,6 +45,7 @@ class Batch(Base):
         return '<Batch {} (id={}, status={})>'\
                .format(self.name, self.id, self.status)
 
+
 class Group(Base):
     __tablename__ = 'groups'
 
@@ -49,13 +53,14 @@ class Group(Base):
     name = Column(String)
     status = Column(statuses)
     base_dirname = Column(String)
-    
+
     batch_id = Column(Integer, ForeignKey('batches.id'))
     nodes = relationship('Node', backref='group')
 
     def __repr__(self):
         return '<Group {} (id={}, status={})>'\
                .format(self.name, self.id, self.status)
+
 
 class Node(Base):
     __tablename__ = 'nodes'
@@ -71,10 +76,10 @@ class Node(Base):
     group_id = Column(Integer, ForeignKey('groups.id'))
     to_nodes = relationship("Node",
                             secondary=node_to_node,
-                            primaryjoin=id==node_to_node.c.from_node_id,
-                            secondaryjoin=id==node_to_node.c.to_node_id,
+                            primaryjoin=id == node_to_node.c.from_node_id,
+                            secondaryjoin=id == node_to_node.c.to_node_id,
                             backref="from_nodes"
-    )
+                            )
 
     def filename(self, config, computer_name=None):
         if not computer_name:
@@ -97,4 +102,3 @@ class Node(Base):
     def __repr__(self):
         return '<Node {} (id={}, status={})>'\
                .format(self.name, self.id, self.status)
-

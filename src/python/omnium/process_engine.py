@@ -7,6 +7,7 @@ from processes import process_classes
 
 logger = getLogger('omni')
 
+
 class ProcessEngine(object):
     def __init__(self, force, config, dag):
         self.force = force
@@ -21,7 +22,6 @@ class ProcessEngine(object):
         self.dag.commit()
         logger.info('Processed batch {}'.format(batch))
 
-
     def process_group(self, group, indent=1):
         logger.info('  '*indent + 'Processing group {}'.format(group))
         for node in group.nodes:
@@ -29,7 +29,6 @@ class ProcessEngine(object):
         group.status = 'done'
         self.dag.commit()
         logger.info('  '*indent + 'Processed group {}'.format(group))
-
 
     def process_node(self, node, indent=2):
         logger.info('  '*indent + 'Processing node {}'.format(node))
@@ -42,8 +41,9 @@ class ProcessEngine(object):
             if from_node.status != 'done':
                 raise Exception('Node {} does not exist'.format(from_node))
 
-        if node.process == None:
-            raise Exception('Node {} does not not have a process\n(is it an init node?)'.format(node))
+        if node.process is None:
+            raise Exception('Node {} does not not have a process\n(is it an init node?)'
+                            .format(node))
 
         logger.info('  '*(indent+1) + 'Using process {}'.format(node.process))
         process_class = process_classes[node.process]

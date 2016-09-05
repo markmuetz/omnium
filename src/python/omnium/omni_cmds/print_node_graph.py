@@ -3,6 +3,7 @@ from omnium.node_dag import NodeDAG
 
 ARGS = [(['--computer'], {'nargs': '?'})]
 
+
 def main(args, config):
     if args.computer:
         dag = NodeDAG(config, args.computer)

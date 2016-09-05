@@ -5,21 +5,20 @@ from logging import getLogger
 logger = getLogger('omni')
 
 commands = [
-    'check-config', 
+    'check-config',
     'node-info',
-    'gen-node-graph', 
-    'list-files',
+    'gen-node-graph',
     'list-processes',
-    'print-config', 
-    'print-node-graph', 
-    'process', 
-    'sync', 
-    'shell', 
-    #'threed',
-    'verify-node-graph', 
-    'version', 
-    'view-log', 
-    ]
+    'print-config',
+    'print-node-graph',
+    'process',
+    'sync',
+    'shell',
+    # 'threed',
+    'verify-node-graph',
+    'version',
+    'view-log',
+]
 
 modules = OrderedDict()
 for command in commands:

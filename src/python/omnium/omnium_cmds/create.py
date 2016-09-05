@@ -14,12 +14,11 @@ OMNI_INFO_FILENAME = 'omni.info'
 OMNI_CONF_FILENAME = 'omni_conf.py'
 OMNI_COMP_FILENAME = 'computer.txt'
 
-ARGS = [
-        (['omniname'], {'nargs': 1,
-                      'help': 'Filename of omni to create'}),
+ARGS = [(['omniname'], {'nargs': 1,
+                        'help': 'Filename of omni to create'}),
         (['--title'], {'help': 'Longer name'}),
-        (['--description'], {'help': 'Useful description'}),
-           ]
+        (['--description'], {'help': 'Useful description'})]
+
 
 def main(args):
     cwd = os.getcwd()

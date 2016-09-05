@@ -12,10 +12,10 @@ import numpy as np
 
 from umo import UMO
 
+
 class Window(QtGui.QWidget):
     time_slider_changed = QtCore.pyqtSignal(int)
     thresh_slider_changed = QtCore.pyqtSignal(float)
-
 
     def __init__(self, config):
         super(Window, self).__init__()
@@ -57,7 +57,7 @@ class Window(QtGui.QWidget):
 
         # Initial scatter.
         pos, size = self.get_pos_size(self.cube.data)
-        self.point_scatter = gl.GLScatterPlotItem(pos=pos, color=(1,1,1,1), size=size)
+        self.point_scatter = gl.GLScatterPlotItem(pos=pos, color=(1, 1, 1, 1), size=size)
         self.umov_view.addItem(self.point_scatter)
 
         # Create some controls.
@@ -76,7 +76,7 @@ class Window(QtGui.QWidget):
         self.thresh_slider = QtGui.QSlider(QtCore.Qt.Vertical)
         self.thresh_slider.setRange(-500, 500)
         self.thresh_slider.setSingleStep(1)
-        #self.thresh_slider.setPageStep(0.01)
+        # self.thresh_slider.setPageStep(0.01)
         self.thresh_slider.setTickInterval(100)
         self.thresh_slider.setTickPosition(QtGui.QSlider.TicksRight)
         self.thresh_slider.valueChanged.connect(self.set_thresh_slider_value)
@@ -84,8 +84,8 @@ class Window(QtGui.QWidget):
         self.thresh_slider.setValue(self.thresh * 100)
 
         # Populate layout.
-        layout.addWidget(button, 4, 0) 
-        layout.addWidget(self.umov_view, 0, 1, 3, 1) # spans 3 rows.
+        layout.addWidget(button, 4, 0)
+        layout.addWidget(self.umov_view, 0, 1, 3, 1)  # spans 3 rows.
         layout.addWidget(self.time_slider, 4, 1)
         layout.addWidget(self.thresh_slider, 0, 0, 3, 1)
 
@@ -95,7 +95,6 @@ class Window(QtGui.QWidget):
         self.paused = False
         self.play()
 
-
     def toggle_pause_play(self):
         self.paused = not self.paused
         if self.paused:
@@ -103,24 +102,19 @@ class Window(QtGui.QWidget):
         else:
             self.play()
 
-
     def play(self):
         self.timer.start(50)
 
-
     def pause(self):
         self.timer.stop()
-
 
     def set_time_slider_value(self, value):
         self.cube_index = value
         self.render()
 
-
     def set_thresh_slider_value(self, value):
         self.thresh = value / 100.
         self.render()
-
 
     def update(self):
         self.cube_index += 1
@@ -128,15 +122,13 @@ class Window(QtGui.QWidget):
 
         self.time_slider_changed.emit(self.cube_index)
 
-
     def render(self):
         self.cube = self.umo.cube[self.cube_index]
         pos, size = self.get_pos_size(self.cube.data)
 
         self.umov_view.removeItem(self.point_scatter)
-        self.point_scatter = gl.GLScatterPlotItem(pos=pos, color=(1,1,1,0.5), size=size)
+        self.point_scatter = gl.GLScatterPlotItem(pos=pos, color=(1, 1, 1, 0.5), size=size)
         self.umov_view.addItem(self.point_scatter)
-
 
     def get_pos_size(self, data):
         # Apply comparison.

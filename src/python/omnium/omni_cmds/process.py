@@ -13,8 +13,8 @@ ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
         (['-a', '--all'], {'help': 'Process all nodes', 'action': 'store_true'}),
         (['-f', '--force'], {'help': 'Force processing for files that are already done',
                              'action': 'store_true',
-                             'default': False}),
-        ]
+                             'default': False})]
+
 
 def main(args, config):
     dag = NodeDAG(config)
@@ -25,7 +25,7 @@ def main(args, config):
             process_batch(args, config, dag, batch)
         return
 
-    opts = [args.batch != None, args.group != None, args.node != None]
+    opts = [args.batch is not None, args.group is not None, args.node is not None]
     if sum(opts) >= 2 or sum(opts) == 0:
         raise Exception('Please select exactly one of --batch, --group or --node')
 
