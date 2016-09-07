@@ -6,7 +6,7 @@ from command_parser import parse_commands
 from check_config import ConfigChecker, ConfigError
 from setup_logging import setup_logger
 
-import omni_cmds
+#import omni_cmds
 
 
 ARGS = [(['-c', '--config-file'], {'default': 'omni_conf.py'}),
@@ -15,6 +15,8 @@ ARGS = [(['-c', '--config-file'], {'default': 'omni_conf.py'}),
 
 
 def main(cmds, args):
+    return
+
     cwd = os.getcwd()
     args.cwd = cwd
     config_path = os.path.join(cwd, args.config_file)
@@ -76,5 +78,6 @@ def main(cmds, args):
 
 
 if __name__ == '__main__':
+    exit(0)
     cmds, args = parse_commands('omni', ARGS, omni_cmds)
     exit(main(cmds, args))

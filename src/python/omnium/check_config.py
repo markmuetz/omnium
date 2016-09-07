@@ -2,7 +2,7 @@
 from collections import OrderedDict as odict
 
 from dict_printer import pprint
-from omnium.processes import process_classes
+from processes import process_classes
 from stash import stash
 
 

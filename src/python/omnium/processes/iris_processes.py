@@ -2,7 +2,7 @@ import os
 import re
 from logging import getLogger
 
-from omnium.processes import Process
+from processes import Process
 
 logger = getLogger('omni')
 

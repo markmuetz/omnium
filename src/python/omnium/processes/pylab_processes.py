@@ -1,7 +1,7 @@
 import subprocess as sp
 
-from omnium.stash import stash
-from omnium.processes import Process
+from stash import stash
+from processes import Process
 
 
 class PylabProcess(Process):
