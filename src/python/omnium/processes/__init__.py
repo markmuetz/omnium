@@ -33,7 +33,8 @@ def _get_process_classes(cwd=None):
             if inspect.isclass(obj) and\
                issubclass(obj, Process) and\
                not obj == Process:
-                process_classes[obj.name] = obj
+                if obj.name:
+                    process_classes[obj.name] = obj
     return process_classes
 
 process_classes = _get_process_classes()

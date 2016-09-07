@@ -33,6 +33,8 @@ class Syncher(object):
 
         computer_name = self.config['computer_name']
         sqlite3_remote_path = os.path.join(self.remote.path, '.omni', 'sqlite3.db')
+        if not os.path.exists('.omni'):
+            os.makedirs('.omni')
         local_path = os.path.join('.omni', '{}_sqlite3.db'.format(self.remote.computer_name))
 
         cmd = 'scp {}:{} {}'.format(self.remote.address, sqlite3_remote_path, local_path)

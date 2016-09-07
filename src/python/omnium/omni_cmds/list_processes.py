@@ -5,5 +5,7 @@ ARGS = []
 
 
 def main(args, config):
+    maxlen = max([len(k) for k in process_classes.keys()])
     for k, v in process_classes.items():
-        print(k)
+        fmt = '{0:' + str(maxlen) + '}: {1}'
+        print(fmt.format(k, v))
