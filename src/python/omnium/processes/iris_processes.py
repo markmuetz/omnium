@@ -2,13 +2,6 @@ import os
 import re
 from logging import getLogger
 
-import iris
-import iris.util
-try:
-    import cf_units as units
-except ImportError:
-    import iris.unit as units
-
 from omnium.processes import Process
 
 logger = getLogger('omni')
@@ -18,6 +11,14 @@ class IrisProcess(Process):
     num_files = 'single'
     out_ext = 'nc'
 
+    def load_modules(self):
+        self.iris = importlib.import_module('iris')
+        self.iris_util = importlib.import_module('iris.util')
+        try:
+            self.units = importlib.import_module('cf_units')
+        except ImportError:
+            self.units = importlib.import_module('iris.unit')
+
     def load_upstream(self):
         super(IrisProcess, self).load_upstream()
         assert(len(self.node.from_nodes) == 1)
@@ -25,18 +26,18 @@ class IrisProcess(Process):
         from_node = self.node.from_nodes[0]
 
         if self.num_vars == 'single':
-            cbs = iris.load(from_node.filename(self.config))
+            cbs = self.iris.load(from_node.filename(self.config))
             assert(len(cbs) == 1)
             self.data = cbs[0]
         elif self.num_vars == 'multi':
-            self.data = iris.load(from_node.filename(self.config))
+            self.data = self.iris.load(from_node.filename(self.config))
 
         return self.data
 
     def save(self):
         super(IrisProcess, self).save()
         filename = self.node.filename(self.config)
-        iris.save(self.processed_data, filename)
+        self.iris.save(self.processed_data, filename)
         self.saved = True
         return filename
 
@@ -50,7 +51,7 @@ class DomainMean(IrisProcess):
 
         first_node = self.node.from_nodes[0]
         filename = first_node.filename(self.config)
-        cubes = iris.load(filename)
+        cubes = self.iris.load(filename)
         found = False
         for cube in cubes:
             cube_stash = cube.attributes['STASH']
@@ -68,7 +69,7 @@ class DomainMean(IrisProcess):
         for coord_name in coords:
             try:
                 coord = cube.coord(coord_name)
-            except iris.exceptions.CoordinateNotFoundError:
+            except self.iris.exceptions.CoordinateNotFoundError:
                 raise Exception('Cube does not have coord {}'.format(coord_name))
 
         varname = cube.name()
@@ -77,7 +78,7 @@ class DomainMean(IrisProcess):
             for from_node in self.node.from_nodes:
                 filename = from_node.filename(self.config)
                 logger.debug('Loading cube {}'.format(filename))
-                yield iris.load(filename, varname)[0]
+                yield self.iris.load(filename, varname)[0]
 
         self.data = cube_iter()
 
@@ -88,10 +89,10 @@ class DomainMean(IrisProcess):
         results = []
         for cube in all_cubes:
             result = cube.collapsed(['grid_latitude', 'grid_longitude'],
-                                    iris.analysis.MEAN)
+                                    self.iris.analysis.MEAN)
             results.append(result)
 
-        results_cube = iris.cube.CubeList(results).concatenate_cube()
+        results_cube = self.iris.cube.CubeList(results).concatenate_cube()
         self.processed_data = results_cube
         return results_cube
 
@@ -129,7 +130,7 @@ class TimeDelta(IrisProcess):
     def run(self):
         super(TimeDelta, self).run()
         field = self.data
-        deltas = iris.util.delta(field.data, 0)
+        deltas = self.iris_util.delta(field.data, 0)
 
         deltas_cube = field[1:].copy()
         deltas_cube.data = deltas
@@ -146,15 +147,15 @@ class ConvertMassToEnergyFlux(IrisProcess):
     def run(self):
         super(ConvertMassToEnergyFlux, self).run()
         precip = self.data
-        precip_units = units.Unit('kg m-2 s-1')
+        precip_units = self.units.Unit('kg m-2 s-1')
         if not precip.units == precip_units:
             raise Exception('Cube {} has the wrong units, is {}, should be {}'
                             .format(precip.name(), precip.units, precip_units))
 
-        L = iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
+        L = self.iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
         # Order of precip, L seems to be important!
         precip_energy_flux = precip * L
-        precip_energy_flux.convert_units(units.Unit('W m-2'))
+        precip_energy_flux.convert_units(self.units.Unit('W m-2'))
         precip_energy_flux.rename('precip_energy_flux')
 
         self.processed_data = precip_energy_flux

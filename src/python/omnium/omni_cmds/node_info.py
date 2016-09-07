@@ -3,8 +3,6 @@ import os
 from glob import glob
 from sqlalchemy.orm.exc import NoResultFound
 
-import iris
-
 from omnium.node_dag import NodeDAG
 from omnium.models import Node
 

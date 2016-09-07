@@ -7,8 +7,6 @@ from logging import getLogger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import iris
-
 from omnium.processes import process_classes
 from models import Base, Computer, Batch, Group, Node
 

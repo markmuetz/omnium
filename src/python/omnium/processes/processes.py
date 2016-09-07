@@ -20,6 +20,9 @@ class Process(object):
         else:
             self.options = {}
 
+    def load_modules(self):
+        pass
+
     def load_upstream(self):
         logger.debug('loading {}'.format(self.node))
         for from_node in self.node.from_nodes:

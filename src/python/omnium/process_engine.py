@@ -1,5 +1,4 @@
-import iris
-
+import importlib
 from logging import getLogger
 
 from models import Node
@@ -49,6 +48,7 @@ class ProcessEngine(object):
         process_class = process_classes[node.process]
         process = process_class(self.config, node)
 
+        process.load_modules()
         process.load_upstream()
         process.run()
         process.save()
@@ -67,6 +67,7 @@ class ProcessEngine(object):
         ntype = node.node_type()
         if ntype in ['fields_file', 'netcdf']:
             logger.debug('Loading {} node: {}'.format(node, ntype))
+            iris = importlib.import_module('iris')
             return iris.load(node.filename(self.config))
         elif ntype == 'png':
             raise Exception('Cannot load png')
