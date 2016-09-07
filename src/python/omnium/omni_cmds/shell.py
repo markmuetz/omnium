@@ -16,9 +16,9 @@ def main(args, config):
         from omnium.processes import process_classes, proc_instance
         from omnium.stash import stash
         from omnium.process_engine import ProcessEngine
-	if 'remote' in config['computers'][config['computer_name']]:
-	    from omnium.syncher import Syncher
-	    syncher = Syncher(False, config)
+        if 'remote' in config['computers'][config['computer_name']]:
+            from omnium.syncher import Syncher
+            syncher = Syncher(False, config)
 
         dag = NodeDAG(config)
         proc_eng = ProcessEngine(False, config, dag)

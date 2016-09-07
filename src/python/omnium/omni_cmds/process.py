@@ -22,7 +22,7 @@ def main(args, config):
 
     if args.all:
         for batch in dag.get_batches():
-	    proc_eng.process_batch(batch)
+            proc_eng.process_batch(batch)
         return
 
     opts = [args.batch is not None, args.group is not None, args.node is not None]
