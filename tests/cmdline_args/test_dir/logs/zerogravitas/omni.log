@@ -1,0 +1,6 @@
+2016-09-07 18:33:10,351:omni        :DEBUG   : Created root logger: omni.log
+2016-09-07 18:33:10,351:omni        :DEBUG   : omni check-config
+2016-09-07 18:33:10,351:omni        :WARNING : Disabling Python warnings
+2016-09-07 18:33:10,351:omni        :DEBUG   : running cmd: <module 'omni_cmds.check_config' from '/home/markmuetz/opt/omnium/src/python/omnium/omni_cmds/check_config.pyc'>
+2016-09-07 18:33:10,351:omni        :DEBUG   : catching all exceptions
+2016-09-07 18:33:10,351:omni        :INFO    : Config OK

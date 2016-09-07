@@ -1,7 +1,7 @@
 import argparse
 
 
-def parse_commands(name, args, module):
+def parse_commands(name, args, module, cmdline_args=None):
     # create the top-level parser.
     parser = argparse.ArgumentParser(prog=name)
     subparsers = parser.add_subparsers(dest='cmd_name')
@@ -19,6 +19,9 @@ def parse_commands(name, args, module):
             subparser.add_argument(*args, **kwargs)
         # cmds[cmd_name] = cmd
 
-    args = parser.parse_args()
+    if cmdline_args:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args()
 
     return cmds, args

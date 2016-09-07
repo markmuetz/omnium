@@ -14,8 +14,7 @@ ARGS = [(['-c', '--config-file'], {'default': 'omni_conf.py'}),
         (['--DEBUG'], {'action': 'store_true', 'default': False})]
 
 
-def main():
-    cmds, args = parse_commands('omni', ARGS, omni_cmds)
+def main(cmds, args):
     cwd = os.getcwd()
     args.cwd = cwd
     config_path = os.path.join(cwd, args.config_file)
@@ -74,4 +73,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    cmds, args = parse_commands('omni', ARGS, omni_cmds)
+    main(cmds, args)
