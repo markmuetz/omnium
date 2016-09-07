@@ -16,6 +16,7 @@ logger = getLogger('omni')
 
 class IrisProcess(Process):
     num_files = 'single'
+    out_ext = 'nc'
 
     def load_upstream(self):
         super(IrisProcess, self).load_upstream()
@@ -97,7 +98,7 @@ class DomainMean(IrisProcess):
 
 class ConvertPpToNc(IrisProcess):
     name = 'convert_pp_to_nc'
-    out_ext = '.nc'
+    out_ext = 'nc'
     num_vars = 'multi'
 
     @staticmethod
@@ -109,7 +110,7 @@ class ConvertPpToNc(IrisProcess):
 
         pre, ext = os.path.splitext(filename)
 
-        return pre + '.' + ext[-1] + ConvertPpToNc.out_ext
+        return pre + '.' + ext[-1] + '.' + ConvertPpToNc.out_ext
 
     def run(self):
         super(ConvertPpToNc, self).run()
