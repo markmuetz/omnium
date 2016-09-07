@@ -8,6 +8,7 @@ filenames.extend(sorted(glob('../src/python/omnium/omni_cmds/*.py')))
 filenames.extend(sorted(glob('../src/python/omnium/omnium_cmds/*.py')))
 filenames.extend(sorted(glob('../src/python/omnium/processes/*.py')))
 filenames.extend(sorted(glob('pep8_tests/*.py')))
+filenames.extend(sorted(glob('cmdline_args/*.py')))
 
 
 def test_generator():
