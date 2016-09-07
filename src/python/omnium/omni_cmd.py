@@ -36,8 +36,8 @@ def main(cmds, args):
 
     if args.cmd_name != 'check-config':
         logger.debug('checking config')
-        checker = ConfigChecker(config)
         try:
+            checker = ConfigChecker(config)
             checker.run_checks()
             for warning in checker.warnings:
                 logger.warn(warning)
@@ -46,7 +46,10 @@ def main(cmds, args):
             if e.hint:
                 logger.error(e.hint)
             logger.error('To check all config errors run:\nomni check-config')
-            exit(1)
+            return 1
+        except Exception as e:
+            logger.error('{}'.format(e))
+            return 1
         logger.debug('config OK')
 
     if config['settings']['ignore_warnings']:
@@ -63,15 +66,15 @@ def main(cmds, args):
     if not args.throw_exceptions:
         logger.debug('catching all exceptions')
         try:
-            cmd.main(args, config)
+            return cmd.main(args, config)
         except Exception as e:
             logger.error('{}'.format(e))
-            exit(1)
+            return 1
     else:
         cmd.main(args, config)
-    exit(0)
+    return 0
 
 
 if __name__ == '__main__':
     cmds, args = parse_commands('omni', ARGS, omni_cmds)
-    main(cmds, args)
+    exit(main(cmds, args))

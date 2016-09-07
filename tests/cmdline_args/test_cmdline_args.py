@@ -1,21 +1,33 @@
-#import sys
-#sys.path.insert(0, '../src/python')
 import os
 import subprocess as sp
 
-#from omnium.command_parser import parse_commands
-#from omnium import omni_cmd
-#from omnium import omni_cmds
-
-cmds = ['check-config']
+cmd_args = [
+    ('check-config', ['--warnings-as-errors']),
+    ('list-processes', []),
+    ('version', ['-l']),
+    ('view-log', []),
+]
 
 
 def test_generator():
-    for cmd in cmds:
-        yield _test_command, cmd
-
-
-def _test_command(cmd):
+    cwd = os.getcwd()
     os.chdir('cmdline_args/test_dir')
-    output = sp.call('omnium ls')
-    assert output == 0, "Command raised errors"
+    for cmd, args in cmd_args:
+        yield _test_command, cmd, None
+        for arg in args:
+            yield _test_command, cmd, arg
+    os.chdir(cwd)
+
+
+def _test_command(cmd, arg):
+    if arg:
+        cmd_string = 'omni {} {}'.format(cmd, arg)
+    else:
+        cmd_string = 'omni {}'.format(cmd)
+    print(cmd_string)
+    try:
+        output = sp.check_output(cmd_string.split(), stderr=sp.STDOUT)
+    except sp.CalledProcessError as e:
+        print('Return code: {}'.format(e.returncode))
+        print(e.output)
+        assert False, "Command raised errors"
