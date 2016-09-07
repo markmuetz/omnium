@@ -6,9 +6,9 @@ import inspect
 import importlib
 
 from processes import Process
-from iris_processes import (ConvertPpToNc, ConvertMassToEnergyFlux,
+from iris_processes import (IrisProcess, ConvertPpToNc, ConvertMassToEnergyFlux,
                             TimeDelta, DomainMean)
-from pylab_processes import PlotMultiTimeseries, PlotLastProfile
+from pylab_processes import PylabProcess, PlotMultiTimeseries, PlotLastProfile
 
 
 def _get_process_classes(cwd=None):
