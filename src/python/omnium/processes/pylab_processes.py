@@ -1,4 +1,5 @@
 import subprocess as sp
+import importlib
 
 from stash import stash
 from processes import Process
@@ -69,7 +70,7 @@ class PlotLastProfile(PylabProcess):
             last_profile = profile[-1]
             stash.rename_unknown_cube(last_profile)
             self.plt.plot(last_profile.data, last_profile.coord('level_height').points,
-                     label=last_profile.name())
+                          label=last_profile.name())
 
         self.plt.legend()
         self.processed_data = fig

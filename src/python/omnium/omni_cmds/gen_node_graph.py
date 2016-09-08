@@ -1,6 +1,4 @@
 """Print all nodes grouped by batch, group"""
-from omnium.node_dag import NodeDAG
-
 ARGS = [(['--disable-print'], {'help': 'Disable printing of graph',
                                'action': 'store_true',
                                'default': False}),
@@ -12,7 +10,9 @@ ARGS = [(['--disable-print'], {'help': 'Disable printing of graph',
                              'default': False})]
 
 
-def main(args, config):
+def main(args, config, process_classes):
+    from omnium.node_dag import NodeDAG
+
     local_computer_name = config['computer_name']
     if ('remote' in config['computers'][local_computer_name] and not args.force):
         msg = 'This computer ({}) has a remote computer defined\n'\
@@ -21,9 +21,9 @@ def main(args, config):
         raise Exception(msg)
 
     if args.regen:
-        dag = NodeDAG.regenerate(config)
+        dag = NodeDAG.regenerate(config, process_classes)
     else:
-        dag = NodeDAG.generate(config)
+        dag = NodeDAG.generate(config, process_classes)
 
     if not args.disable_print:
         dag.print_nodes()

@@ -2,9 +2,6 @@
 import os
 from logging import getLogger
 
-from omnium.node_dag import NodeDAG
-from omnium.process_engine import ProcessEngine
-
 logger = getLogger('omni')
 
 ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
@@ -16,9 +13,12 @@ ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
                              'default': False})]
 
 
-def main(args, config):
-    dag = NodeDAG(config)
-    proc_eng = ProcessEngine(args.force, config, dag)
+def main(args, config, process_classes):
+    from node_dag import NodeDAG
+    from process_engine import ProcessEngine
+
+    dag = NodeDAG(config, process_classes)
+    proc_eng = ProcessEngine(args.force, config, process_engine, dag)
 
     if args.all:
         for batch in dag.get_batches():

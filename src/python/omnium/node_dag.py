@@ -7,7 +7,6 @@ from logging import getLogger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from omnium.processes import process_classes
 from models import Base, Computer, Batch, Group, Node
 
 logger = getLogger('omni')
@@ -17,25 +16,26 @@ class NodeDAG(object):
     SAVE_FILE_TPL = '{}.{}'
 
     @staticmethod
-    def regenerate(config):
+    def regenerate(config, process_classes):
         if os.path.exists('.omni/sqlite3.db'):
             os.remove('.omni/sqlite3.db')
         return NodeDAG.generate(config)
 
     @staticmethod
-    def generate(config):
+    def generate(config, process_classes):
         if not os.path.exists('.omni'):
             os.makedirs('.omni')
 
-        dag = NodeDAG(config, None)
+        dag = NodeDAG(config, None, process_classes)
 
         group_names = config['groups'].keys()
         dag.generate_all_nodes(group_names)
         dag.log_nodes()
         return dag
 
-    def __init__(self, config, remote_computer_name=None):
+    def __init__(self, config, process_classes, remote_computer_name=None):
         self.config = config
+        self.process_classes = process_classes
 
         self.remote_computer_name = remote_computer_name
         self._set_computer_name()
@@ -110,7 +110,7 @@ class NodeDAG(object):
                 process_name = group_sec['process']
                 orig_filename = from_node.filename(self.config)
 
-                process = process_classes[process_name]
+                process = self.process_classes[process_name]
                 new_filename = process.convert_filename(orig_filename)
 
                 node = self._create_node(new_filename,
@@ -160,7 +160,7 @@ class NodeDAG(object):
 
     def get_proc(self, node_name):
         node = self.get_node(node_name)
-        return process_classes[node.process](self.config, node)
+        return self.process_classes[node.process](self.config, node)
 
     def commit(self):
         self._session.commit()
@@ -268,8 +268,8 @@ class NodeDAG(object):
 
     def _generate_group_process_nodes(self, group, group_sec):
         process_name = group_sec['process']
-        process = process_classes[process_name](self.config,
-                                                self.computer_name)
+        process = self.process_classes[process_name](self.config,
+                                                     self.computer_name)
 
     def _get_filename(self, results_dir, node_name, out_ext):
         if not os.path.exists(results_dir):
@@ -281,8 +281,8 @@ class NodeDAG(object):
 
     def _generate_from_group_nodes(self, group, node_name, node_sec):
         from_group = self.get_group(node_sec['from_group'])
-        process = process_classes[node_sec['process']](self.config,
-                                                       self.computer_name)
+        process = self.process_classes[node_sec['process']](self.config,
+                                                            self.computer_name)
         base_dir = self._get_base_dir(group.base_dirname)
         filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)
@@ -299,8 +299,8 @@ class NodeDAG(object):
                                           node_sec['process'])
 
     def _generate_from_nodes_nodes(self, group, node_name, node_sec):
-        process = process_classes[node_sec['process']](self.config,
-                                                       self.computer_name)
+        process = self.process_classes[node_sec['process']](self.config,
+                                                            self.computer_name)
         base_dir = self._get_base_dir(group.base_dirname)
         filename = self._get_filename(base_dir, node_name, out_ext=process.out_ext)
         rel_filename = os.path.relpath(filename, base_dir)

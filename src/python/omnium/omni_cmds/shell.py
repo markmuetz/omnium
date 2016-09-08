@@ -1,10 +1,10 @@
 """Launches IPython shell"""
-import IPython
-
 ARGS = [(['--failsafe'], {'action': 'store_true'})]
 
 
-def main(args, config):
+def main(args, config, process_classes):
+    import IPython
+
     if not args.failsafe:
         # Load up useful modules
         import iris
@@ -20,8 +20,8 @@ def main(args, config):
             from omnium.syncher import Syncher
             syncher = Syncher(False, config)
 
-        dag = NodeDAG(config)
-        proc_eng = ProcessEngine(False, config, dag)
+        dag = NodeDAG(config, process_classes)
+        proc_eng = ProcessEngine(False, config, process_engine, dag)
 
     # IPython.start_ipython(argv=[])
     # This is better because it allows you to access e.g. args, config.

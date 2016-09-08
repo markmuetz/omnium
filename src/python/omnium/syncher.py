@@ -3,8 +3,6 @@ import shutil
 import subprocess as sp
 from logging import getLogger
 
-from omnium.node_dag import NodeDAG
-
 logger = getLogger('omni')
 
 
@@ -24,12 +22,13 @@ class Syncher(object):
         self.config = config
         self.remote = RemoteInfo(config)
 
-    def sync_node_dag(self):
+    def sync_node_dag(self, process_classes):
         '''Sync node dag from remote computer to current'''
         # Copies across sqlite3 db, renames it, renames computer in it, then updates
         # all nodes' statuses.
 
         # Copy sqlite3 from remote.
+        from omnium.node_dag import NodeDAG
 
         computer_name = self.config['computer_name']
         sqlite3_remote_path = os.path.join(self.remote.path, '.omni', 'sqlite3.db')
@@ -52,7 +51,7 @@ class Syncher(object):
         shutil.copyfile(local_path, sqlite3_local_path)
 
         # Update (new) local dag.
-        dag = NodeDAG(self.config)
+        dag = NodeDAG(self.config, process_classes)
         computers = dag.get_computers()
         assert(len(computers) == 1)
         computer = computers[0]
@@ -61,7 +60,7 @@ class Syncher(object):
         dag.commit()
 
         self.dag = dag
-        self.remote_dag = NodeDAG(self.config, self.remote.computer_name)
+        self.remote_dag = NodeDAG(self.config, self.remote.computer_name, process_classes)
 
         return dag
 

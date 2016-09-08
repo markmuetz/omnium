@@ -2,7 +2,7 @@
 from collections import OrderedDict as odict
 
 from dict_printer import pprint
-from processes import process_classes
+
 from stash import stash
 
 
@@ -94,8 +94,9 @@ class ConfigError(Exception):
 
 
 class ConfigChecker(object):
-    def __init__(self, config, raise_errors=True, warnings_as_errors=False):
+    def __init__(self, config, process_classes, raise_errors=True, warnings_as_errors=False):
         self.config = config
+        self.process_classes = process_classes
         self.raise_errors = raise_errors
         self.warnings_as_errors = warnings_as_errors
         self.warnings = []
@@ -221,19 +222,19 @@ class ConfigChecker(object):
         errors = []
         for groupname, groupsec in self.config['groups'].items():
             if groupsec['type'] == 'group_process':
-                if groupsec['process'] not in process_classes:
+                if groupsec['process'] not in self.process_classes:
                     msg = 'Process not found from group: {}:process:{}'\
                           .format(groupname, groupsec['process'])
                     hint = 'available processes are:\n    {}'\
-                           .format('\n    '.join(process_classes.keys()))
+                           .format('\n    '.join(self.process_classes.keys()))
                     self._add_error(msg, hint)
 
         for nodename, nodesec in self.config['nodes'].items():
-            if nodesec['process'] not in process_classes:
+            if nodesec['process'] not in self.process_classes:
                 msg = 'Process not found from node: {}:process:{}'\
                       .format(nodename, nodesec['process'])
                 hint = 'available processes are:\n    {}'\
-                       .format('\n    '.join(process_classes.keys()))
+                       .format('\n    '.join(self.process_classes.keys()))
                 self._add_error(msg, hint)
 
     def variable_checks(self):

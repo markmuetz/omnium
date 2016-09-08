@@ -2,13 +2,11 @@ import importlib
 from logging import getLogger
 
 from models import Node
-from processes import process_classes
-
 logger = getLogger('omni')
 
 
 class ProcessEngine(object):
-    def __init__(self, force, config, dag):
+    def __init__(self, force, config, process_classes, dag):
         self.force = force
         self.config = config
         self.dag = dag
@@ -45,7 +43,7 @@ class ProcessEngine(object):
                             .format(node))
 
         logger.info('  '*(indent+1) + 'Using process {}'.format(node.process))
-        process_class = process_classes[node.process]
+        process_class = self.process_classes[node.process]
         process = process_class(self.config, node)
 
         process.load_modules()

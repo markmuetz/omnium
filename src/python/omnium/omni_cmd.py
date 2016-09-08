@@ -5,8 +5,10 @@ import imp
 from command_parser import parse_commands
 from check_config import ConfigChecker, ConfigError
 from setup_logging import setup_logger
+from processes import get_process_classes
 
-#import omni_cmds
+
+import omni_cmds
 
 
 ARGS = [(['-c', '--config-file'], {'default': 'omni_conf.py'}),
@@ -15,8 +17,6 @@ ARGS = [(['-c', '--config-file'], {'default': 'omni_conf.py'}),
 
 
 def main(cmds, args):
-    return
-
     cwd = os.getcwd()
     args.cwd = cwd
     config_path = os.path.join(cwd, args.config_file)
@@ -36,10 +36,11 @@ def main(cmds, args):
     logger = setup_logger(config)
     logger.debug('omni {}'.format(' '.join(sys.argv[1:])))
 
+    process_classes = get_process_classes(cwd)
     if args.cmd_name != 'check-config':
         logger.debug('checking config')
         try:
-            checker = ConfigChecker(config)
+            checker = ConfigChecker(config, process_classes)
             checker.run_checks()
             for warning in checker.warnings:
                 logger.warn(warning)
@@ -68,16 +69,15 @@ def main(cmds, args):
     if not args.throw_exceptions:
         logger.debug('catching all exceptions')
         try:
-            return cmd.main(args, config)
+            return cmd.main(args, config, process_classes)
         except Exception as e:
             logger.error('{}'.format(e))
             return 1
     else:
-        cmd.main(args, config)
+        cmd.main(args, config, process_classes)
     return 0
 
 
 if __name__ == '__main__':
-    exit(0)
     cmds, args = parse_commands('omni', ARGS, omni_cmds)
     exit(main(cmds, args))

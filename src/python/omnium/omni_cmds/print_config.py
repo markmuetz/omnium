@@ -2,14 +2,14 @@
 import os
 from StringIO import StringIO
 
-from omnium.dict_printer import pprint
-from omnium.check_config import CONFIG_SCHEMA
-
 ARGS = [(['sections'], {'help': 'specify section(s) to print',
                         'nargs': '*'})]
 
 
-def main(args, config):
+def main(args, config, process_classes):
+    from omnium.dict_printer import pprint
+    from omnium.check_config import CONFIG_SCHEMA
+
     if args.sections:
         config_level = config
         for section in args.sections:

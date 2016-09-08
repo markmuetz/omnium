@@ -10,8 +10,9 @@ ARGS = [(['--warnings-as-errors'], {'help': 'Treat all warnings as errors',
                                     'default': False})]
 
 
-def main(args, config):
-    checker = ConfigChecker(config, False, args.warnings_as_errors)
+def main(args, config, process_classes):
+    checker = ConfigChecker(config, process_classes, False,
+                            args.warnings_as_errors)
     warnings, errors = checker.run_checks()
     if warnings:
         logger.warn('Config Warnings:')

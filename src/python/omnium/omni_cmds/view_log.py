@@ -3,8 +3,6 @@ import os
 import logging
 import datetime as dt
 
-import pandas as pd
-
 logger = logging.getLogger('omni')
 
 ARGS = [(['--computer', '-c'], {'nargs': '?'}),
@@ -16,6 +14,8 @@ ARGS = [(['--computer', '-c'], {'nargs': '?'}),
 
 
 def parse_log(log_filename):
+    import pandas as pd
+
     with open(log_filename, 'r') as f:
         lines = f.readlines()
 
@@ -84,7 +84,7 @@ def print_df(args, df):
                                                     row_data.msg))
 
 
-def main(args, config):
+def main(args, config, process_classes):
     if not args.computer:
         log_filename = os.path.join(logger.logging_dir, 'omni.log')
     else:
