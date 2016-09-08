@@ -6,6 +6,7 @@ cmd_args = [
     ('list-processes', []),
     ('version', ['-l']),
     ('view-log', []),
+    ('print-config', []),
 ]
 
 

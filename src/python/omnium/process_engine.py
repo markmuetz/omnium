@@ -9,6 +9,7 @@ class ProcessEngine(object):
     def __init__(self, force, config, process_classes, dag):
         self.force = force
         self.config = config
+        self.process_classes = process_classes
         self.dag = dag
 
     def process_batch(self, batch):

@@ -60,7 +60,8 @@ class Syncher(object):
         dag.commit()
 
         self.dag = dag
-        self.remote_dag = NodeDAG(self.config, self.remote.computer_name, process_classes)
+        self.remote_dag = NodeDAG(self.config, process_classes,
+                                  self.remote.computer_name)
 
         return dag
 
@@ -86,6 +87,7 @@ class Syncher(object):
             else:
                 return None
 
+        logger.debug('Getting remote node {}'.format(node))
         remote_node = self.remote_dag.get_node(node.name, node.group.name)
         if remote_node.status != 'done':
             logger.error('Remote node has not been processed yet')

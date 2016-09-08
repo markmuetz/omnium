@@ -18,7 +18,7 @@ def main(args, config, process_classes):
     from process_engine import ProcessEngine
 
     dag = NodeDAG(config, process_classes)
-    proc_eng = ProcessEngine(args.force, config, process_engine, dag)
+    proc_eng = ProcessEngine(args.force, config, process_classes, dag)
 
     if args.all:
         for batch in dag.get_batches():
