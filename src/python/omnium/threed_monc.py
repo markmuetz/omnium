@@ -142,5 +142,3 @@ class Window(QtGui.QWidget):
         pos[:, 2] = z_map[pos_indices[:, 2]]
 
         return pos, size
-
-

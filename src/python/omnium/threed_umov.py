@@ -16,6 +16,7 @@ from logging import getLogger
 
 logger = getLogger('omni')
 
+
 class Window(QtGui.QWidget):
     # TODO: Unify with 3D MONC.
     # TODO: stop using UMO

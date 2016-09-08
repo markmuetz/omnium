@@ -2,6 +2,8 @@ import os
 import subprocess as sp
 import shutil
 
+from nose import with_setup
+
 cmd_args = [
     ('check-config', [None, '--warnings-as-errors']),
     ('list-processes', [None]),
@@ -11,33 +13,40 @@ cmd_args = [
                   '--search cmd']),
     ('print-config', [None, 'groups', 'groups useful_analysis',
                       'groups useful_analysis type']),
-    ('gen-node-graph', [None, '--regen', '--regen --disable-print', 
+    ('gen-node-graph', [None, '--regen', '--regen --disable-print',
                         '--regen --force']),
     ('print-node-graph', [None]),
     ('process', ['-b batch1', '-b batch2', '-b batch3', '-fb batch3',
-                 '-fg useful_analysis', '-fn item.002.copy.txt', 
+                 '-fg useful_analysis', '-fn item.002.copy.txt',
                  '--force --all']),
     ('node-info', ['item.001.txt', 'item.002.copy.txt']),
     ('verify-node-graph', [None, '--update']),
 ]
 
 
-def test_generator():
+def _setup():
     cwd = os.getcwd()
-    if os.path.exists('cmdline_args/working_test_dir'):
-        shutil.rmtree('cmdline_args/working_test_dir')
-    shutil.copytree('cmdline_args/test_dir',
-                    'cmdline_args/working_test_dir')
+    test_dir = os.path.join(cwd, 'cmdline_args/test_dir')
+    working_test_dir = os.path.join(cwd,
+                                    'cmdline_args/_working_test_dir')
+    if os.path.exists(working_test_dir):
+        shutil.rmtree(working_test_dir)
+    shutil.copytree(test_dir, working_test_dir)
 
-    os.chdir('cmdline_args/working_test_dir')
+    os.chdir('cmdline_args/_working_test_dir')
 
+
+def _teardown():
+    os.chdir('../../')
+    if os.path.exists('cmdline_args/_working_test_dir'):
+        shutil.rmtree('cmdline_args/_working_test_dir')
+
+
+@with_setup(_setup, _teardown)
+def test_generator():
     for cmd, args in cmd_args:
         for arg in args:
             yield _test_command, cmd, arg
-
-    os.chdir(cwd)
-    if os.path.exists('cmdline_args/working_test_dir'):
-        shutil.rmtree('cmdline_args/working_test_dir')
 
 
 def _test_command(cmd, arg):

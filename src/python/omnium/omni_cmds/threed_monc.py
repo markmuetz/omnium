@@ -1,6 +1,7 @@
 """Launch MONC 3D cube viewer"""
 import os
 import sys
+import importlib
 from glob import glob
 from logging import getLogger
 
@@ -13,12 +14,16 @@ ARGS = [(['--cube-index', '-c'], {'default': 9, 'type': int}),
 
 def main(args, config, process_classes):
     try:
+        # TODO: how do you do this?
+        # QtCore = importlib.import_module('pyqtgraph.Qt', 'QtCore')
+        # QtGui = importlib.import_module('pyqtgraph.Qt', 'QtGui')
         from pyqtgraph.Qt import QtCore, QtGui
     except ImportError:
         logger.error('Qt not installed on this computer')
         return 1
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+        # Window = importlib.import_module('omnium', 'threed_monc.Window')
         from omnium.threed_monc import Window
 
         # logger.info('Starting app')
@@ -35,4 +40,3 @@ def main(args, config, process_classes):
         window = Window(filename, args.cube_index, args.size, args.timeout)
         window.show()
         sys.exit(app.exec_())
-

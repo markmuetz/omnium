@@ -1,4 +1,6 @@
 """Perform consistency checks on config"""
+import sys
+import imp
 from collections import OrderedDict as odict
 
 from dict_printer import pprint
@@ -94,6 +96,17 @@ class ConfigError(Exception):
 
 
 class ConfigChecker(object):
+    @staticmethod
+    def load_config(config_path):
+        # Stops .pyc file from being created.
+        sys.dont_write_bytecode = True
+        config_module = imp.load_source('omni_conf', config_path)
+        sys.dont_write_bytecode = False
+
+        settings = [d for d in dir(config_module) if d[:2] not in ['__']]
+        config = dict((s, getattr(config_module, s)) for s in settings)
+        return config
+
     def __init__(self, config, process_classes, raise_errors=True, warnings_as_errors=False):
         self.config = config
         self.process_classes = process_classes
