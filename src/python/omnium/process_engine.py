@@ -35,6 +35,10 @@ class ProcessEngine(object):
             return
         elif node.status == 'processing':
             raise Exception('Node {} currently being processed'.format(node))
+
+        if not node.from_nodes:
+            logger.info('  '*(indent + 1) + 'Node {} has no from nodes, skipping'.format(node))
+            return
         for from_node in node.from_nodes:
             if from_node.status != 'done':
                 raise Exception('Node {} does not exist'.format(from_node))

@@ -19,14 +19,14 @@ class NodeDAG(object):
     def regenerate(config, process_classes):
         if os.path.exists('.omni/sqlite3.db'):
             os.remove('.omni/sqlite3.db')
-        return NodeDAG.generate(config)
+        return NodeDAG.generate(config, process_classes)
 
     @staticmethod
     def generate(config, process_classes):
         if not os.path.exists('.omni'):
             os.makedirs('.omni')
 
-        dag = NodeDAG(config, None, process_classes)
+        dag = NodeDAG(config, process_classes, None)
 
         group_names = config['groups'].keys()
         dag.generate_all_nodes(group_names)

@@ -54,6 +54,7 @@ def parse_log(log_filename):
 
 
 def filter_df(args, df):
+    import pandas as pd
     level_num = getattr(logging, args.level.upper())
     if args.only_level:
         level_num = getattr(logging, args.only_level.upper())
