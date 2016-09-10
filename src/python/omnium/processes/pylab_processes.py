@@ -6,6 +6,11 @@ from processes import Process
 
 
 class PylabProcess(Process):
+    @staticmethod
+    def cm2inch(*args):
+        inch = 2.54
+        return tuple(v/inch for v in args)
+
     def load_modules(self):
         self.iris = importlib.import_module('iris')
         self.plt = importlib.import_module('pylab')
