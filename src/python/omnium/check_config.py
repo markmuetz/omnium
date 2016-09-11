@@ -117,6 +117,7 @@ class ConfigChecker(object):
 
     def run_checks(self):
         self.schema_checks()
+        self.xref_dir_checks()
         self.xref_checks()
         self.process_checks()
         self.variable_checks()
@@ -204,6 +205,15 @@ class ConfigChecker(object):
                                 msg = '{}:{} Unrequired value "{}: {}"'\
                                       .format(secname, seckey, key, conf_secvalues[key])
                                 self._add_warning(msg)
+
+    def xref_dir_checks(self):
+        for comp in self.config['computers'].values():
+            for groupname, group in self.config['groups'].items():
+                base_dir = group['base_dir']
+                if base_dir not in comp['dirs']:
+                    msg = 'base_dir XRef {0} missing from {1}'\
+                          .format(base_dir, groupname)
+                    self._add_error(msg)
 
     def xref_checks(self):
         for secname, secschema in CONFIG_SCHEMA.items():
