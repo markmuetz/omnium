@@ -1,4 +1,4 @@
-"""syncs nodes from remote machine defined in omni.conf"""
+"""syncs nodes from remote machine defined in omni_conf.py"""
 from logging import getLogger
 
 from omnium.syncher import Syncher

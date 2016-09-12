@@ -1,4 +1,4 @@
-"""Print all nodes grouped by batch, group"""
+"""Verify status of all nodes"""
 ARGS = [(['--update'], {'action': 'store_true'})]
 
 

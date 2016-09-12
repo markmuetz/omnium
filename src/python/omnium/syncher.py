@@ -45,6 +45,7 @@ class Syncher(object):
             logger.error(msg)
             msg = 'output\n{}'.format(e.output)
             logger.error(msg)
+            raise Exception('Failed to copy remote database')
 
         # Rename.
         sqlite3_local_path = os.path.join('.omni', 'sqlite3.db')
@@ -67,19 +68,18 @@ class Syncher(object):
 
     def sync_batch(self, batch):
         for group in batch.groups:
-            self.sync_group(group)
-        batch.status == 'done'
-        self.dag.commit()
+            self.sync_group(group, False)
+        self.dag.verify_status(update=True)
         return batch
 
-    def sync_group(self, group):
+    def sync_group(self, group, verify=True):
         for node in group.nodes:
-            self.sync_node(node)
-        group.status == 'done'
-        self.dag.commit()
+            self.sync_node(node, False)
+        if verify:
+            self.dag.verify_status(update=True)
         return group
 
-    def sync_node(self, node):
+    def sync_node(self, node, verify=True):
         if node.status == 'done':
             logger.info('Local node {} has already been processed'.format(node))
             if self.force:
@@ -109,12 +109,14 @@ class Syncher(object):
             logger.error(msg)
             msg = 'output\n{}'.format(e.output)
             logger.error(msg)
+            self.dag.verify(update=True)
+            raise Exception('Could not sync {}'.format(node))
 
         with open(local_filename + '.done', 'w') as f:
             f.write('Copied from {}'.format(self.remote.computer_name))
 
-        node.status = 'done'
-        self.dag.commit()
+        if verify:
+            self.dag.verify_status(update=True)
         return node
 
     def sync_dir(self, dirname):

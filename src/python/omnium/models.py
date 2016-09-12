@@ -13,7 +13,7 @@ node_to_node = Table("node_to_node", Base.metadata,
                      Column("to_node_id", Integer, ForeignKey("nodes.id"), primary_key=True)
                      )
 
-statuses = Enum('missing', 'processing', 'done', name='statuses')
+statuses = Enum('missing', 'processing', 'incomplete', 'done', name='statuses')
 
 
 class Computer(Base):

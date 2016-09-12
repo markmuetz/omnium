@@ -196,29 +196,61 @@ class NodeDAG(object):
                     .filter_by(name=node_name)
         return query.all()
 
-    def verify_status(self, update):
-        self.errors = []
-        for node in self._session.query(Node).all():
-            filename = node.filename(self.config)
-            status = self._get_node_status(filename)
-            if node.status != status:
-                self.errors.append((node, status))
-                logger.debug('{}: {} doesn\'t match {}'.format(node.name,
-                                                               node.status,
-                                                               status))
-                if update:
-                    node.status = status
-                    logger.debug('Updated: {}'.format(node))
+    def _verify_node(self, node, update):
+        filename = node.filename(self.config)
+        status = self._get_node_status(filename)
+        if node.status != status:
+            logger.debug('{}: {} doesn\'t match {}'.format(node,
+                                                           node.status,
+                                                           status))
+            if update:
+                node.status = status
+                logger.debug('Updated: {}'.format(node))
+            return status, [(node, status)]
+        return status, []
 
-        if len(self.errors):
+    def _verify_group_batch(self, statuses, group_batch, update):
+        if len(statuses) == 1:
+            new_status = statuses.pop()
+        else:
+            new_status = 'incomplete'
+        if group_batch.status != new_status:
+            logger.debug('{}: {} doesn\'t match {}'.format(group_batch,
+                                                           group_batch.status,
+                                                           new_status))
+            if update:
+                group_batch.status = new_status
+                logger.debug('Updated: {}'.format(group_batch))
+            return new_status, [(group_batch, new_status)]
+        return new_status, []
+
+    def verify_status(self, update):
+        errors = []
+        for batch in self.get_batches():
+            new_batch_status = 'missing'
+            group_statuses = set()
+            for group in batch.groups:
+                node_statuses = set()
+                for node in group.nodes:
+                    node_status, node_errors = self._verify_node(node, update)
+                    errors.extend(node_errors)
+                    node_statuses |= {node_status}
+                group_status, group_error = self._verify_group_batch(node_statuses,
+                                                                     group, update)
+                errors.extend(group_error)
+                group_statuses |= {group_status}
+            batch_status, batch_error = self._verify_group_batch(group_statuses, 
+                                                                 batch, update)
+            errors.extend(batch_error)
+
+        if len(errors):
             if update:
                 self.commit()
-                self.errors = []
-                logger.info('Successfully updated dag')
+                logger.info('Updated DAG')
             else:
-                msg = 'Status doesn\'t match for {} node(s)\n'\
+                msg = 'Status doesn\'t match for {} node(s)/group(s)/batch(es)\n'\
                       'To fix run:\nomni verify-node-graph --update'\
-                      .format(len(self.errors))
+                      .format(len(errors))
                 raise Exception(msg)
         else:
             logger.info('All nodes statuses verified')
