@@ -300,6 +300,10 @@ class NodeDAG(object):
                                  group_sec['filename_glob'])
         logger.debug('Using filename glob: {}'.format(full_glob))
         filenames = sorted(glob(full_glob))
+        if not len(filenames):
+            logger.warn('No filenames for {} using:'.format(group))
+            logger.warn(full_glob)
+
         for filename in filenames:
             rel_filename = os.path.relpath(filename, base_dir)
             node = self._create_node(rel_filename, group)
