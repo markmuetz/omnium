@@ -7,15 +7,15 @@ logger = getLogger('omni')
 commands = [
     'check-config',
     'node-info',
-    'gen-node-graph',
+    'gen-nodes',
     'list-processes',
     'print-config',
-    'print-node-graph',
+    'print-nodes',
     'process',
     'sync',
     'shell',
     'threed',
-    'verify-node-graph',
+    'verify-node-statuses',
     'version',
     'view-log',
 ]

@@ -1,4 +1,4 @@
-"""Print all nodes grouped by batch, group"""
+"""Generates all nodes from config"""
 ARGS = [(['--disable-print'], {'help': 'Disable printing of graph',
                                'action': 'store_true',
                                'default': False}),
