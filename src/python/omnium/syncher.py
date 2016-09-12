@@ -1,6 +1,5 @@
 import os
 import shutil
-import subprocess as sp
 from logging import getLogger
 
 logger = getLogger('omni')
@@ -18,9 +17,12 @@ class RemoteInfo(object):
 
 class Syncher(object):
     def __init__(self, force, config):
+        from omnium.remote_transfer import RemoteTransfer
+
         self.force = force
         self.config = config
         self.remote = RemoteInfo(config)
+        self.remote_tx = RemoteTransfer()
 
     def sync_node_dag(self, process_classes):
         '''Sync node dag from remote computer to current'''
@@ -36,16 +38,9 @@ class Syncher(object):
             os.makedirs('.omni')
         local_path = os.path.join('.omni', '{}_sqlite3.db'.format(self.remote.computer_name))
 
-        cmd = 'scp {}:{} {}'.format(self.remote.address, sqlite3_remote_path, local_path)
-        logger.debug(cmd)
-        try:
-            logger.debug(sp.check_output(cmd.split()))
-        except sp.CalledProcessError as e:
-            msg = 'error code {}'.format(e.returncode)
-            logger.error(msg)
-            msg = 'output\n{}'.format(e.output)
-            logger.error(msg)
-            raise Exception('Failed to copy remote database')
+        self.remote_tx.transfer_file(self.remote.address,
+                                     sqlite3_remote_path,
+                                     local_path)
 
         # Rename.
         sqlite3_local_path = os.path.join('.omni', 'sqlite3.db')
@@ -101,20 +96,18 @@ class Syncher(object):
         if not os.path.exists(dirname):
             logger.debug('Creating dir {}'.format(dirname))
             os.makedirs(dirname)
-        cmd = 'scp {}:{} {}'.format(self.remote.address, remote_filename, local_filename)
-        logger.debug(cmd)
-        try:
-            logger.debug(sp.check_output(cmd.split()))
-        except sp.CalledProcessError as e:
-            msg = 'error code {}'.format(e.returncode)
-            logger.error(msg)
-            msg = 'output\n{}'.format(e.output)
-            logger.error(msg)
-            self.dag.verify(update=True)
-            raise Exception('Could not sync {}'.format(node))
 
-        with open(local_filename + '.done', 'w') as f:
-            f.write('Copied from {}'.format(self.remote.computer_name))
+        try:
+            self.remote_tx.get_node(self.remote.address,
+                                    remote_filename,
+                                    local_filename)
+        except Exception:
+            self.dag.verify_status(update=True)
+            raise
+
+        logger.debug('appending metadata to .done file')
+        with open(local_filename + '.done', 'a') as outfile:
+            outfile.write('Copied from {}\n'.format(self.remote.computer_name))
 
         if verify:
             self.dag.verify_status(update=True)
@@ -128,10 +121,5 @@ class Syncher(object):
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
-        # N.B trailing slash on source dir is important. Tells rsync to not
-        # create new dir e.g. results/results/
-        cmd = 'rsync -avz {}:{}/ {}'.format(self.remote.address, remote_dir, local_dir)
-        logger.debug(cmd)
-        logger.debug('\n' + sp.check_output(cmd.split()))
-
+        self.remote_tx.get_dir(self.remote.address, remote_dir, local_dir)
         self.dag.verify_status(update=True)
