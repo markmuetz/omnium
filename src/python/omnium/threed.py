@@ -7,12 +7,12 @@ Will only work with 4D (3D+time) Iris cubes.
 # pylint: disable=no-member
 from logging import getLogger
 
-logger = getLogger('omni')
-
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 import numpy as np
 import iris
+
+logger = getLogger('omni')
 
 
 class Window(QtGui.QWidget):

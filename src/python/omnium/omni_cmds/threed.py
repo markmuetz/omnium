@@ -28,7 +28,7 @@ def main(args, config, process_classes):
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         # TODO: and this?
         # Window = importlib.import_module('omnium', 'threed_monc.Window')
-        from omnium.threed_monc import Window
+        from omnium.threed import Window
 
         # logger.info('Starting app')
         app = QtGui.QApplication(sys.argv)
@@ -42,7 +42,7 @@ def main(args, config, process_classes):
         filename = glob(glob_full)[0]
 
         logger.debug(args)
-        window = Window(filename, args.data_source, args.cube_index, 
-                                  args.size, args.timeout)
+        window = Window(filename, args.data_source, args.cube_index,
+                        args.size, args.timeout)
         window.show()
         sys.exit(app.exec_())

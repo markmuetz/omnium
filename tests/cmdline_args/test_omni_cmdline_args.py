@@ -14,7 +14,7 @@ cmd_args = [
     ('print-config', [None, 'groups', 'groups useful_analysis',
                       'groups useful_analysis type']),
     ('gen-nodes', [None, '--regen', '--regen --disable-print',
-                        '--regen --force']),
+                   '--regen --force']),
     ('print-nodes', [None]),
     ('process', ['-b batch1', '-b batch2', '-b batch3', '-fb batch3',
                  '-fg useful_analysis', '-fn item.002.copy.txt',

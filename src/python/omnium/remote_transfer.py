@@ -27,7 +27,7 @@ class RemoteTransfer(object):
     def get_dir(self, address, remote_dir, local_dir):
         # N.B trailing slash on source dir is important. Tells rsync to not
         # create new dir e.g. results/results/
-        cmd = 'rsync -avz {}:{}/ {}'.format(self.remote.address, remote_dir, local_dir)
+        cmd = 'rsync -avz {}:{}/ {}'.format(address, remote_dir, local_dir)
         logger.debug(cmd)
         try:
             logger.debug('\n' + sp.check_output(cmd.split()))
@@ -37,5 +37,4 @@ class RemoteTransfer(object):
             msg = 'output\n{}'.format(e.output)
             logger.error(msg)
             raise Exception('Failed to copy remote database')
-        return local_path
-
+        return local_dir

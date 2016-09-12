@@ -6,7 +6,6 @@ from check_config import ConfigChecker, ConfigError
 from setup_logging import setup_logger
 from processes import get_process_classes
 
-
 import omni_cmds
 
 

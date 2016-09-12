@@ -244,7 +244,7 @@ class NodeDAG(object):
                                                                      group, update)
                 errors.extend(group_error)
                 group_statuses |= {group_status}
-            batch_status, batch_error = self._verify_group_batch(group_statuses, 
+            batch_status, batch_error = self._verify_group_batch(group_statuses,
                                                                  batch, update)
             errors.extend(batch_error)
 

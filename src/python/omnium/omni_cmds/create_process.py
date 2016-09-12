@@ -61,7 +61,7 @@ def main(args, config, process_classes):
                 trim_blocks=False)
 
     logger.debug(args)
-    process_name_capitalized = ''.join(map(str.title, 
+    process_name_capitalized = ''.join(map(str.title,
                                            process_name.split('_')))
     proc_context = {
         'process_name': process_name,
