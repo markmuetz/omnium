@@ -9,6 +9,7 @@ logger = getLogger('omni')
 
 
 class IrisProcess(Process):
+    num_vars = 'single'
     num_files = 'single'
     out_ext = 'nc'
 
@@ -48,7 +49,7 @@ class DomainMean(IrisProcess):
     num_vars = 'multi'
 
     def load_upstream(self):
-        super(IrisProcess, self).load_upstream()
+        super(IrisProcess, self).load_upstream()  # pylint: disable=bad-super-call
 
         first_node = self.node.from_nodes[0]
         filename = first_node.filename(self.config)

@@ -3,6 +3,8 @@
 Proof of concept 3D UM output viewer.
 Will only work with 4D (3D+time) Iris cubes.
 """
+# PyLint has difficulty loading the Qt classes correctly:
+# pylint: disable=no-member
 import os
 from glob import glob
 

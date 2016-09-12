@@ -1,4 +1,6 @@
 """Launch 3D cube viewer"""
+# PyLint has difficulty loading the Qt classes correctly:
+# pylint: disable=no-member
 import sys
 from logging import getLogger
 

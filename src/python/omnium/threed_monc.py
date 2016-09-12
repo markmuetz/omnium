@@ -4,6 +4,8 @@ Proof of concept 3D UM output viewer.
 Will only work with 4D (3D+time) Iris cubes.
 """
 # Call with e.g. python threed_monc.py <filename> <cube_index> <size_factor> <timeout>
+# PyLint has difficulty loading the Qt classes correctly:
+# pylint: disable=no-member
 from logging import getLogger
 
 logger = getLogger('omni')

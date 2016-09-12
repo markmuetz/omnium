@@ -35,8 +35,3 @@ def get_process_classes(cwd=None):
                 if obj.name:
                     process_classes[obj.name] = obj
     return process_classes
-
-
-def proc_instance(config, node):
-    assert(node.process)
-    return process_classes[node.process](config, node)

@@ -14,8 +14,8 @@ ARGS = [(['-b', '--batch'], {'help': 'Batch to process', 'nargs': '?'}),
 
 
 def main(args, config, process_classes):
-    from node_dag import NodeDAG
-    from process_engine import ProcessEngine
+    from omnium.node_dag import NodeDAG
+    from omnium.process_engine import ProcessEngine
 
     dag = NodeDAG(config, process_classes)
     proc_eng = ProcessEngine(args.force, config, process_classes, dag)

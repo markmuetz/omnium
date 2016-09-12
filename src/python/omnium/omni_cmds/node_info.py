@@ -8,8 +8,8 @@ ARGS = [(['node_names'], {'help': 'Name(s) of node to get info for',
 def main(args, config, process_classes):
     from sqlalchemy.orm.exc import NoResultFound
 
-    from node_dag import NodeDAG
-    from models import Node
+    from omnium.node_dag import NodeDAG
+    from omnium.models import Node
 
     dag = NodeDAG(config, process_classes)
     for node_name in args.node_names:

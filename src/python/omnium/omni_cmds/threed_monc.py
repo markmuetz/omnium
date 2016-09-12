@@ -1,4 +1,6 @@
 """Launch MONC 3D cube viewer"""
+# PyLint has difficulty loading the Qt classes correctly:
+# pylint: disable=no-member
 import os
 import sys
 import importlib

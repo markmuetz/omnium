@@ -23,7 +23,7 @@ def log_file(self, filename, message=None, *args, **kwargs):
         self._log(FILE_LEVEL_NUM, 'Copy file from {} to {}'
                   .format(filename, new_filename), [], **{})
         shutil.copyfile(filename, new_filename)
-        self._log(FILE_LEVEL_NUM, 'Message: '.format(message), [], **{})
+        self._log(FILE_LEVEL_NUM, 'Message: {}'.format(message), [], **{})
 
 
 # Thanks: http://stackoverflow.com/a/287944/54557

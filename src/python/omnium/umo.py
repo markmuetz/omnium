@@ -90,7 +90,3 @@ class UMO(object):
             return self.cube[self.time_index]
         elif self.cube.ndim == 4:
             return self.cube[self.time_index, self.level_index]
-
-
-if __name__ == '__main__':
-    umo = UMO()

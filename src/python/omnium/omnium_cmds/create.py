@@ -53,6 +53,8 @@ def main(args):
         'computer_name': socket.gethostname(),
         }
 
+    # PyLint gets confused by jinja2 template rendering.
+    # pylint: disable=no-member
     info_tpl_render = tpl_env.get_template(OMNI_INFO_FILENAME).render(info_context)
     conf_tpl_render = tpl_env.get_template(OMNI_CONF_FILENAME).render(conf_context)
     comp_tpl_render = tpl_env.get_template(OMNI_COMP_FILENAME).render(comp_context)

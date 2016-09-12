@@ -1,7 +1,7 @@
 import subprocess as sp
 import importlib
 
-from stash import stash
+from omnium.stash import stash
 from processes import Process
 
 

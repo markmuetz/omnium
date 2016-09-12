@@ -13,7 +13,7 @@ def main(args, config, process_classes):
         import numpy as np
         from omnium.node_dag import NodeDAG
         from omnium.models import Base, Computer, Batch, Group, Node
-        from omnium.processes import process_classes, proc_instance
+        from omnium.processes import get_process_classes
         from omnium.stash import stash
         from omnium.process_engine import ProcessEngine
         if 'remote' in config['computers'][config['computer_name']]:
@@ -21,7 +21,7 @@ def main(args, config, process_classes):
             syncher = Syncher(False, config)
 
         dag = NodeDAG(config, process_classes)
-        proc_eng = ProcessEngine(False, config, process_engine, dag)
+        proc_eng = ProcessEngine(False, config, process_classes, dag)
 
     # IPython.start_ipython(argv=[])
     # This is better because it allows you to access e.g. args, config.
