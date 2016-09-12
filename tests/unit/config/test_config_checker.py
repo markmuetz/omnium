@@ -1,13 +1,17 @@
 import os
 import sys
 import shutil
+import importlib
 
 from nose import with_setup
 
 from jinja2 import Environment, FileSystemLoader
 
 sys.path.insert(0, '../src/python')
-from omnium.check_config import ConfigChecker
+
+# Gets around PEP8 checks.
+check_config = importlib.import_module('omnium.check_config')
+ConfigChecker = check_config.ConfigChecker
 sys.path.remove('../src/python')
 
 working_test_dir = 'unit/config/_working_test_dir'
