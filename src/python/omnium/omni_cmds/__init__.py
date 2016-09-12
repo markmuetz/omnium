@@ -14,7 +14,6 @@ commands = [
     'process',
     'sync',
     'shell',
-    'threed-monc',
     'threed',
     'verify-node-graph',
     'version',
