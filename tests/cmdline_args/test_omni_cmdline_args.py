@@ -13,14 +13,15 @@ cmd_args = [
                   '--search cmd']),
     ('print-config', [None, 'groups', 'groups useful_analysis',
                       'groups useful_analysis type']),
-    ('gen-node-graph', [None, '--regen', '--regen --disable-print',
+    ('gen-nodes', [None, '--regen', '--regen --disable-print',
                         '--regen --force']),
-    ('print-node-graph', [None]),
+    ('print-nodes', [None]),
     ('process', ['-b batch1', '-b batch2', '-b batch3', '-fb batch3',
                  '-fg useful_analysis', '-fn item.002.copy.txt',
                  '--force --all']),
     ('node-info', ['item.001.txt', 'item.002.copy.txt']),
-    ('verify-node-graph', [None, '--update']),
+    ('verify-node-statuses', [None, '--update']),
+    ('create-process', ['proc1', 'proc2 --baseclass IrisProcess']),
 ]
 
 
