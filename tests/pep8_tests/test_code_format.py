@@ -1,18 +1,26 @@
-from glob import glob
+import os
 import pep8
 
 pep8.MAX_LINE_LENGTH = 100
 
-filenames = sorted(glob('../src/python/omnium/*.py'))
-filenames.extend(sorted(glob('../src/python/omnium/omni_cmds/*.py')))
-filenames.extend(sorted(glob('../src/python/omnium/omnium_cmds/*.py')))
-filenames.extend(sorted(glob('../src/python/omnium/processes/*.py')))
-filenames.extend(sorted(glob('pep8_tests/*.py')))
-filenames.extend(sorted(glob('cmdline_args/*.py')))
-filenames.extend(sorted(glob('unit/config/*.py')))
+
+def _get_python_filenames(dirname):
+    filenames = []
+    for root, dirs, files in os.walk(dirname):
+        for f in files:
+            if f.endswith(".py"):
+                filenames.append(os.path.join(root, f))
+    return filenames
 
 
-def test_generator():
+def test_src_generator():
+    filenames = _get_python_filenames('../src/python')
+    for filename in filenames:
+        yield _test_conformance_in_file, filename
+
+
+def test_tests_generator():
+    filenames = _get_python_filenames('.')
     for filename in filenames:
         yield _test_conformance_in_file, filename
 

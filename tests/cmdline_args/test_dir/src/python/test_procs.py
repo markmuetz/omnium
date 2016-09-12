@@ -3,6 +3,7 @@ import re
 
 from processes import Process
 
+
 class CopyFileProcess(Process):
     name = 'copy_file'
     out_ext = 'txt'
@@ -35,6 +36,7 @@ class CopyFileProcess(Process):
         self.saved = True
         return filename
 
+
 class TextReplaceProcess(Process):
     name = 'text_replace'
     out_ext = 'txt'
@@ -59,6 +61,7 @@ class TextReplaceProcess(Process):
         open(filename, 'w').write(self.processed_data)
         self.saved = True
         return filename
+
 
 class TextCombineProcess(Process):
     name = 'text_combine'

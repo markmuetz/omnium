@@ -36,8 +36,8 @@ def _test_score(pylint_run, min_score):
     refactor = pylint_run.linter.stats['refactor']
     convention = pylint_run.linter.stats['convention']
     statement = pylint_run.linter.stats['statement']
-    score = 10.0 - ((float(5 * error + warning + refactor + convention) 
-                    / statement) * 10)
+    score = 10.0 - ((float(5 * error + warning +
+                           refactor + convention) / statement) * 10)
     assert score > min_score, "PyLint score of {0:.1f} too high".format(score)
 
 
