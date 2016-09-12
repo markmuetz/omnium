@@ -6,9 +6,10 @@ logger = getLogger('omni')
 
 commands = [
     'check-config',
-    'node-info',
+    'create-process',
     'gen-nodes',
     'list-processes',
+    'node-info',
     'print-config',
     'print-nodes',
     'process',
