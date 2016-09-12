@@ -6,7 +6,7 @@ fi
 OMNI=$(basename $0)
 OMNI_BIN_DIR=$(dirname $0)
 OMNI_HOME=$(dirname $OMNI_BIN_DIR)
-OMNI_PYTHONPATH="$OMNI_HOME/src/python"
+OMNI_PYTHONPATH="$OMNI_HOME"
 OMNI_COMMAND="python $OMNI_PYTHONPATH/omnium/omnium_cmd.py"
 
 export OMNI_HOME=$OMNI_HOME

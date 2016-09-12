@@ -14,7 +14,7 @@ def _get_python_filenames(dirname):
 
 
 def test_src_generator():
-    filenames = _get_python_filenames('../src/python')
+    filenames = _get_python_filenames('../omnium')
     for filename in filenames:
         yield _test_conformance_in_file, filename
 

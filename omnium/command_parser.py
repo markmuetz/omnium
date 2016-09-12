@@ -1,4 +1,5 @@
 import argparse
+import argcomplete
 
 
 def parse_commands(name, args, module, cmdline_args=None):
@@ -12,13 +13,12 @@ def parse_commands(name, args, module, cmdline_args=None):
     cmds = module.modules
     for cmd_name, cmd_module in cmds.items():
         # create the subparser for each command.
-        # cmd = getattr(module, cmd_name.replace('-', '_'))
         subparser = subparsers.add_parser(cmd_name,
                                           help=cmd_module.__doc__)
         for args, kwargs in cmd_module.ARGS:
             subparser.add_argument(*args, **kwargs)
-        # cmds[cmd_name] = cmd
 
+    argcomplete.autocomplete(parser)
     if cmdline_args:
         args = parser.parse_args()
     else:

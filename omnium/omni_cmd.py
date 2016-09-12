@@ -14,11 +14,12 @@ ARGS = [(['-c', '--config-file'], {'default': 'omni_conf.py'}),
         (['--DEBUG'], {'action': 'store_true', 'default': False})]
 
 
-def main(cmds, args):
+def main(argv):
+    cmds, args = parse_commands('omni', ARGS, omni_cmds, argv[1:])
+
     cwd = os.getcwd()
     args.cwd = cwd
     config_path = os.path.join(cwd, args.config_file)
-
     config = ConfigChecker.load_config(config_path)
 
     # Args overrides settings.
@@ -68,8 +69,3 @@ def main(cmds, args):
     else:
         cmd.main(args, config, process_classes)
     return 0
-
-
-if __name__ == '__main__':
-    cmds, args = parse_commands('omni', ARGS, omni_cmds)
-    exit(main(cmds, args))

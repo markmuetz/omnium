@@ -97,7 +97,7 @@ class ConfigError(Exception):
 
 class ConfigChecker(object):
     @staticmethod
-    def load_config(config_path):
+    def load_config(config_path='omni_conf.py'):
         # Stops .pyc file from being created.
         sys.dont_write_bytecode = True
         config_module = imp.load_source('omni_conf', config_path)
