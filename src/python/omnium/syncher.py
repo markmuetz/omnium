@@ -57,8 +57,9 @@ class Syncher(object):
         assert(len(computers) == 1)
         computer = computers[0]
         computer.name = computer_name
-        dag.verify_status(update=True)
+
         dag.commit()
+        dag.verify_status(update=True)
 
         self.dag = dag
         self.remote_dag = NodeDAG(self.config, process_classes,

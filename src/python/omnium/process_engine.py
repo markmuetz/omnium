@@ -15,20 +15,19 @@ class ProcessEngine(object):
     def process_batch(self, batch):
         logger.info('Processing batch {}'.format(batch))
         for group in batch.groups:
-            self.process_group(group)
-        batch.status = 'done'
-        self.dag.commit()
+            self.process_group(group, verify=False)
+        self.dag.verify_status(update=True)
         logger.info('Processed batch {}'.format(batch))
 
-    def process_group(self, group, indent=1):
+    def process_group(self, group, indent=1, verify=True):
         logger.info('  '*indent + 'Processing group {}'.format(group))
         for node in group.nodes:
-            self.process_node(node, indent+1)
-        group.status = 'done'
-        self.dag.commit()
+            self.process_node(node, indent+1, verify=False)
+        if verify:
+            self.dag.verify_status(update=True)
         logger.info('  '*indent + 'Processed group {}'.format(group))
 
-    def process_node(self, node, indent=2):
+    def process_node(self, node, indent=2, verify=True):
         logger.info('  '*indent + 'Processing node {}'.format(node))
         if not self.force and node.status == 'done':
             logger.info('  '*(indent + 1) + 'Node {} already processed, skipping'.format(node))
@@ -57,7 +56,8 @@ class ProcessEngine(object):
         process.save()
         process.done()
 
-        self.dag.commit()
+        if verify:
+            self.dag.verify_status(update=True)
         logger.info('  '*indent + 'Processed {}'.format(node))
 
     def load(self, node):

@@ -87,6 +87,8 @@ class NodeDAG(object):
                 self._generate_nodes_process_nodes(group, group_sec)
                 node_process_groups.append(group)
                 completed_groups.append(group)
+
+        # Not necessary, but help debug if somethings goes wrong.
         self.commit()
 
         # Work out group processing order:
@@ -117,6 +119,7 @@ class NodeDAG(object):
                                          group,
                                          process_name=process_name)
                 node.from_nodes.append(from_node)
+        # Not necessary, but help debug if somethings goes wrong.
         self.commit()
 
         # Hook up remaining nodes.
@@ -142,6 +145,9 @@ class NodeDAG(object):
                         node.from_nodes.append(from_node)
 
         self.commit()
+        # Make sure all statuses are set correctly.
+        logger.debug('settings all statuses')
+        self.verify_status(update=True)
 
     def _show_nodes(self, printer):
         for batch in self._session.query(Batch).all():
@@ -227,7 +233,6 @@ class NodeDAG(object):
     def verify_status(self, update):
         errors = []
         for batch in self.get_batches():
-            new_batch_status = 'missing'
             group_statuses = set()
             for group in batch.groups:
                 node_statuses = set()
@@ -245,6 +250,7 @@ class NodeDAG(object):
 
         if len(errors):
             if update:
+                logger.debug('Updating DAG')
                 self.commit()
                 logger.info('Updated DAG')
             else:
