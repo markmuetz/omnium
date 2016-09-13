@@ -1,7 +1,7 @@
 import os
 import re
 
-from processes import Process
+from omnium.processes import Process
 
 
 class CopyFileProcess(Process):

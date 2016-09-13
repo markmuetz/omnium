@@ -10,9 +10,9 @@ from jinja2 import Environment, FileSystemLoader
 
 logger = getLogger('omni')
 
-OMNI_INFO_FILENAME = 'omni.info'
-OMNI_CONF_FILENAME = 'omni_conf.py'
-OMNI_COMP_FILENAME = 'computer.txt'
+OMNI_INFO_FILENAME = 'omni.info.tpl'
+OMNI_CONF_FILENAME = 'omni_conf.py.tpl'
+OMNI_COMP_FILENAME = 'computer.txt.tpl'
 
 ARGS = [(['omniname'], {'nargs': 1,
                         'help': 'Filename of omni to create'}),
@@ -33,10 +33,10 @@ def main(args):
         logger.info(msg)
         return
 
-    omni_home = os.path.expandvars('$OMNI_HOME')
+    omni_home = os.path.dirname(os.path.realpath(__file__))
     tpl_env = Environment(
                 autoescape=False,
-                loader=FileSystemLoader(os.path.join(omni_home, 'templates')),
+                loader=FileSystemLoader(os.path.join(omni_home, '..', 'data', 'templates')),
                 trim_blocks=False)
 
     info_context = {
@@ -53,18 +53,18 @@ def main(args):
         'computer_name': socket.gethostname(),
         }
 
-    # PyLint gets confused by jinja2 template rendering.
-    # pylint: disable=no-member
-    info_tpl_render = tpl_env.get_template(OMNI_INFO_FILENAME).render(info_context)
-    conf_tpl_render = tpl_env.get_template(OMNI_CONF_FILENAME).render(conf_context)
-    comp_tpl_render = tpl_env.get_template(OMNI_COMP_FILENAME).render(comp_context)
-
     os.makedirs(omni_dir)
-    with open(os.path.join(omni_dir, OMNI_INFO_FILENAME), 'w') as f:
-        f.write(info_tpl_render)
 
-    with open(os.path.join(omni_dir, OMNI_CONF_FILENAME), 'w') as f:
-        f.write(conf_tpl_render)
+    files_contexts = [
+        (OMNI_INFO_FILENAME, info_context),
+        (OMNI_CONF_FILENAME, conf_context),
+        (OMNI_COMP_FILENAME, comp_context)]
 
-    with open(os.path.join(omni_dir, OMNI_COMP_FILENAME), 'w') as f:
-        f.write(comp_tpl_render)
+    for tpl_filename, context in files_contexts:
+        # PyLint gets confused by jinja2 template rendering.
+        # pylint: disable=no-member
+        tpl_render = tpl_env.get_template(tpl_filename).render(context)
+        filename = os.path.splitext(tpl_filename)[0]  # Nip off final .tpl
+
+        with open(os.path.join(omni_dir, filename), 'w') as outfile:
+            outfile.write(tpl_render)

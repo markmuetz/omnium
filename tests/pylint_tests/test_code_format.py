@@ -12,7 +12,7 @@ def _get_python_filenames(dirname):
 
 
 def test_pylint_src():
-    filenames = _get_python_filenames('../src/python')
+    filenames = _get_python_filenames('../omnium')
     pylint_run = _test_pylint(filenames)
     yield _test_score, pylint_run, 6
     yield _test_errors, pylint_run, 0

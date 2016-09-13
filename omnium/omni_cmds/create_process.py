@@ -7,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 
 logger = getLogger('omni')
 
-OMNI_PROC_FILENAME = 'omni_proc.py'
+OMNI_PROC_FILENAME = 'omni_proc.py.tpl'
 
 ARGS = [(['process_name'], {'nargs': 1, 'help': 'Process name to create'}),
         (['--baseclass', '-b'], {'help': 'Baseclass to use',
@@ -34,7 +34,7 @@ def main(args, config, process_classes):
         module_names = []
 
     if args.baseclass:
-        processes = importlib.import_module('processes')
+        processes = importlib.import_module('omnium.processes')
         if not hasattr(processes, args.baseclass):
             logger.warn('Cannot find baseclass {}'.format(args.baseclass))
 
@@ -54,10 +54,10 @@ def main(args, config, process_classes):
         except ImportError:
             logger.warn('Cannot load module {}'.format(module_name))
 
-    omni_home = os.path.expandvars('$OMNI_HOME')
+    omni_home = os.path.dirname(os.path.realpath(__file__))
     tpl_env = Environment(
                 autoescape=False,
-                loader=FileSystemLoader(os.path.join(omni_home, 'templates')),
+                loader=FileSystemLoader(os.path.join(omni_home, '..', 'data', 'templates')),
                 trim_blocks=False)
 
     logger.debug(args)
@@ -77,5 +77,5 @@ def main(args, config, process_classes):
 
     if not os.path.exists(src_dir):
         os.makedirs(src_dir)
-    with open(filename, 'w') as f:
-        f.write(proc_tpl_render)
+    with open(filename, 'w') as outfile:
+        outfile.write(proc_tpl_render)

@@ -10,7 +10,4 @@ def main(argv):
     # dispatch on arg
     cmd = cmds[args.cmd_name]
     cmd.main(args)
-
-
-if __name__ == '__main__':
-    main()
+    return 0

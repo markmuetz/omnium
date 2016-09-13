@@ -1,6 +1,6 @@
 import importlib
 
-from processes import {{ baseclass }}
+from omnium.processes import {{ baseclass }}
 
 class {{ process_name_capitalized }}({{ baseclass }}):
     name = '{{ process_name }}'

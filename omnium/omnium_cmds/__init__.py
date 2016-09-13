@@ -4,7 +4,11 @@ from logging import getLogger
 
 logger = getLogger('omni')
 
-commands = ['ls', 'create']
+commands = [
+    'create',
+    'ls',
+    'version'
+]
 
 modules = OrderedDict()
 for command in commands:

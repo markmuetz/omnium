@@ -14,7 +14,8 @@ def main(args, config, process_classes):
         from omnium.node_dag import NodeDAG
         from omnium.models import Base, Computer, Batch, Group, Node
         from omnium.processes import get_process_classes
-        from omnium.stash import stash
+        from omnium.stash import Stash
+        stash = Stash()
         from omnium.process_engine import ProcessEngine
         if 'remote' in config['computers'][config['computer_name']]:
             from omnium.syncher import Syncher

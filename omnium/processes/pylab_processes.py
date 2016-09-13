@@ -1,7 +1,7 @@
 import subprocess as sp
 import importlib
 
-from omnium.stash import stash
+from omnium.stash import Stash
 from processes import Process
 
 
@@ -69,6 +69,7 @@ class PlotLastProfile(PylabProcess):
         super(PlotLastProfile, self).run()
         profiles = self.data
 
+        stash = Stash()
         fig = self.plt.figure()
         fig.canvas.set_window_title('profile')
         for i, profile in enumerate(profiles):

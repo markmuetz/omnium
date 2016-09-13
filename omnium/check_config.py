@@ -5,7 +5,7 @@ from collections import OrderedDict as odict
 
 from dict_printer import pprint
 
-from stash import stash
+from stash import Stash
 
 
 class Req(object):
@@ -261,6 +261,7 @@ class ConfigChecker(object):
                 self._add_error(msg, hint)
 
     def variable_checks(self):
+        stash = Stash()
         for varname, varsec in self.config['variables'].items():
             if varsec['section'] not in stash:
                 msg = 'Variable section not found in stash: {}:section:{}'\
