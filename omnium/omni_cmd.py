@@ -1,6 +1,8 @@
 import os
 import sys
 
+from version import get_version
+from omnium_state import get_omnium_state
 from command_parser import parse_commands
 from check_config import ConfigChecker, ConfigError
 from setup_logging import setup_logger
@@ -27,6 +29,11 @@ def main(argv):
         config['settings']['console_log_level'] = 'debug'
 
     logger = setup_logger(config)
+    logger.debug('omnium.__version__: {}'.format(get_version('long')))
+    omnium_state = get_omnium_state()
+    for key, value in omnium_state.items():
+        logger.debug('{}: {}'.format(key, value))
+
     logger.debug('omni {}'.format(' '.join(sys.argv[1:])))
 
     process_classes = get_process_classes(cwd)

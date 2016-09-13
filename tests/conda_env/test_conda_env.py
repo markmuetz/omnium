@@ -7,4 +7,3 @@ def test_in_conda_env():
     assert conda_default_env, 'Not in a conda env'
     assert conda_default_env == 'omnium_testing', 'In the wrong conda env: {}'\
                                                   .format(conda_default_env)
-
