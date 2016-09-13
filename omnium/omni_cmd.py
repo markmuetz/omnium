@@ -32,9 +32,9 @@ def main(argv):
     logger.debug('omnium.__version__: {}'.format(get_version('long')))
     omnium_state = get_omnium_state()
     for key, value in omnium_state.items():
-        logger.debug('{}: {}'.format(key, value))
+        logger.debug('state: {}: {}'.format(key, value))
 
-    logger.debug('omni {}'.format(' '.join(sys.argv[1:])))
+    logger.debug('cmd: omni {}'.format(' '.join(sys.argv[1:])))
 
     process_classes = get_process_classes(cwd)
     if args.cmd_name != 'check-config':
