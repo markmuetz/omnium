@@ -8,7 +8,7 @@ Release Procedure
 ::
 
     git commit -a
-    git tag release_0.5.1.0
+    git tag release_0.5.10
     git push && git push --tags
 
 * [Check credentials in `~/.pypirc`]
