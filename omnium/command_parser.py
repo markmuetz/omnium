@@ -2,7 +2,7 @@ import argparse
 import argcomplete
 
 
-def parse_commands(name, args, module, cmdline_args=None):
+def parse_commands(name, args, module, cmdline_args):
     # create the top-level parser.
     parser = argparse.ArgumentParser(prog=name)
     subparsers = parser.add_subparsers(dest='cmd_name')
@@ -19,9 +19,6 @@ def parse_commands(name, args, module, cmdline_args=None):
             subparser.add_argument(*args, **kwargs)
 
     argcomplete.autocomplete(parser)
-    if cmdline_args:
-        args = parser.parse_args()
-    else:
-        args = parser.parse_args()
+    args = parser.parse_args(cmdline_args)
 
     return cmds, args
