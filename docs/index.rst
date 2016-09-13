@@ -26,3 +26,11 @@ omnium Quickstart
    :maxdepth: 3
 
    quickstart
+
+omnium Tests
+============
+
+.. toctree::
+   :maxdepth: 2
+
+   tests
