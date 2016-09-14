@@ -1,4 +1,3 @@
-
 import os
 from collections import OrderedDict as odict
 import subprocess as sp
@@ -22,6 +21,7 @@ def _get_git_info(location):
     finally:
         os.chdir(cwd)
 
+
 def _get_conda_env():
     return os.environ.get('CONDA_DEFAULT_ENV')
 
@@ -35,4 +35,3 @@ def get_omnium_state():
                   ('git_hash', git_hash),
                   ('uncommitted_changes', uncommitted_changes),
                   ('conda_env', conda_env)])
-

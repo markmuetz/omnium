@@ -1,4 +1,5 @@
 import os
+import sys
 from pylint.lint import Run
 
 
@@ -42,5 +43,14 @@ def _test_score(pylint_run, min_score):
 
 
 def _test_errors(pylint_run, max_error):
+    for module_name, stats in pylint_run.linter.stats['by_module'].items():
+        if stats['error'] != 0:
+            print('{}: {} errors'.format(module_name, stats['error']))
+
+    # TODO: Why isn't this getting printed to stdout??
+    # stderr = sys.stderr
+    # sys.stderr = sys.stdout
+    pylint_run.linter.generate_reports()
+    # sys.stderr = stderr
     error = pylint_run.linter.stats['error']
     assert error <= max_error, "PyLint detected too many errors: {0} too high".format(error)

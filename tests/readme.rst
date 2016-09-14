@@ -2,14 +2,13 @@ Initial setup
 =============
 
 Create the testing env with all requirements and a link to the live dir (`pip install -e`) (start in
-this dir):
+..):
 
 ::
 
-    conda create --name omnium_testing --file conda_testing_reqs.txt
+    conda create --name omnium_testing --file conda_reqs.txt
     source activate omnium_testing
-    conda install -c scitools --file conda_scitools_testing_reqs.txt
-    cd ..
+    conda install -c scitools --file conda_scitools_reqs.txt
     pip install -e .
 
 Running tests
