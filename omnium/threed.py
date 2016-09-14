@@ -154,8 +154,9 @@ class Window(QtGui.QWidget):
 
             # Map indices to values.
             pos = np.empty_like(pos_indices, dtype=np.float64)
-            xy_map = np.linspace(-30, 30, 16)
-            z_map = np.linspace(0, 40, 101)
+            # TODO: x and y must have same dims currently.
+            xy_map = np.linspace(-30, 30, data.shape[0])
+            z_map = np.linspace(0, 40, data.shape[-1])
 
             pos[:, 0] = xy_map[pos_indices[:, 0]]
             pos[:, 1] = xy_map[pos_indices[:, 1]]
