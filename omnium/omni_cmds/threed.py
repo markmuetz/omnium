@@ -7,10 +7,11 @@ import importlib
 from glob import glob
 from logging import getLogger
 
+from omnium.node_dag import NodeDAG
+
 logger = getLogger('omni')
 
-ARGS = [(['--cube-index', '-c'], {'default': 0, 'type': int}),
-        (['--size', '-s'], {'default': 0.5, 'type': float}),
+ARGS = [(['--group', '-g'], {}),
         (['--timeout', '-t'], {'default': 50, 'type': float}),
         (['--data-source', '-d'], {'default': 'UM', 'choices': ['UM', 'MONC']})]
 
@@ -33,16 +34,11 @@ def main(args, config, process_classes):
         # logger.info('Starting app')
         app = QtGui.QApplication(sys.argv)
 
-        # TODO: Picking first is arbitrary!
-        group = config['groups'].keys()[0]
-        filename_glob = config['groups'][group]['filename_glob']
-        work_dir = os.path.expandvars(config['computers'][config['computer_name']]['dirs']['work'])
-        glob_full = os.path.join(work_dir, filename_glob)
-        logger.debug(glob_full)
-        filename = glob(glob_full)[0]
+        dag = NodeDAG(config, process_classes)
+        group = dag.get_group(args.group)
+        filenames = [n.filename(config) for n in group.nodes]
 
         logger.debug(args)
-        window = Window(filename, args.data_source, args.cube_index,
-                        args.size, args.timeout)
+        window = Window(filenames, args.data_source, args.timeout)
         window.show()
         sys.exit(app.exec_())
