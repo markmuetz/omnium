@@ -12,5 +12,6 @@ from .omni_cmd import main as omni_main
 from .omnium_cmd import main as omnium_main
 from .node_dag import NodeDAG
 from .process_engine import ProcessEngine
+from .processes import get_process_classes
 from .stash import Stash
 from .syncher import Syncher

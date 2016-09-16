@@ -245,8 +245,6 @@ class MassWeightedVerticalIntegral(IrisProcess):
         results = []
 
         for rho_R2, cube in self.data:
-            print(rho_R2.name())
-            print(cube.name())
             cube_heights = cube.coord('level_height').points
             rho_heights = rho_R2.coord('level_height').points
             rho = rho_R2.data / self.R**2
@@ -267,6 +265,15 @@ class MassWeightedVerticalIntegral(IrisProcess):
 
             # Work out variable on rho grid, perform integral.
             variable_on_rho_grid_data = (cube.data[:, :-1] + cube.data[:, 1:]) / 2
+            # Assume bottom rho level value equal to bottom theta level value
+            # cf:
+            # https://code.metoffice.gov.uk/trac/um/browser/main/branches/dev/chrissmith/
+            # vn10.5_ium_base/src/atmosphere/energy_correction/
+            # vert_eng_massq-vrtemq1b.F90?rev=24919#L297
+            # N.B. has no effect on outcome for data that I have analysed so far:
+            # np.isclose(cube.data[:, 0], cube.data[:, 1]).all() == True
+            # Therefore adding and averaging is the same as just taking one of them.
+            variable_on_rho_grid_data[:, 0] = cube.data[:, 0]
             variableXrho = variable_on_rho_grid_data * rho
             variable_col = ((dz4d * variableXrho)[:, :]).sum(axis=1)
 
