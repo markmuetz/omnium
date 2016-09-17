@@ -222,7 +222,6 @@ class Window(QtGui.QWidget):
             # Get value of array where comparison is True.
             size = data[d] * self.size2
 
-
         if self.data_source == 'UM':
             # Needs some unpacking:
             # np.where(d) gets indices where comparison is true, but needs transposed.

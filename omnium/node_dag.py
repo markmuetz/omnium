@@ -41,6 +41,39 @@ class NodeDAG(object):
         self._set_computer_name()
         self._connect_create_db()
 
+    def render(self, filename='node_dag.png', display=True):
+        import pygraphviz as pgv
+        import subprocess as sp
+
+        G = pgv.AGraph(directed=True, rank='same', rankdir='LR')
+        init_batch = self.get_batches()[0]
+        next_nodes = {}
+        for group in init_batch.groups:
+            for node in group.nodes:
+                next_nodes[node.id] = node
+
+        while next_nodes:
+            new_next_nodes = {}
+            for n in next_nodes.values():
+                G.add_node('{}:{}'.format(n.id, n.name))
+
+                for nn in n.to_nodes:
+                    if nn.id not in new_next_nodes:
+                        new_next_nodes[nn.id] = nn
+                    G.add_edge('{}:{}'.format(n.id, n.name),
+                               '{}:{}'.format(nn.id, nn.name))
+            next_nodes = new_next_nodes
+        G.layout('dot')
+        G.draw(filename)
+        logger.info('Node Directed Acyclic Graph rendered to {}'.format(filename))
+        if display:
+            cmd = 'eog {}'.format(filename)
+            try:
+                sp.call(cmd.split())
+            except sp.CalledProcessError as ex:
+                logger.warn('Problem running {}'.format(cmd))
+                logger.warn('eog not installed?')
+
     def generate_all_nodes(self, group_names):
         computer_count = self._session.query(Computer)\
                              .filter_by(name=self.computer_name).count()

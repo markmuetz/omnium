@@ -16,6 +16,7 @@ cmd_args = [
     ('gen-nodes', [None, '--regen', '--regen --disable-print',
                    '--regen --force']),
     ('print-nodes', [None]),
+    ('render-graph', [None]),
     ('process', ['-b batch1', '-b batch2', '-b batch3', '-fb batch3',
                  '-fg useful_analysis', '-fn item.002.copy.txt',
                  '--force --all']),

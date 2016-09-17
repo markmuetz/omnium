@@ -13,6 +13,7 @@ commands = [
     'print-config',
     'print-nodes',
     'process',
+    'render-graph',
     'sync',
     'shell',
     'threed',
