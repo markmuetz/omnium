@@ -91,7 +91,7 @@ class Window(QtGui.QWidget):
         button.clicked.connect(self.toggle_pause_play)
 
         self.time_slider = QtGui.QSlider(QtCore.Qt.Horizontal)
-        self.time_slider.setRange(0, self.cube.shape[0])
+        self.time_slider.setRange(0, self.cube.shape[0] - 1)
         self.time_slider.setSingleStep(1)
         self.time_slider.setPageStep(15)
         self.time_slider.setTickInterval(60)
