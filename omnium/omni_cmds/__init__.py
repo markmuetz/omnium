@@ -8,6 +8,7 @@ commands = [
     'check-config',
     'create-process',
     'gen-nodes',
+    'get-model-metadata',
     'list-processes',
     'node-info',
     'print-config',
