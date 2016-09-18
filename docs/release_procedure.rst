@@ -11,6 +11,12 @@ Release Procedure
     source deactivate
     cd ..
 
+* Make sure version.py is at correct version:
+
+::
+
+    omnium version
+
 * Commit changes:
 
 ::
@@ -25,12 +31,6 @@ Release Procedure
     omnium-check-omnis.sh <comp> > checks_v0.6.0.out
     cd -
 
-* Make sure version.py is at correct version:
-
-::
-
-    omnium version
-
 * [Check credentials in `~/.pypirc`]
 * Upload to PyPI, run:
 
@@ -39,6 +39,8 @@ Release Procedure
     python setup.py sdist upload
 
 * Tag release with e.g. v0.6.0 and push to github:
+
+::
 
     git tag v0.6.0
     git push && git push --tags
