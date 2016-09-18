@@ -11,12 +11,12 @@ from iris_processes import (IrisProcess, ConvertPpToNc, ConvertMassToEnergyFlux,
 from pylab_processes import PylabProcess, PlotMultiTimeseries, PlotLastProfile
 
 
-# Gets called twice (if a src/python/mod1.py is def'd).
+# TODO: Gets called twice (if a processes/mod1.py is def'd).
 def get_process_classes(cwd=None):
     if not cwd:
         cwd = os.getcwd()
     modules = []
-    local_python_path = os.path.join(cwd, 'src/python')
+    local_python_path = os.path.join(cwd, 'processes')
     if os.path.exists(local_python_path):
         for filename in glob(os.path.join(local_python_path, '*.py')):
             module_name = os.path.splitext(os.path.basename(filename))[0]

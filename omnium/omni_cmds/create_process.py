@@ -1,4 +1,4 @@
-"""Creates new processes in src/python"""
+"""Creates new processes in ./processes"""
 import os
 from logging import getLogger
 import importlib
@@ -21,7 +21,7 @@ ARGS = [(['process_name'], {'nargs': 1, 'help': 'Process name to create'}),
 def main(args, config, process_classes):
     process_name = args.process_name[0]
 
-    src_dir = 'src/python'
+    src_dir = 'processes'
     filename = os.path.join(src_dir, process_name + '.py')
 
     if os.path.exists(filename):
