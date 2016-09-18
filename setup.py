@@ -33,6 +33,7 @@ setup(
     scripts=[
         'bin/omni',
         'bin/omnium',
+        'bin/omnium-check-omnis.sh',
         ],
     install_requires=[
         ],
