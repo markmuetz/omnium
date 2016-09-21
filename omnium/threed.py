@@ -200,6 +200,7 @@ class Window(QtGui.QWidget):
         self.time_slider_changed.emit(self.cube_index)
 
     def render(self):
+        print(self.cube_index)
         pos, size = self.get_pos_size(self.cube[self.cube_index].data, 0)
         pos2, size2 = self.get_pos_size(self.cube2[self.cube_index2].data, 1)
 

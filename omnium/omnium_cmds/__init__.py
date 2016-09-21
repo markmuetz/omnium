@@ -7,7 +7,8 @@ logger = getLogger('omni')
 commands = [
     'create',
     'ls',
-    'version'
+    'version',
+    'viewer',
 ]
 
 modules = OrderedDict()
