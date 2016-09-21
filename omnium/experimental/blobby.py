@@ -54,8 +54,10 @@ def render_graph(timeseries, filename):
 
 
 def create_blob_timeseries(Mqrain, thresh):
+    blob_arrays = []
     timeseries = []
     max_blob_index, blob_array = count_blobs(Mqrain[0], 1, True)
+    blob_arrays.append(blob_array)
     init_blobs = {}
     for blob_index in range(1, max_blob_index + 1):
         blob = Blob(0, blob_index, [], [])
@@ -87,8 +89,9 @@ def create_blob_timeseries(Mqrain, thresh):
 
         prev_blobs = new_blobs
         prev_blob_array = blob_array
+        blob_arrays.append(blob_array)
         timeseries.append(new_blobs)
-    return timeseries
+    return timeseries, np.array(blob_arrays)
 
 
 def plot(Mqrains, thresh):
@@ -123,6 +126,26 @@ def plot(Mqrains, thresh):
         pass
     plt.pause(0.01)
     raw_input('Done')
+
+
+def get_max_val(start_blob, blob_arrays, Mqrain):
+    for blob in blob_iter(start_blob):
+        blob_array = blob_arrays[blob.time_index]
+        mask = blob_array == blob.blob_index
+        where_mask = np.where(mask)
+        argmax = Mqrain[blob.time_index].data[mask].argmax()
+        coord_max = (where_mask[0][argmax], where_mask[1][argmax])
+        yield blob, coord_max
+
+
+
+
+def blob_iter(start_blob):
+    blob = start_blob
+    yield blob
+    while blob.to_blobs:
+        blob = blob.to_blobs[0]
+        yield blob
 
 
 def test_indices(i, j, diagonal=False):
