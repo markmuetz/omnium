@@ -33,6 +33,7 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, filenames, data_source='UM', timeout=250):
         super(MainWindow, self).__init__()
         self.filenames = filenames
+        self.data_source = data_source
         self.stash = Stash()
         self.timeout = timeout
         self.rendered_point_scatters = {}
@@ -129,7 +130,9 @@ class MainWindow(QtGui.QMainWindow):
         file_item.setData(0, QtCore.Qt.UserRole, fn)
         file_item.setExpanded(True)
         cubes = iris.load(filename)
-        self.stash.rename_unknown_cubes(cubes, True)
+
+        if self.data_source == 'UM':
+            self.stash.rename_unknown_cubes(cubes, True)
         
         for i, cube in enumerate(cubes):
             self.addCube(file_item, cube)
@@ -146,21 +149,40 @@ class MainWindow(QtGui.QMainWindow):
 
         # Get value of array where comparison is True.
         size = cube.data[d] * multiplier
+        # size = 5
         # Needs some unpacking:
         # np.where(d) gets indices where comparison is true, but needs transposed.
         # indices are currently in order z, x, y, np.roll fixes this.
-        pos_indices = np.roll(np.array(np.where(d)).T, -1, axis=1)
+        if self.data_source == 'UM':
+            # Needs some unpacking:
+            # np.where(d) gets indices where comparison is true, but needs transposed.
+            # indices are currently in order z, x, y, np.roll fixes this.
+            pos_indices = np.roll(np.array(np.where(d)).T, -1, axis=1)
 
-        # Map indices to values.
-        pos = np.empty_like(pos_indices, dtype=np.float64)
-        pos[:, 0] = cube.coord('grid_longitude')\
-                    .points[pos_indices[:, 0]] / 1000
-        pos[:, 1] = cube.coord('grid_latitude')\
-                    .points[pos_indices[:, 1]] / 1000
-        pos[:, 2] = cube.coord('level_height')\
-                    .points[pos_indices[:, 2]] / 1000
+            # Map indices to values.
+            pos = np.empty_like(pos_indices, dtype=np.float64)
+            pos[:, 0] = cube.coord('grid_longitude')\
+                        .points[pos_indices[:, 0]] / 1000
+            pos[:, 1] = cube.coord('grid_latitude')\
+                        .points[pos_indices[:, 1]] / 1000
+            pos[:, 2] = cube.coord('level_height')\
+                        .points[pos_indices[:, 2]] / 1000
 
-        pos -= [32, 32, 0]
+            pos -= [32, 32, 0]
+        elif self.data_source == 'MONC':
+            # order is x, y, z
+            pos_indices = np.array(np.where(d)).T
+
+            # Map indices to values.
+            pos = np.empty_like(pos_indices, dtype=np.float64)
+            # TODO: x and y must have same dims currently.
+            xy_map = np.linspace(-30, 30, cube.shape[0])
+            z_map = np.linspace(0, 40, cube.shape[-1])
+
+            pos[:, 0] = xy_map[pos_indices[:, 0]]
+            pos[:, 1] = xy_map[pos_indices[:, 1]]
+            pos[:, 2] = z_map[pos_indices[:, 2]]
+
         return pos, size
 
     def add_remove(self):
