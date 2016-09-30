@@ -47,7 +47,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.setupGui()
         self.addVarItems()
-        self.time_slider.setRange(0, self.cubes[0].shape[0] - 1)
+        self.time_slider.setRange(0, self.cubes[0].shape[0])
         self.time_slider.setSingleStep(1)
         self.time_slider.setPageStep(15)
         self.time_slider.setTickInterval(60)
@@ -87,6 +87,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def set_time_slider_value(self, value):
         self.time_index = value
+	if self.time_index == self.cubes[0].shape[0]:
+	    if self.ui_loop.isChecked():
+		self.time_index = 0
+	    else:
+		return
+	
         self.ui_time_index.setText(str(self.time_index))
         old_point_scatters_keys = self.point_scatters.keys()
         self.point_scatters = {}
@@ -358,6 +364,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui_timeout = QtGui.QLineEdit(str(self.timeout))
         self.ui_time_index = QtGui.QLineEdit(str(self.time_index))
         ui_go = QtGui.QPushButton('Go')
+        self.ui_loop = QtGui.QCheckBox('Loop')
 
         ui_back.clicked.connect(self.back)
         ui_pause.clicked.connect(self.pause)
@@ -374,6 +381,7 @@ class MainWindow(QtGui.QMainWindow):
         play_controls_layout.addWidget(self.ui_timeout, 2, 0)
         play_controls_layout.addWidget(self.ui_time_index, 2, 1)
         play_controls_layout.addWidget(ui_go, 2, 2)
+        play_controls_layout.addWidget(self.ui_loop, 2, 3)
 
         middle = QtGui.QWidget()
         middle_size_policy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
