@@ -112,6 +112,7 @@ class MainWindow(QtGui.QMainWindow):
             self.add_remove()
             self.add_cube(self.cube_index)
             self.add_remove()
+	    self.ui_thresh.setText('{0:.3f}'.format(thresh))
 
     def set_size_slider_value(self, value):
         if self.cube_index is not None and self.cube_index in self.rendered_point_scatters:
@@ -122,6 +123,7 @@ class MainWindow(QtGui.QMainWindow):
             self.add_remove()
             self.add_cube(self.cube_index)
             self.add_remove()
+	    self.ui_size.setText('{0:.3f}'.format(value))
 
     def addCube(self, parent, cube):
         cube_name = ' '.join(cube.name().split())
@@ -331,11 +333,18 @@ class MainWindow(QtGui.QMainWindow):
         ui_pick_colour = QtGui.QPushButton('Pick Colour')
         ui_pick_colour.clicked.connect(self.pick_colour)
 
+	self.ui_thresh = QtGui.QLabel()
+	self.ui_thresh.setFixedWidth(50)
+	self.ui_size = QtGui.QLabel()
+	self.ui_size.setFixedWidth(50)
+
         lhs_bpanel = QtGui.QWidget()
-        lhs_blayout = QtGui.QVBoxLayout()
-        lhs_blayout.addWidget(self.thresh_slider)
-        lhs_blayout.addWidget(self.size_slider)
-        lhs_blayout.addWidget(self.var_info)
+        lhs_blayout = QtGui.QGridLayout()
+        lhs_blayout.addWidget(self.thresh_slider, 0, 0)
+        lhs_blayout.addWidget(self.ui_thresh, 0, 1)
+        lhs_blayout.addWidget(self.size_slider, 1, 0)
+        lhs_blayout.addWidget(self.ui_size, 1, 1)
+        lhs_blayout.addWidget(self.var_info, 2, 0, 1, 2)
         lhs_bpanel.setLayout(lhs_blayout)
         lhs_vsplitter = QtGui.QSplitter()
         lhs_vsplitter.setOrientation(QtCore.Qt.Vertical)
