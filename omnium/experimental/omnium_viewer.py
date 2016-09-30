@@ -42,6 +42,7 @@ class MainWindow(QtGui.QMainWindow):
         self.time_index = 0
         self.cube_index = None
         self.cubes = []
+        self.zn = None
         self.thresh = 0.
 
         self.setupGui()
@@ -121,6 +122,11 @@ class MainWindow(QtGui.QMainWindow):
         cube_item = QtGui.QTreeWidgetItem(parent, [cube_name])
         cube_item.setData(0, QtCore.Qt.UserRole, len(self.cubes))
         cube_item.setCheckState(0, QtCore.Qt.Unchecked)
+	if self.data_source == 'MONC' and self.zn == None:
+	    try:
+		self.zn = cube.coord('zn').points
+	    except iris.exceptions.CoordinateNotFoundError:
+		pass
         self.cubes.append(cube)
 
     def addFile(self, root, filename):
@@ -177,7 +183,8 @@ class MainWindow(QtGui.QMainWindow):
             pos = np.empty_like(pos_indices, dtype=np.float64)
             # TODO: x and y must have same dims currently.
             xy_map = np.linspace(-30, 30, cube.shape[0])
-            z_map = np.linspace(0, 40, cube.shape[-1])
+            # z_map = np.linspace(0, 40, cube.shape[-1])
+	    z_map = self.zn / 1000
 
             pos[:, 0] = xy_map[pos_indices[:, 0]]
             pos[:, 1] = xy_map[pos_indices[:, 1]]
