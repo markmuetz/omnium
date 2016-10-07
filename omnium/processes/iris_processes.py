@@ -25,7 +25,7 @@ class IrisProcess(Process):
 
     def load_upstream(self):
         super(IrisProcess, self).load_upstream()
-        assert(len(self.node.from_nodes) == 1)
+        # assert(len(self.node.from_nodes) == 1)
 
         from_node = self.node.from_nodes[0]
 
@@ -288,3 +288,18 @@ class MassWeightedVerticalIntegral(IrisProcess):
         self.processed_data = results_cube
 
         return self.processed_data
+
+
+class GetVariable(IrisProcess):
+    name = 'get_variable'
+    num_vars = 'multi'
+
+    def load_upstream(self):
+        super(GetVariable, self).load_upstream()
+        cube = self.find_cube()
+        self.data = cube
+
+    def run(self):
+        super(GetVariable, self).run()
+        self.processed_data = self.data
+        return self.data
