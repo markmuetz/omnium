@@ -69,6 +69,7 @@ CONFIG_SCHEMA = odict([
                    'from_group': Req('type', 'from_group', xref='groups'),
                    'variable': Req('type', 'from_group', xref='variables'),
                    'process': Req(),
+                   'process_kwargs': Req(optional=True),
                    }
                }),
     ('variables', {'type': 'many',
