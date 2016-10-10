@@ -47,12 +47,15 @@ class ProcessEngine(object):
                             .format(node))
 
         logger.info('  '*(indent+1) + 'Using process {}'.format(node.process))
+	node_config = self.config['nodes'][node.name]
+	process_kwargs = node_config.get('process_kwargs', {})
+        logger.info('  '*(indent+1) + 'process_kwargs {}'.format(process_kwargs))
         process_class = self.process_classes[node.process]
         process = process_class(self.config, node)
 
         process.load_modules()
         process.load_upstream()
-        process.run()
+        process.run(**process_kwargs)
         process.save()
         process.done()
 
