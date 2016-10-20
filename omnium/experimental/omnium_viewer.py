@@ -358,7 +358,22 @@ class MainWindow(QtGui.QMainWindow):
         grid = gl.GLGridItem()
         grid.setSize(64, 64, 0)
         grid.setSpacing(4, 4, 0)
+
+        zgrid = gl.GLGridItem()
+        zgrid.setSize(64, 32, 0)
+        zgrid.rotate(90, 1, 0, 0)
+        zgrid.translate(0, -32, 16)
+        zgrid.setSpacing(4, 4, 0)
+
+        zgrid2 = gl.GLGridItem()
+        zgrid2.setSize(32, 64, 0)
+        zgrid2.rotate(90, 0, 1, 0)
+        zgrid2.translate(-32, 0, 16)
+        zgrid2.setSpacing(4, 4, 0)
+
         self.view.addItem(grid)
+        self.view.addItem(zgrid)
+        self.view.addItem(zgrid2)
 
         play_controls = QtGui.QWidget()
         play_controls_layout = QtGui.QGridLayout()
