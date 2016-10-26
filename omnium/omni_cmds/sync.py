@@ -45,7 +45,8 @@ def main(args, config, process_classes):
         elif args.node or args.node_id:
             if args.node_id:
                 node = dag.get_node_from_id(args.node_id)
-            node = dag.get_node(args.node)
+            else:
+                node = dag.get_node(args.node)
             node = syncher.sync_node(node)
             if node:
                 logger.info('Synced node {}'.format(node))
