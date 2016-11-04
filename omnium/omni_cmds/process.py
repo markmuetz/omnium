@@ -26,15 +26,15 @@ def main(args, config, process_classes):
         return
 
     opts = [args.batch is not None, args.group is not None, args.node is not None]
-    if sum(opts) >= 2 or sum(opts) == 0:
-        raise Exception('Please select exactly one of --batch, --group or --node')
-
     if args.batch:
         batch = dag.get_batch(args.batch)
         proc_eng.process_batch(batch)
-    elif args.group:
+    elif args.group and not args.node:
         group = dag.get_group(args.group)
         proc_eng.process_group(group, 0)
     elif args.node:
-        node = dag.get_node(args.node)
+        if args.group:
+            node = dag.get_node(args.node, args.group)
+        else:
+            node = dag.get_node(args.node)
         proc_eng.process_node(node, 0)
