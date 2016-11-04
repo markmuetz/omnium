@@ -209,6 +209,28 @@ class ConvertMassToEnergyFlux(IrisProcess):
         return precip_energy_flux
 
 
+class ConvertEnergyToMassFlux(IrisProcess):
+    name = 'convert_energy_to_mass_flux'
+    num_vars = 'single'
+
+    def run(self):
+        super(ConvertEnergyToMassFlux, self).run()
+        lhf = self.data
+        lhf_units = self.units.Unit('W m-2')
+        if not lhf.units == lhf_units:
+            raise Exception('Cube {} has the wrong units, is {}, should be {}'
+                            .format(lhf.name(), lhf.units, lhf_units))
+
+        L = self.iris.cube.Cube(2.5e6, long_name='latent_heat_of_evap', units='J kg-1')
+        # Order of lhf, L seems to be important!
+        evap = lhf / L
+        evap.convert_units(self.units.Unit('kg m-2 s-1'))
+        evap.rename('Evaporation')
+
+        self.processed_data = evap
+        return evap
+
+
 class MassWeightedVerticalIntegral(IrisProcess):
     name = 'mass_weighted_vertical_integral'
     num_vars = 'multi'

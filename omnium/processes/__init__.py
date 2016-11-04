@@ -8,7 +8,7 @@ import imp
 from processes import Process
 from iris_processes import (IrisProcess, ConvertPpToNc, ConvertMassToEnergyFlux,
                             TimeDelta, DomainMean, MassWeightedVerticalIntegral,
-			    GetVariable)
+			    GetVariable, ConvertEnergyToMassFlux)
 from pylab_processes import PylabProcess, PlotMultiTimeseries, PlotLastProfile
 
 
