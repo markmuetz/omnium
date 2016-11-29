@@ -55,3 +55,4 @@ def main(args):
 
         with open(converted_filename + '.done', 'w') as f:
             f.write('\n'.join(messages))
+            f.write('\n')
