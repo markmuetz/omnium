@@ -5,6 +5,7 @@ from logging import getLogger
 logger = getLogger('omni')
 
 commands = [
+    'convert',
     'create',
     'ls',
     'version',
