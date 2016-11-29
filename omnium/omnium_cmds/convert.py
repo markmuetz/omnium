@@ -1,4 +1,4 @@
-"""Converts all files given as command line args."""
+"""Converts all files given as command line args"""
 import os
 import re
 from logging import getLogger
@@ -26,8 +26,8 @@ def convert_ff2nc_filename(filepath):
 
 def main(args):
     import iris
-    messages = []
     for filename in args.filenames:
+        messages = []
         messages.append('Using iris to convert')
         messages.append('Original filename: {}'.format(filename))
         #logger.debug(filename)
