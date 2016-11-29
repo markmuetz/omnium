@@ -223,7 +223,12 @@ class NodeDAG(object):
                     .filter_by(name=node_name)
         if group_name:
             query = query.join(Group).filter_by(name=group_name)
-        return query.one()
+        try:
+            node = query.one()
+            return node
+        except:
+            return None
+
 
     def get_node_from_id(self, node_id):
         query = self._session.query(Node)\
