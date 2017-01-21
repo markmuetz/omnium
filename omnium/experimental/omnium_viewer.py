@@ -158,6 +158,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def get_pos_size(self, cube, thresh, size_scale, cube_max):
+        print(cube.shape)
         d = (cube.data > thresh)
         multiplier = size_scale / cube_max
 

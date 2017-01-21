@@ -12,15 +12,14 @@ ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
 
 
 def convert_ff2nc_filename(filepath):
-    # e.g. atmos.000.pp3 => atmos.000.3.nc
+    # e.g. atmos.000.pp3 => atmos.000.pp3.nc
     # Who knows why they give a fields file the extension pp??
     dirname = os.path.dirname(filepath)
     filename = os.path.basename(filepath)
     if not re.match('pp\d', filename[-3:]):
         raise Exception('Unrecognized filename {}'.format(filename))
 
-    pre, ext = os.path.splitext(filename)
-    newname = pre + '.' + ext[-1] + '.nc'
+    newname = filename + '.nc'
     return os.path.join(dirname, newname)
 
 
