@@ -10,6 +10,7 @@ commands = [
     'ls',
     'version',
     'viewer',
+    'twod_viewer',
 ]
 
 modules = OrderedDict()
