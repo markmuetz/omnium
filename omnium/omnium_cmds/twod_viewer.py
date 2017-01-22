@@ -1,15 +1,31 @@
 import sys
 
-ARGS = [(['filenames'], {'nargs': '+'})]
+ARGS = [(['filenames'], {'nargs': '+'}),
+        (['--state'], {'nargs': '?', 'default': None}),
+        (['--ignore-prev-settings'], {'action': 'store_true', 'default': False})]
 
 def main(args):
+    # I can't figure out how to embed a python shell with pylab/matplotlib enabled.
+    # as in 
+    # In [1]: %matplotlib
+    # See:
+    # http://stackoverflow.com/questions/33127785/embed-ipython-with-pylab-enabled
+    # http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython
+    # for some ideas.
     import IPython
+    import traitlets.config
     from omnium.experimental.twod_cube_viewer import TwodCubeViewer
 
     filename = args.filenames[0]
-    tcv = TwodCubeViewer()
+    use_prev_settings = not args.ignore_prev_settings
+    tcv = TwodCubeViewer(use_prev_settings=use_prev_settings, state_name=args.state)
     tcv.load(filename)
-    # IPython.start_ipython(argv=[])
+    config = traitlets.config.Config()
+    #config.InteractiveShellApp.exec_lines = [
+    #        '%matplotlib',
+    #        ]
+    # N.B. keep access to e.g. tcv
+    #IPython.start_ipython(config=config)
     # This is better because it allows you to access tcv
-    print('Remember to %matplotlib!!!')
-    IPython.embed()
+    # N.B. not running exec_lines :(.
+    IPython.embed(banner1='*'*80 + '\ntcv.help()\n%matplotlib', config=config)
