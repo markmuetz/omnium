@@ -148,15 +148,23 @@ def blob_iter(start_blob):
         yield blob
 
 
-def test_indices(i, j, diagonal=False):
-    indices = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
-    if diagonal:
-        indices += [(i-1, j-1), (i-1, j+1), (i+1, j-1), (i+1, j+1)]
+def test_indices(i, j, diagonal=False, extended=False):
+    if extended:
+        # Count any cells in a 5x5 area centred on the current i, j cell as being adjacent.
+        indices = []
+        for ii in range(i - 2, i + 3):
+            for jj in range(j - 2, j + 3):
+                indices.append((ii, jj))
+    else:
+        # Standard, cells sharing a border are adjacent.
+        indices = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
+        if diagonal:
+            # Diagonal cells considered adjacent.
+            indices += [(i-1, j-1), (i-1, j+1), (i+1, j-1), (i+1, j+1)]
     return indices
 
 
-def count_blobs(twod_slice, thresh, diagonal=False, wrap=True):
-    mask = twod_slice.data > thresh
+def count_blobs_mask(mask, diagonal=False, wrap=True):
     blobs = np.zeros_like(mask, dtype=np.int32)  # pylint: disable=no-member
     blob_index = 0
     for j in range(mask.shape[1]):
@@ -186,3 +194,8 @@ def count_blobs(twod_slice, thresh, diagonal=False, wrap=True):
                     outers = new_outers
 
     return blob_index, blobs
+
+
+def count_blobs(twod_slice, thresh, diagonal=False, wrap=True):
+    mask = twod_slice.data > thresh
+    return count_blobs_mask(mask, diagonal, wrap)
