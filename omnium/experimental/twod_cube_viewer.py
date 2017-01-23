@@ -127,7 +127,10 @@ class TwodCubeViewer(object):
 
     def add_disp(self, index, ignore_first=False, map_index=None):
         cube = self._cubes[index]
-        setting = DispSetting(True, ignore_first, map_index, cube.data.max(), cube.data.min())
+        tmp_cube = cube.copy()  # Allow mem. release after use.
+        setting = DispSetting(True, ignore_first, map_index, 
+                              tmp_cube.data.max(), tmp_cube.data.min())
+        del tmp_cube
         self._settings[index] = setting
         self._add_disp_cube(index)
 
@@ -196,15 +199,6 @@ class TwodCubeViewer(object):
             elapsed_time = time - self._start_time
 
             plt.title('{0}: {1:.2f} days'.format(curr_time_index, elapsed_time.days + elapsed_time.seconds/86400.) )
-            plt.imshow(cube.data[curr_time_index], interpolation='nearest', origin='lower',
+            plt.imshow(cube[curr_time_index].data, interpolation='nearest', origin='lower',
                        vmax=setting.vmax, vmin=setting.vmin)
             plt.pause(0.0001)
-
-
-if __name__ == '__main__':
-    tcv = TwodCubeViewer()
-    tcv.load('~/um_output/um10.6_runs/20day/iUM_CC2006_no_wind/work/20000101T0000Z/atmos/atmos.pp1.nc')
-    tcv.add_disp(3)
-    tcv.add_disp(6, True)
-    tcv.go(100)
-    tcv.show()
