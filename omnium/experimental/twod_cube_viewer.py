@@ -36,6 +36,7 @@ class TwodCubeViewer(object):
         self._start_time = start_time
         self._force_rename = force_rename
         self._state_name = state_name
+        self._use_prev_settings = use_prev_settings
 
     def help(self, member_name=None):
         print_members = []
@@ -71,7 +72,7 @@ class TwodCubeViewer(object):
         self._settings_file = os.path.join(self._file_dir, '.tcv_settings.{}.pkl'.format(basename))
         if self._state_name:
             self.load_state(self._state_name, show=False)
-        else:
+        elif self._use_prev_settings:
             self._load_settings()
 
     def save_state(self, name):
