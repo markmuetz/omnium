@@ -1,4 +1,4 @@
-VERSION = (0, 6, 9, 0, 'delta-beam')
+VERSION = (0, 6, 9, 0, 'delta-wing')
 
 
 def get_version(form='short'):
