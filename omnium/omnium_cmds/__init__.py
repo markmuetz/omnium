@@ -8,9 +8,10 @@ commands = [
     'convert',
     'create',
     'ls',
+    'run',
     'version',
     'viewer',
-    'twod_viewer',
+    'threed_viewer',
 ]
 
 modules = OrderedDict()

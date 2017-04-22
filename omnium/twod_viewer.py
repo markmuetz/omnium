@@ -5,10 +5,10 @@ import pickle
 from glob import glob
 import warnings
 
-import pylab as plt
 import iris
-import matplotlib.cbook
-import dill # necessary to serialize lambdas.
+
+from pyqtgraph.Qt import QtCore, QtGui
+import pyqtgraph as pg
 
 import omnium
 
@@ -20,23 +20,35 @@ STASH = omnium.Stash()
 # iris/fileformats/cf.py:1140: IrisDeprecation: NetCDF default loading behaviour...
 # warning message.
 iris.FUTURE.netcdf_promote = True
-# Suppresses matplotlib warning.
-# http://stackoverflow.com/questions/24502500/python-matplotlib-getting-rid-of-matplotlib-mpl-warning
-warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+
+class MainWindow(QtGui.QMainWindow):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self._img = pg.ImageItem(border='w')
+        self._img.setOpts(axisOrder='row-major')
+        glw = pg.GraphicsLayoutWidget()
+        view = glw.addViewBox()
+        view.addItem(self._img)
+        self.setCentralWidget(glw)
+
+    def setData(self, data):
+        self._img.setImage(data)
+
 
 
 class TwodCubeViewer(object):
-    def __init__(self, start_time=dt.datetime(2012, 9, 27, 21, 0), force_rename=True,
+    def __init__(self, start_time=dt.datetime(2000, 1, 1), force_rename=True,
                  use_prev_settings=True, state_name=None):
-        plt.ion()
         self._cubes = None
         self._displayed_cubes = OrderedDict()
         self._settings = OrderedDict()
         self._curr_time_index = 0
+        self._curr_level_index = 0
         self._start_time = start_time
         self._force_rename = force_rename
         self._state_name = state_name
         self._use_prev_settings = use_prev_settings
+        self.wins = {}
 
     def help(self, member_name=None):
         print_members = []
@@ -136,14 +148,17 @@ class TwodCubeViewer(object):
         self._add_disp_cube(index)
 
         self._save_settings()
+        self.disp()
 
     def rm_disp(self, index):
         del self._displayed_cubes[index]
         self._settings[index] = self._settings[index]._replace(disp=False)
         self._save_settings()
+        self.disp()
 
     def _check_displayed_cubes(self):
         all_cube_length = None
+        all_cube_height = None
         for i, cube in self._displayed_cubes.items():
             setting = self._settings[i]
             cube_length = cube.shape[0] - 1 if setting.ignore_first else cube.shape[0]
@@ -152,7 +167,17 @@ class TwodCubeViewer(object):
             else:
                 if cube_length != all_cube_length:
                     print('Warning, cube length mismatch')
+
+            if len(cube.shape) == 4:
+                cube_height = cube.shape[1]
+                if not all_cube_height:
+                    all_cube_height = cube_height
+                else:
+                    if cube_height != all_cube_height:
+                        print('Warning, cube height mismatch')
+
         self._all_cube_length = all_cube_length
+        self._all_cube_height = all_cube_height
             
     def next(self):
         self.go(self._curr_time_index + 1)
@@ -160,30 +185,66 @@ class TwodCubeViewer(object):
     def prev(self):
         self.go(self._curr_time_index - 1)
 
-    def go(self, time_index):
+    def go(self, time_index=None, level_index=None):
         'go to specified time_index'
-        self._curr_time_index = time_index
+        if time_index:
+            if time_index < 0 or time_index >= self._all_cube_length:
+                print('stopping')
+                self.timer.stop()
+            else:
+                self._curr_time_index = time_index
+        if level_index:
+            if level_index < 0 or level_index >= self._all_cube_height:
+                print('stopping')
+                self.timer.stop()
+            else:
+                self._curr_level_index = level_index
+
+        try:
+            self.show()
+        except:
+            print('stopping')
+            self.timer.stop()
+
+    def up(self):
+        self.go(level_index=self._curr_level_index + 1)
+
+    def down(self):
+        self.go(level_index=self._curr_level_index - 1)
+    
+    def update(self):
+        self.go(self._curr_time_index + self.time_step, 
+                self._curr_level_index + self.level_step)
+
+    def stop(self):
+        self.timer.stop()
+
+    def play(self, length=None, timeout=1000, time_step=1, level_step=0):
+        self.timeout = timeout
+        self.time_step = time_step
+        self.level_step = level_step
         self.show()
 
-    def play(self, length=None, timeout=100, step=1):
-        print('Ctrl-C to stop')
-        while self._curr_time_index < self._all_cube_length and length != 0:
-            try:
-                if length:
-                    length -= 1
-                self.go(self._curr_time_index + step)
-                plt.pause(timeout / 1000.)
-            except KeyboardInterrupt:
-                break
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.update)
+        self.timer.start(timeout)
 
     def disp(self):
         for i, cube in enumerate(self._cubes):
             displayed = '*' if i in self._displayed_cubes else ' '
             setting = self._settings[i] if displayed == '*' else ''
-            print('{0}: [{1}] {2:<36}, {3}, {4}'.format(i, displayed, cube.name(), cube.shape, setting))
+            print('{0}: [{1}] {2:<36}, {3}, {4}'.format(i, displayed, cube.name(), 
+                                                        cube.shape, setting))
 
     def show(self):
         for i, cube in self._displayed_cubes.items():
+            if i not in self.wins:
+                win = MainWindow()
+                win.show()
+                self.wins[i] = win
+            else:
+                win = self.wins[i]
+
             setting = self._settings[i]
             if setting.map_index:
                 curr_time_index = setting.map_index(self._curr_time_index)
@@ -193,13 +254,24 @@ class TwodCubeViewer(object):
                 else:
                     curr_time_index = self._curr_time_index
 
-            plt.figure(cube.name())
-            plt.clf()
             time_hrs_since_19700101 = cube.coord('time').points[curr_time_index]
             time = dt.datetime(1970, 1, 1) + dt.timedelta(0, time_hrs_since_19700101 * 3600)
             elapsed_time = time - self._start_time
 
-            plt.title('{0}: {1:.2f} days'.format(curr_time_index, elapsed_time.days + elapsed_time.seconds/86400.) )
-            plt.imshow(cube[curr_time_index].data, interpolation='nearest', origin='lower',
-                       vmax=setting.vmax, vmin=setting.vmin)
-            plt.pause(0.0001)
+            cube_time = elapsed_time.days + elapsed_time.seconds/86400. 
+            if len(cube.shape) == 3:
+                title = '{0} - {1}: {2:.2f} days'.format(cube.name(),
+                                                         curr_time_index, 
+                                                         cube_time)
+                win.setWindowTitle(title)
+                win.setData(cube[curr_time_index].data)
+            elif len(cube.shape) == 4:
+                height = cube.coord('level_height').points[self._curr_level_index]
+                title = '{0} - {1}: {2}: {3:.2f} days, {4:.2f} m'.format(cube.name(),
+                                                                         curr_time_index,
+                                                                         self._curr_level_index,
+                                                                         cube_time, 
+                                                                         height)
+                win.setWindowTitle(title)
+                win.setData(cube[curr_time_index, self._curr_level_index].data) 
+

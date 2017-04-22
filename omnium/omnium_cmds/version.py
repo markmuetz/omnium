@@ -1,4 +1,5 @@
 """Print version info"""
+import os
 from omnium.version import get_version
 
 ARGS = [(['-l', '--long'], {'help': 'print long version',
@@ -6,6 +7,7 @@ ARGS = [(['-l', '--long'], {'help': 'print long version',
 
 
 def main(args):
+    print(os.environ.keys())
     if args.long:
         print('Version ' + get_version('long'))
     else:
