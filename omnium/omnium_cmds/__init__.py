@@ -9,6 +9,7 @@ commands = [
     'create',
     'ls',
     'run',
+    'stash',
     'version',
     'viewer',
     'threed_viewer',
