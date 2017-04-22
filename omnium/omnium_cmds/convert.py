@@ -26,7 +26,7 @@ def convert_ff2nc_filename(filepath):
 def main(args):
     import iris
     for filename in args.filenames:
-        messages = []
+        messages = ['omnium convert']
         messages.append('Using iris to convert')
         messages.append('Original filename: {}'.format(filename))
         #logger.debug(filename)
