@@ -17,7 +17,6 @@ def main(args):
     import omnium
     stash = omnium.Stash()
     if args.search:
-        print(args)
         stash_vars = stash.search(args.search)
         for stash_var in stash_vars:
             print(format_var(stash_var))

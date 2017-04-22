@@ -35,7 +35,8 @@ Release Procedure
 
 ::
 
-    python setup.py sdist upload
+    python setup.py sdist bdist_wheel
+    twine upload dist/*
 
 * Upload docs: go to https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=omnium and upload zip file.
 

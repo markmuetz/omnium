@@ -27,18 +27,13 @@ setup(
     maintainer_email='m.muetzelfeldt@pgr.reading.ac.uk',
     packages=['omnium',
               'omnium.data', 
-              'omnium.processes', 
-              'omnium.omni_cmds',
               'omnium.omnium_cmds'],
     scripts=[
-        'bin/omni',
         'bin/omnium',
-        'bin/omnium-check-omnis.sh',
         ],
     install_requires=[
         ],
-    package_data={'omnium.data': ['templates/*.tpl',
-                                  'files/vn10.5/STASHmaster*'],
+    package_data={'omnium.data': ['files/vn10.5/STASHmaster*'],
         },
     url='https://github.com/markmuetz/omnium',
     classifiers=[

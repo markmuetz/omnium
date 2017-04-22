@@ -7,7 +7,6 @@ ARGS = [(['-l', '--long'], {'help': 'print long version',
 
 
 def main(args):
-    print(os.environ.keys())
     if args.long:
         print('Version ' + get_version('long'))
     else:
