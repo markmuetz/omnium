@@ -5,6 +5,7 @@ import pickle
 from glob import glob
 import warnings
 
+import numpy as np
 import iris
 
 from pyqtgraph.Qt import QtCore, QtGui
@@ -21,19 +22,29 @@ STASH = omnium.Stash()
 # warning message.
 iris.FUTURE.netcdf_promote = True
 
-class MainWindow(QtGui.QMainWindow):
+class ImageWindow(QtGui.QMainWindow):
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super(ImageWindow, self).__init__()
         self._img = pg.ImageItem(border='w')
         self._img.setOpts(axisOrder='row-major')
         glw = pg.GraphicsLayoutWidget()
         view = glw.addViewBox()
         view.addItem(self._img)
         self.setCentralWidget(glw)
+        lut = np.zeros((256,3), dtype=np.ubyte)
+
+	pos = np.array([0.0, 
+                        0.5, 
+			1.0])
+	color = np.array([[255,255,255,255], 
+                          [255,128,0,255], 
+                          [255,255,0,255]], dtype=np.ubyte)
+	cmap = pg.ColorMap(pos, color)
+	lut = cmap.getLookupTable(0.0, 1.0, 256)
+        self._img.setLookupTable(lut)
 
     def setData(self, data):
         self._img.setImage(data)
-
 
 
 class TwodCubeViewer(object):
@@ -72,12 +83,12 @@ class TwodCubeViewer(object):
                     print(fmt.format(member, 'no docstring'))
 
 
-    def load(self, filename):
-        filename = os.path.expanduser(filename)
-        print('Loading: {}'.format(filename))
+    def load(self, filenames):
+        filename = os.path.expanduser(filenames[0])
+        print('Loading: {}'.format(filenames))
         self._file_dir = os.path.dirname(filename)
         self._filename = filename
-        self._cubes = iris.load(filename)
+        self._cubes = iris.load(filenames).concatenate()
         STASH.rename_unknown_cubes(self._cubes, self._force_rename)
 
         basename = os.path.basename(self._filename)
@@ -239,7 +250,7 @@ class TwodCubeViewer(object):
     def show(self):
         for i, cube in self._displayed_cubes.items():
             if i not in self.wins:
-                win = MainWindow()
+                win = ImageWindow()
                 win.show()
                 self.wins[i] = win
             else:

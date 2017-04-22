@@ -16,10 +16,10 @@ def main(args):
     import traitlets.config
     from omnium.twod_viewer import TwodCubeViewer
 
-    filename = args.filenames[0]
+    filenames = args.filenames
     use_prev_settings = not args.ignore_prev_settings
     tcv = TwodCubeViewer(use_prev_settings=use_prev_settings, state_name=args.state)
-    tcv.load(filename)
+    tcv.load(filenames)
     config = traitlets.config.Config()
     #config.InteractiveShellApp.exec_lines = [
     #        '%matplotlib',
