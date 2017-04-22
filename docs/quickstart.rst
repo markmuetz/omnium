@@ -7,4 +7,4 @@ After following the :ref:`installation_pip` guide, create an omni dir with
 
 ::
 
-    omnium create omni_dir
+    omnium convert *.pp3

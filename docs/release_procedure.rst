@@ -23,14 +23,6 @@ Release Procedure
 
     git commit -a
 
-* Check all omnis (on all computers using sync'd git omnium):
-
-::
-
-    cd ~/omnis/
-    omnium-check-omnis.sh <comp> > checks_v0.6.0.out
-    cd -
-
 * Build docs:
 
 ::

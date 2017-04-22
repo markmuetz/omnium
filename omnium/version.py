@@ -1,4 +1,4 @@
-VERSION = (0, 6, 9, 0, 'delta-wing')
+VERSION = (0, 7, 0, 0, 'alpha')
 
 
 def get_version(form='short'):
