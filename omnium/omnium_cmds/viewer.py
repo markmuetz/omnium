@@ -14,19 +14,19 @@ def main(args):
     # for some ideas.
     import IPython
     import traitlets.config
-    from omnium.twod_viewer import TwodCubeViewer
+    from omnium.v2 import CubeListViewer
 
     filenames = args.filenames
     use_prev_settings = not args.ignore_prev_settings
-    tcv = TwodCubeViewer(use_prev_settings=use_prev_settings, state_name=args.state)
-    tcv.load(filenames)
+    viewer = CubeListViewer()
+    viewer.load(filenames)
     config = traitlets.config.Config()
-    #config.InteractiveShellApp.exec_lines = [
-    #        '%matplotlib',
-    #        ]
-    # N.B. keep access to e.g. tcv
+    config.InteractiveShellApp.exec_lines = [
+            'get_ipython().magic(u"gui qt")',
+            ]
+    # N.B. keep access to e.g. viewer
     #IPython.start_ipython(config=config)
-    # This is better because it allows you to access tcv
+    # This is better because it allows you to access viewer
     # N.B. not running exec_lines :(.
-    IPython.embed(banner1='*'*80 + '\ntcv.help()\n%gui qt', config=config)
+    IPython.embed(banner1='*'*80 + '\nviewer.help()\n%gui qt', config=config)
 

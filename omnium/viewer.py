@@ -12,8 +12,17 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 
 import omnium
+from omnium.data_displays import TwodWindow
 
-DispSetting = namedtuple('DispSetting', ['disp', 'ignore_first', 'map_index', 'vmax', 'vmin']) 
+DispSetting = namedtuple('DispSetting', 
+                         [
+                             'disp', 
+                             'type',
+                             'vmax', 
+                             'vmin',
+                             'curr_time_index',
+                             'curr_level_index',
+                             ]) 
 State = namedtuple('State', ['curr_time_index']) 
 
 STASH = omnium.Stash()
@@ -22,32 +31,41 @@ STASH = omnium.Stash()
 # warning message.
 iris.FUTURE.netcdf_promote = True
 
-class ImageWindow(QtGui.QMainWindow):
-    def __init__(self):
-        super(ImageWindow, self).__init__()
-        self._img = pg.ImageItem(border='w')
-        self._img.setOpts(axisOrder='row-major')
-        glw = pg.GraphicsLayoutWidget()
-        view = glw.addViewBox()
-        view.addItem(self._img)
-        self.setCentralWidget(glw)
-        lut = np.zeros((256,3), dtype=np.ubyte)
+class CubeViewer(object):
+    def __init__(self, cube, display):
+        self.cube = cube
+        self.display = display
+        self._time_index = 0
+        if cube.ndim == 4:
+            self._level_index = 0
+        else:
+            self._level_index = None
 
-	pos = np.array([0.0, 
-                        0.5, 
-			1.0])
-	color = np.array([[255,255,255,255], 
-                          [255,128,0,255], 
-                          [255,255,0,255]], dtype=np.ubyte)
-	cmap = pg.ColorMap(pos, color)
-	lut = cmap.getLookupTable(0.0, 1.0, 256)
-        self._img.setLookupTable(lut)
+    @property
+    def time_index(self):
+        return self._time_index
 
-    def setData(self, data):
-        self._img.setImage(data)
+    @time_index.setter
+    def time_index(self, value):
+        if value < 0 or value >= self.cube.shape[0]:
+            raise ValueError('Value is out of range (0, {})'.format(self.cube.shape[0] - 1))
+        self._time_index = value
+
+    @property
+    def level_index(self):
+        return self._level_index
+
+    @level_index.setter
+    def level_index(self, value):
+        if value < 0 or value >= self.cube.shape[1]:
+            raise ValueError('Value is out of range (0, {})'.format(self.cube.shape[1] - 1))
+        self._level_index = value
+
+    def show(self):
+        self.display.setData(cube, self.time_index, self.level_index)
 
 
-class TwodCubeViewer(object):
+class CubeListViewer(object):
     def __init__(self, start_time=dt.datetime(2000, 1, 1), force_rename=True,
                  use_prev_settings=True, state_name=None):
         self._cubes = None
@@ -129,8 +147,11 @@ class TwodCubeViewer(object):
 
     def _load_settings(self):
         if os.path.exists(self._settings_file):
-            with open(self._settings_file, 'r') as f:
-                self._settings = pickle.load(f)
+            try:
+                with open(self._settings_file, 'r') as f:
+                    self._settings = pickle.load(f)
+            except:
+                print('Could not open {}'.format(self._settings_file))
 
         self._apply_settings()
         self.disp()
@@ -149,23 +170,23 @@ class TwodCubeViewer(object):
         self._displayed_cubes[index] = cube
         self._check_displayed_cubes()
 
-    def add_disp(self, index, ignore_first=False, map_index=None):
+    def add_disp(self, index, disp_type='2d'):
         cube = self._cubes[index]
         tmp_cube = cube.copy()  # Allow mem. release after use.
-        setting = DispSetting(True, ignore_first, map_index, 
-                              tmp_cube.data.max(), tmp_cube.data.min())
+        setting = DispSetting(True, disp_type, tmp_cube.data.max(), tmp_cube.data.min(),
+                              )
         del tmp_cube
-        self._settings[index] = setting
+        if index in self._settings:
+            self._settings[index].append(setting)
+        else:
+            self._settings[index] = [setting]
         self._add_disp_cube(index)
 
         self._save_settings()
         self.disp()
 
-    def rm_disp(self, index):
-        del self._displayed_cubes[index]
-        self._settings[index] = self._settings[index]._replace(disp=False)
-        self._save_settings()
-        self.disp()
+    def rm_disp(self, index, disp_type='2d'):
+        pass
 
     def _check_displayed_cubes(self):
         all_cube_length = None
@@ -198,15 +219,13 @@ class TwodCubeViewer(object):
 
     def go(self, time_index=None, level_index=None):
         'go to specified time_index'
-        if time_index:
+        if time_index is not None:
             if time_index < 0 or time_index >= self._all_cube_length:
-                print('stopping')
                 self.timer.stop()
             else:
                 self._curr_time_index = time_index
-        if level_index:
+        if level_index is not None:
             if level_index < 0 or level_index >= self._all_cube_height:
-                print('stopping')
                 self.timer.stop()
             else:
                 self._curr_level_index = level_index
@@ -214,7 +233,6 @@ class TwodCubeViewer(object):
         try:
             self.show()
         except:
-            print('stopping')
             self.timer.stop()
 
     def up(self):
@@ -250,7 +268,7 @@ class TwodCubeViewer(object):
     def show(self):
         for i, cube in self._displayed_cubes.items():
             if i not in self.wins:
-                win = ImageWindow()
+                win = TwodWindow()
                 win.show()
                 self.wins[i] = win
             else:
