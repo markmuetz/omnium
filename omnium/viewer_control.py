@@ -1,9 +1,9 @@
 import os
 
 from pyqtgraph.Qt import QtCore, QtGui
+from omnium.data_displays import TwodWindow, ThreedWindow, PlotWindow
 
 import iris
-
 
 class ViewerControlWindow(QtGui.QMainWindow):
     time_slider_changed = QtCore.pyqtSignal(int)
@@ -13,12 +13,13 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.filenames = filenames
         self.cubes = []
         self.time_index = 0
+        self.wins = []
 
         self.setupGui()
         self.addVarItems()
 
         #self.time_slider.setRange(0, self.cube_list_viewer.cubes[0].shape[0])
-        self.time_slider.setRange(0, 20)
+        self.time_slider.setRange(0, 95)
         self.time_slider.setSingleStep(1)
         self.time_slider.setPageStep(15)
         self.time_slider.setTickInterval(60)
@@ -48,20 +49,52 @@ class ViewerControlWindow(QtGui.QMainWindow):
     def set_time_slider_value(self, value):
         self.time_index = value
         self.ui_time_index.setText(str(self.time_index))
+        for win in self.wins:
+            win.time_index = self.time_index
+            win.update()
+
+    def launch(self):
+        cubes = []
+        for item in self.var_selector.selectedItems():
+            data = item.data(0, QtCore.Qt.UserRole)
+            index = data.toPyObject()
+            cube = self.cubes[index]
+            cubes.append(cube)
+
+        cb = self.ui_displays
+        #import ipdb; ipdb.set_trace()
+
+        display_name = str(self.ui_displays.currentText())
+        if display_name in ['Slice']:
+            for cube in cubes:
+                if display_name == 'Slice':
+                    win = TwodWindow(self)
+                win.setData(cube)
+                win.show()
+                self.wins.append(win)
+
+        elif display_name in ['3D', 'Plot']:
+            if display_name == '3D':
+                win = ThreedWindow(self)
+            elif display_name == 'Plot':
+                win = PlotWindow(self)
+            win.setData(cubes)
+            win.show()
+            self.wins.append(win)
 
     def addCube(self, parent, cube):
         cube_name = ' '.join(cube.name().split())
         cube_item = QtGui.QTreeWidgetItem(parent, [cube_name])
         cube_item.setData(0, QtCore.Qt.UserRole, len(self.cubes))
-        cube_item.setCheckState(0, QtCore.Qt.Unchecked)
+        #cube_item.setCheckState(0, QtCore.Qt.Unchecked)
         self.cubes.append(cube)
 
     def addFile(self, root, filename):
         print(filename)
         fn = os.path.basename(filename)
         file_item = QtGui.QTreeWidgetItem(root, [fn])
-        file_item.setChildIndicatorPolicy(QtGui.QTreeWidgetItem.ShowIndicator)
-        file_item.setData(0, QtCore.Qt.UserRole, fn)
+        #file_item.setChildIndicatorPolicy(QtGui.QTreeWidgetItem.ShowIndicator)
+        #file_item.setData(0, QtCore.Qt.UserRole, fn)
         file_item.setExpanded(True)
         cubes = iris.load(filename)
 
@@ -75,21 +108,24 @@ class ViewerControlWindow(QtGui.QMainWindow):
         root = self.var_selector.invisibleRootItem()
         for filename in self.filenames:
             self.addFile(root, filename)
+        # Do this after items have been added.
+        self.var_selector.itemChanged.connect(self.handleVarSelectorChanged)
 
 
     def handleVarSelectorChanged(self, item, column):
-        data = item.data(column, QtCore.Qt.UserRole)
-        if item.checkState(column) == QtCore.Qt.Checked:
-            index = data.toPyObject()
-            cube = self.cubes[index]
-            print(cube.name())
-            print('checked')
+        if self.cubes:
+            data = item.data(column, QtCore.Qt.UserRole)
+            if item.checkState(column) == QtCore.Qt.Checked:
+                index = data.toPyObject()
+                cube = self.cubes[index]
+                print(cube.name())
+                print('checked')
 
-        elif item.checkState(column) == QtCore.Qt.Unchecked:
-            index = data.toPyObject()
-            cube = self.cubes[index]
-            print(cube.name())
-            print('unchecked')
+            elif item.checkState(column) == QtCore.Qt.Unchecked:
+                index = data.toPyObject()
+                cube = self.cubes[index]
+                print(cube.name())
+                print('unchecked')
 
 
     def selectedItemChanged(self):
@@ -155,13 +191,26 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
         self.var_selector = QtGui.QTreeWidget()
         self.var_selector.setHeaderLabels(["Tree"])
-        self.var_selector.itemChanged.connect(self.handleVarSelectorChanged)
+        self.var_selector.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.var_selector.itemSelectionChanged.connect(self.selectedItemChanged)
+        self.ui_displays = QtGui.QComboBox()
+        self.ui_displays.addItem('Slice')
+        self.ui_displays.addItem('3D')
+        self.ui_displays.addItem('Plot')
+
+        ui_launch = QtGui.QPushButton('Launch')
+        ui_launch.clicked.connect(self.launch)
+        cube_widget = QtGui.QWidget()
+        cube_widget_layout = QtGui.QVBoxLayout()
+        cube_widget_layout.addWidget(self.var_selector)
+        cube_widget_layout.addWidget(self.ui_displays)
+        cube_widget_layout.addWidget(ui_launch)
+        cube_widget.setLayout(cube_widget_layout)
 
         lhs_vsplitter = QtGui.QSplitter()
         lhs_vsplitter.setOrientation(QtCore.Qt.Vertical)
         lhs_vsplitter.addWidget(play_controls)
-        lhs_vsplitter.addWidget(self.var_selector)
+        lhs_vsplitter.addWidget(cube_widget)
 
         main_hsplitter = QtGui.QSplitter()
         main_hsplitter.addWidget(lhs_vsplitter)
