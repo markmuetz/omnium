@@ -1,7 +1,10 @@
 import os
+import re
+from collections import OrderedDict
 
 from pyqtgraph.Qt import QtCore, QtGui
 from omnium.data_displays import TwodWindow, ThreedWindow, PlotWindow
+from omnium import Stash
 
 import iris
 
@@ -10,21 +13,24 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
     def __init__(self, filenames):
         super(ViewerControlWindow, self).__init__()
+        # super(ViewerControlWindow, self).__init__(None, QtCore.Qt.WindowStaysOnTopHint)
         self.filenames = filenames
-        self.cubes = []
+        self.cubes = OrderedDict()
         self.time_index = 0
         self.wins = []
+        self.stash = Stash()
+        self.times = []
 
         self.setupGui()
-        self.addVarItems()
+        if self.filenames:
+            self.addVarItems(self.filenames)
 
         #self.time_slider.setRange(0, self.cube_list_viewer.cubes[0].shape[0])
-        self.time_slider.setRange(0, 95)
         self.time_slider.setSingleStep(1)
         self.time_slider.setPageStep(15)
         self.time_slider.setTickInterval(60)
         self.time_slider.setTickPosition(QtGui.QSlider.TicksRight)
-        self.time_slider.valueChanged.connect(self.set_time_slider_value)
+        self.time_slider.valueChanged.connect(self.setTimeSliderValue)
         self.time_slider_changed.connect(self.time_slider.setValue)
 
         self.timer = QtCore.QTimer(self)
@@ -46,19 +52,20 @@ class ViewerControlWindow(QtGui.QMainWindow):
     def go(self):
         self.time_slider_changed.emit(int(self.ui_time_index.text()))
 
-    def set_time_slider_value(self, value):
+    def setTimeSliderValue(self, value):
         self.time_index = value
         self.ui_time_index.setText(str(self.time_index))
         for win in self.wins:
-            win.time_index = self.time_index
+            win.setTime(self.times[self.time_index])
+            #win.time_index = self.time_index
             win.update()
 
     def launch(self):
         cubes = []
         for item in self.var_selector.selectedItems():
             data = item.data(0, QtCore.Qt.UserRole)
-            index = data.toPyObject()
-            cube = self.cubes[index]
+            cube = data.toPyObject()
+            #cube = self.cubes[index]
             cubes.append(cube)
 
         cb = self.ui_displays
@@ -69,7 +76,8 @@ class ViewerControlWindow(QtGui.QMainWindow):
             for cube in cubes:
                 if display_name == 'Slice':
                     win = TwodWindow(self)
-                win.setData(cube)
+                win.setCube(cube)
+                win.setTime(self.times[self.time_index])
                 win.show()
                 self.wins.append(win)
 
@@ -78,59 +86,90 @@ class ViewerControlWindow(QtGui.QMainWindow):
                 win = ThreedWindow(self)
             elif display_name == 'Plot':
                 win = PlotWindow(self)
-            win.setData(cubes)
+            win.setCubes(cubes)
+            win.setTime(self.times[self.time_index])
             win.show()
             self.wins.append(win)
 
     def addCube(self, parent, cube):
         cube_name = ' '.join(cube.name().split())
-        cube_item = QtGui.QTreeWidgetItem(parent, [cube_name])
-        cube_item.setData(0, QtCore.Qt.UserRole, len(self.cubes))
-        #cube_item.setCheckState(0, QtCore.Qt.Unchecked)
-        self.cubes.append(cube)
+        nt = str(cube.shape[0])
+        nx = str(cube.shape[-2])
+        ny = str(cube.shape[-1])
+        if cube.ndim == 4:
+            nz = str(cube.shape[1])
+        else:
+            nz = ''
+        cube_item = QtGui.QTreeWidgetItem(parent, [cube_name, nt, nz, nx, ny])
+        cube_item.setData(0, QtCore.Qt.UserRole, cube)
+        self.updateTimes(cube)
 
-    def addFile(self, root, filename):
+    def updateTimes(self, cube):
+        new_times = cube.coord('time').points
+        #import ipdb; ipdb.set_trace()
+        if len(self.times) and (new_times[0] > self.times[-1] or new_times[-1] < self.times[0]):
+            print('WARNING: times do not overlap')
+        if len(new_times) > len(self.times):
+            print('Using new times from {}: len {}'.format(cube.name(), len(new_times)))
+            self.times = new_times
+            self.time_slider.setRange(0, len(self.times) - 1)
+
+    def matchFilename(self, filename):
+        match = re.match('atmos.(?P<hours>\d{3}).(?P<stream>pp\d{1})(?P<ext>\.nc|)', filename)
+
+        if match:
+            return match.groups()
+        else:
+            match = re.match('atmos.(?P<stream>pp\d{1})(?P<ext>\.nc|)', filename)
+            return (None, match.group('stream'), match.group('ext'))
+
+    def addFile(self, filename):
         print(filename)
         fn = os.path.basename(filename)
-        file_item = QtGui.QTreeWidgetItem(root, [fn])
-        #file_item.setChildIndicatorPolicy(QtGui.QTreeWidgetItem.ShowIndicator)
-        #file_item.setData(0, QtCore.Qt.UserRole, fn)
-        file_item.setExpanded(True)
-        cubes = iris.load(filename)
+        hours, stream, ext = self.matchFilename(fn)
 
-        #if self.data_source == 'UM':
-            #self.stash.rename_unknown_cubes(cubes, True)
+        new_cubes = iris.load(filename)
+
+        self.stash.rename_unknown_cubes(new_cubes, True)
         
-        for i, cube in enumerate(cubes):
-            self.addCube(file_item, cube)
+        if stream in self.cubes:
+            self.cubes[stream].extend(new_cubes)
+            self.cubes[stream] = self.cubes[stream].concatenate()
+        else:
+            self.cubes[stream] = new_cubes
 
-    def addVarItems(self):
+
+    def addVarItems(self, filenames):
+        for filename in filenames:
+            self.addFile(filename)
+
+        self.var_selector.clear()
+        self.times = []
+
         root = self.var_selector.invisibleRootItem()
-        for filename in self.filenames:
-            self.addFile(root, filename)
-        # Do this after items have been added.
-        self.var_selector.itemChanged.connect(self.handleVarSelectorChanged)
-
-
-    def handleVarSelectorChanged(self, item, column):
-        if self.cubes:
-            data = item.data(column, QtCore.Qt.UserRole)
-            if item.checkState(column) == QtCore.Qt.Checked:
-                index = data.toPyObject()
-                cube = self.cubes[index]
-                print(cube.name())
-                print('checked')
-
-            elif item.checkState(column) == QtCore.Qt.Unchecked:
-                index = data.toPyObject()
-                cube = self.cubes[index]
-                print(cube.name())
-                print('unchecked')
+        for stream, cubes in self.cubes.items():
+            stream_item = QtGui.QTreeWidgetItem(root, [stream])
+            stream_item.setExpanded(True)
+            for cube in cubes:
+                self.addCube(stream_item, cube)
 
 
     def selectedItemChanged(self):
         print('selectedItemChanged')
 
+    def handleVarSelectorChanged(self, item, column):
+        pass
+
+    def open(self):
+        dlg = QtGui.QFileDialog()
+        dlg.setFileMode(QtGui.QFileDialog.ExistingFiles)
+        filenames = []
+        if dlg.exec_():
+            for filename in dlg.selectedFiles():
+                filenames.append(str(filename))
+            print(filenames)
+            self.filenames.extend(filenames)
+            self.addVarItems(filenames)
 
     def setupGui(self):
         self.resize(400, 600)
@@ -144,6 +183,10 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.menubar.addAction(self.menuFile.menuAction())
         self.setMenuBar(self.menubar)
 
+        openAction = QtGui.QAction('&Open', self)        
+        openAction.setShortcut('Ctrl+O')
+        openAction.triggered.connect(self.open)
+
         loadSettingsAction = QtGui.QAction('&Load Settings', self)        
         loadSettingsAction.setShortcut('Ctrl+L')
         loadSettingsAction.setStatusTip('Load settings')
@@ -154,6 +197,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
         saveSettingsAction.setStatusTip('Save settings')
         #saveSettingsAction.triggered.connect(self.saveSettings)
 
+        self.menuFile.addAction(openAction)
         self.menuFile.addAction(loadSettingsAction)
         self.menuFile.addAction(saveSettingsAction)
 
@@ -190,7 +234,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
         play_controls_layout.addWidget(self.ui_loop, 2, 3)
 
         self.var_selector = QtGui.QTreeWidget()
-        self.var_selector.setHeaderLabels(["Tree"])
+        self.var_selector.setHeaderLabels(['Name', 'nt', 'nz', 'nx', 'ny'])
         self.var_selector.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.var_selector.itemSelectionChanged.connect(self.selectedItemChanged)
         self.ui_displays = QtGui.QComboBox()

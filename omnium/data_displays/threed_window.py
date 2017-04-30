@@ -1,18 +1,12 @@
-import os
-import re
-import cPickle
-from logging import getLogger
-
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 import numpy as np
-import iris
 
-from omnium.stash import Stash
+from omnium.data_displays import DataDisplayWindow
 
-logger = getLogger('omni')
+class ThreedWindow(DataDisplayWindow):
+    title = '3D Display'
 
-class ThreedWindow(QtGui.QMainWindow):
     thresh_slider_changed = QtCore.pyqtSignal(float)
     size_slider_changed = QtCore.pyqtSignal(float)
     colours = [(1, 1, 1, 1),
@@ -25,23 +19,19 @@ class ThreedWindow(QtGui.QMainWindow):
                (1, 1, 0, 1)]
 
     def __init__(self, parent):
+        self.data_source = 'UM'
+        self.timeout = 250
+        self.cube_index = None
+
         super(ThreedWindow, self).__init__(parent)
         #filenames, data_source='UM', timeout=250
         #self.filenames = filenames
-        self.data_source = 'UM'
-        self.stash = Stash()
-        self.timeout = 250
         self.rendered_point_scatters = {}
         self.point_scatters = {}
         self.cube_settings = {}
-        self.time_index = 0
-        self.cube_index = None
         self.cubes = []
         self.zn = None
         self.thresh = 0.
-
-        self.setupGui()
-        #self.addVarItems()
 
     def pick_colour(self):
         if self.cube_index is not None:
@@ -84,30 +74,15 @@ class ThreedWindow(QtGui.QMainWindow):
         cube_item.setCheckState(0, QtCore.Qt.Unchecked)
         self.cubes.append(cube)
 
-    def addFile(self, root, filename):
-        fn = os.path.basename(filename)
-        file_item = QtGui.QTreeWidgetItem(root, [fn])
-        file_item.setChildIndicatorPolicy(QtGui.QTreeWidgetItem.ShowIndicator)
-        file_item.setData(0, QtCore.Qt.UserRole, fn)
-        file_item.setExpanded(True)
-        cubes = iris.load(filename)
+    def setCubes(self, cubes):
+        # Check all cubes have the same time dimension.
+        assert len(set([c.shape[0] for c in cubes])) == 1
 
-        if self.data_source == 'UM':
-            self.stash.rename_unknown_cubes(cubes, True)
-        
-        for i, cube in enumerate(cubes):
-            self.addCube(file_item, cube)
-
-    def setData(self, cubes):
+        self.cube = cubes[0]
         root = self.var_selector.invisibleRootItem()
         for cube in cubes:
+            assert cube.ndim == 4
             self.addCube(root, cube)
-        #self.data = cube
-        #self.addCube(
-        #root = self.var_selector.invisibleRootItem()
-        #for filename in self.filenames:
-            #self.addFile(root, filename)
-
 
     def get_pos_size(self, cube, thresh, size_scale, cube_max):
         print(cube.shape)
@@ -135,7 +110,7 @@ class ThreedWindow(QtGui.QMainWindow):
             pos[:, 2] = cube.coord('level_height')\
                         .points[pos_indices[:, 2]] / 1000
 
-            pos -= [32, 32, 0]
+            pos -= [128, 128, 0]
         elif self.data_source == 'MONC':
             # order is x, y, z
             pos_indices = np.array(np.where(d)).T
@@ -230,19 +205,10 @@ class ThreedWindow(QtGui.QMainWindow):
             size_scale = self.cube_settings[index]['size_scale']
             self.size_slider_changed.emit(size_scale)
 
-
-    def loadSettings(self):
-        try:
-            self.cube_settings = cPickle.load(open('settings.pkl', 'r'))
-        except:
-            print('Could not load settings')
-
-    def saveSettings(self):
-        cPickle.dump(self.cube_settings, open('settings.pkl', 'w'))
-
     def setupGui(self):
+        super(ThreedWindow, self).setupGui()
+
         self.resize(800, 600)
-        central_widget = QtGui.QWidget()
 
         self.menubar = QtGui.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(20, 20, 800, 23))
@@ -253,18 +219,18 @@ class ThreedWindow(QtGui.QMainWindow):
         self.menubar.addAction(self.menuFile.menuAction())
         self.setMenuBar(self.menubar)
 
-        loadSettingsAction = QtGui.QAction('&Load Settings', self)        
-        loadSettingsAction.setShortcut('Ctrl+L')
-        loadSettingsAction.setStatusTip('Load settings')
-        loadSettingsAction.triggered.connect(self.loadSettings)
+        #loadSettingsAction = QtGui.QAction('&Load Settings', self)        
+        #loadSettingsAction.setShortcut('Ctrl+L')
+        #loadSettingsAction.setStatusTip('Load settings')
+        #loadSettingsAction.triggered.connect(self.loadSettings)
 
-        saveSettingsAction = QtGui.QAction('&Save Settings', self)        
-        saveSettingsAction.setShortcut('Ctrl+S')
-        saveSettingsAction.setStatusTip('Save settings')
-        saveSettingsAction.triggered.connect(self.saveSettings)
+        #saveSettingsAction = QtGui.QAction('&Save Settings', self)        
+        #saveSettingsAction.setShortcut('Ctrl+S')
+        #saveSettingsAction.setStatusTip('Save settings')
+        #saveSettingsAction.triggered.connect(self.saveSettings)
 
-        self.menuFile.addAction(loadSettingsAction)
-        self.menuFile.addAction(saveSettingsAction)
+        #self.menuFile.addAction(loadSettingsAction)
+        #self.menuFile.addAction(saveSettingsAction)
 
         self.var_selector = QtGui.QTreeWidget()
         self.var_selector.setHeaderLabels(["Tree"])
@@ -316,7 +282,7 @@ class ThreedWindow(QtGui.QMainWindow):
         lhs_vsplitter.addWidget(ui_pick_colour)
 
         self.view = gl.GLViewWidget()
-        self.view.opts['distance'] = 64
+        self.view.opts['distance'] = 256
         # Add a grid.
         grid = gl.GLGridItem()
         # TODO: these need to be calculated properly.
@@ -336,29 +302,24 @@ class ThreedWindow(QtGui.QMainWindow):
             zgrid2.translate(-48, 0, 24)
             zgrid2.setSpacing(4, 4, 0)
         else:
-            grid.setSize(64, 64, 0)
-            grid.setSpacing(4, 4, 0)
+            grid.setSize(256, 256, 0)
+            grid.setSpacing(16, 16, 0)
 
             zgrid = gl.GLGridItem()
-            zgrid.setSize(64, 32, 0)
+            zgrid.setSize(256, 32, 0)
             zgrid.rotate(90, 1, 0, 0)
-            zgrid.translate(0, -32, 16)
-            zgrid.setSpacing(4, 4, 0)
+            zgrid.translate(0, -128, 16)
+            zgrid.setSpacing(16, 16, 0)
 
             zgrid2 = gl.GLGridItem()
-            zgrid2.setSize(32, 64, 0)
+            zgrid2.setSize(32, 256, 0)
             zgrid2.rotate(90, 0, 1, 0)
-            zgrid2.translate(-32, 0, 16)
-            zgrid2.setSpacing(4, 4, 0)
+            zgrid2.translate(-128, 0, 16)
+            zgrid2.setSpacing(16, 16, 0)
 
         self.view.addItem(grid)
         self.view.addItem(zgrid)
         self.view.addItem(zgrid2)
-
-        #play_controls = QtGui.QWidget()
-        #play_controls_layout = QtGui.QGridLayout()
-        #play_controls.setLayout(play_controls_layout)
-        #play_controls.setFixedHeight(100)
 
         self.ui_timeout = QtGui.QLineEdit(str(self.timeout))
         self.ui_time_index = QtGui.QLineEdit(str(self.time_index))
@@ -374,15 +335,9 @@ class ThreedWindow(QtGui.QMainWindow):
 
         middle.setSizePolicy(middle_size_policy)
         middle_layout.addWidget(self.view)
-        #middle_layout.addWidget(play_controls)
         middle.setLayout(middle_layout)
 
         main_hsplitter = QtGui.QSplitter()
         main_hsplitter.addWidget(lhs_vsplitter)
         main_hsplitter.addWidget(middle)
-
-        main_layout = QtGui.QHBoxLayout()
-        main_layout.addWidget(main_hsplitter)
-        central_widget.setLayout(main_layout)
-        self.setCentralWidget(central_widget)
-
+        self.main_layout.addWidget(main_hsplitter)

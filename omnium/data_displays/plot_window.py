@@ -1,33 +1,36 @@
-import numpy as np
-
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
 
-class PlotWindow(QtGui.QMainWindow):
-    level_slider_changed = QtCore.pyqtSignal(int)
+from omnium.data_displays import DataDisplayWindow
 
-    def __init__(self, parent):
-        super(PlotWindow, self).__init__(parent)
-        self.time_index = 0
-        self.level_index = 0
-        self.setupGui()
+class PlotWindow(DataDisplayWindow):
+    title = 'Plot Display'
 
     def setupGui(self):
+        super(PlotWindow, self).setupGui()
+        self.resize(400, 300)
         self.plotWidget = pg.PlotWidget(self)
 
         lhs_hsplitter = QtGui.QSplitter()
         lhs_hsplitter.addWidget(self.plotWidget)
 
-        central_widget = QtGui.QWidget()
-        main_layout = QtGui.QHBoxLayout()
-        main_layout.addWidget(lhs_hsplitter)
-        central_widget.setLayout(main_layout)
+        self.main_layout.addWidget(lhs_hsplitter)
 
-        self.setCentralWidget(central_widget)
+    def setCubes(self, cubes):
+        # Check all cubes have the same time dimension.
+        assert len(set([c.shape[0] for c in cubes])) == 1
+        self.cube = cubes[0]
 
-    def setData(self, cubes):
         for cube in cubes:
-            self.plotWidget.plot(range(cube.shape[0]), cube.data.mean(axis=(1, 2, 3)))
+            if cube.ndim == 3:
+                self.plotWidget.plot(range(cube.shape[0]), cube.data.mean(axis=(1, 2)))
+            elif cube.ndim == 4:
+                self.plotWidget.plot(range(cube.shape[0]), cube.data.mean(axis=(1, 2, 3)))
+            elif cube.ndim == 5:
+                self.plotWidget.plot(range(cube.shape[0]), cube.data.mean(axis=(1, 2, 3, 4)))
+            else:
+                msg = 'Two few or too many dims: {} - {}'.format(cube.name(), cube.ndim)
+                raise Exception(msg)
         self.time_line = pg.InfiniteLine(movable=False, angle=90, label='t={value:0.2f}', 
                                          labelOpts={'position':0.1, 'color': (200,200,100), 'fill': (200,200,200,50), 'movable': True})
         self.plotWidget.addItem(self.time_line)
