@@ -103,14 +103,14 @@ class ThreedWindow(DataDisplayWindow):
 
             # Map indices to values.
             pos = np.empty_like(pos_indices, dtype=np.float64)
-            pos[:, 0] = cube.coord('grid_longitude')\
+            pos[:, 0] = -cube.coord('grid_longitude')\
                         .points[pos_indices[:, 0]] / 1000
             pos[:, 1] = cube.coord('grid_latitude')\
                         .points[pos_indices[:, 1]] / 1000
             pos[:, 2] = cube.coord('level_height')\
                         .points[pos_indices[:, 2]] / 1000
 
-            pos -= [128, 128, 0]
+            pos -= [-128, 128, 0]
         elif self.data_source == 'MONC':
             # order is x, y, z
             pos_indices = np.array(np.where(d)).T
