@@ -4,7 +4,9 @@ import pyqtgraph as pg
 from omnium.data_displays import DataDisplayWindow
 
 class PlotWindow(DataDisplayWindow):
+    name = 'Plot'
     title = 'Plot Display'
+    accepts_multiple_cubes = True
 
     def setupGui(self):
         super(PlotWindow, self).setupGui()
@@ -19,6 +21,7 @@ class PlotWindow(DataDisplayWindow):
     def setCubes(self, cubes):
         # Check all cubes have the same time dimension.
         assert len(set([c.shape[0] for c in cubes])) == 1
+        self.cubes = cubes
         self.cube = cubes[0]
 
         for cube in cubes:

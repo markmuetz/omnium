@@ -1,7 +1,7 @@
 import sys
 
-ARGS = [(['filenames'], {'nargs': '+'}),
-        (['--state'], {'nargs': '?', 'default': None}),
+ARGS = [(['filenames'], {'nargs': '*'}),
+        (['--state', '-s'], {'nargs': '?', 'default': None}),
         (['--ignore-prev-settings'], {'action': 'store_true', 'default': False})]
 
 def main(args):
@@ -11,6 +11,6 @@ def main(args):
 
         app = QtGui.QApplication(sys.argv)
 
-        viewer_control = ViewerControlWindow(args.filenames)
+        viewer_control = ViewerControlWindow(args.state, args.filenames)
         viewer_control.show()
         sys.exit(app.exec_())

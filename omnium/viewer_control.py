@@ -1,5 +1,6 @@
 import os
 import re
+import pickle
 from collections import OrderedDict
 
 from pyqtgraph.Qt import QtCore, QtGui
@@ -8,10 +9,17 @@ from omnium import Stash
 
 import iris
 
+MAP_NAME_TO_CLASS = OrderedDict([
+    ('Slice', TwodWindow),
+    ('3D', ThreedWindow),
+    ('Plot', PlotWindow),
+])
+
+
 class ViewerControlWindow(QtGui.QMainWindow):
     time_slider_changed = QtCore.pyqtSignal(int)
 
-    def __init__(self, filenames):
+    def __init__(self, state, filenames):
         super(ViewerControlWindow, self).__init__()
         # super(ViewerControlWindow, self).__init__(None, QtCore.Qt.WindowStaysOnTopHint)
         self.filenames = filenames
@@ -22,7 +30,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.times = []
 
         self.setupGui()
-        if self.filenames:
+        if not state and self.filenames:
             self.addVarItems(self.filenames)
 
         #self.time_slider.setRange(0, self.cube_list_viewer.cubes[0].shape[0])
@@ -35,6 +43,92 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
         self.timer = QtCore.QTimer(self)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.fwd)
+
+        if state:
+            self.loadState(state)
+
+    def saveState(self):
+        state = {}
+        state['pos'] = self.pos() 
+        state['size'] = self.size() 
+        state['time_index'] = self.time_index
+        state['filenames'] = self.filenames
+        state['child_windows'] = []
+        for win in self.wins:
+            if win.isVisible():
+                win_state = win.saveState()
+                win_state['cubes'] = []
+                if win.accepts_multiple_cubes:
+                    for cube in win.cubes:
+                        for stream in self.cubes.keys():
+                            if cube in self.cubes[stream]:
+                                win_state['cubes'].append((stream, cube.name()))
+                else:
+                    #import ipdb; ipdb.set_trace()
+                    cube = win.cube
+                    for stream in self.cubes.keys():
+                        if cube in self.cubes[stream]:
+                            win_state['cubes'].append((stream, cube.name()))
+
+                state['child_windows'].append(win_state)
+
+	filename = QtGui.QFileDialog.getSaveFileName(self, 'Save State', 
+                                                     os.getcwd(), selectedFilter='*.pkl')
+	if filename:
+	    with open(filename, 'w') as f:
+		pickle.dump(state, f)
+
+    def loadState(self, state_filename=None):
+        if not state_filename:
+            filename = QtGui.QFileDialog.getOpenFileName(self, 'Load State', 
+                                                         os.getcwd(), 'State files (*.pkl)')
+
+            if not filename:
+                return
+        filename = state_filename
+        with open(filename, 'r') as f:
+            state = pickle.load(f)
+
+
+        self.move(state['pos'])
+        self.resize(state['size'])
+        self.filenames = state['filenames']
+        self.time_index = state['time_index']
+
+        self.time_slider_changed.emit(self.time_index)
+
+        for win in self.wins:
+            win.close()
+        self.wins = []
+
+        if self.filenames:
+            self.cubes = OrderedDict()
+            self.addVarItems(self.filenames)
+
+        for win_state in state['child_windows']:
+            print(win_state)
+            cubes = []
+            for stream, cube_name in win_state['cubes']:
+                for cube in self.cubes[stream]:
+                    if cube_name == cube.name():
+                        cubes.append(cube)
+                        break
+
+            Cls = MAP_NAME_TO_CLASS[win_state['name']]
+            if Cls.accepts_multiple_cubes:
+                win = Cls(self)
+                win.setCubes(cubes)
+                win.setTime(self.times[self.time_index])
+                win.loadState(win_state)
+                win.show()
+                self.wins.append(win)
+            else:
+                win = Cls(self)
+                win.setCube(cubes[0])
+                win.setTime(self.times[self.time_index])
+                win.loadState(win_state)
+                win.show()
+                self.wins.append(win)
 
     def back(self):
         self.time_slider_changed.emit(self.time_index - 1)
@@ -72,24 +166,21 @@ class ViewerControlWindow(QtGui.QMainWindow):
         #import ipdb; ipdb.set_trace()
 
         display_name = str(self.ui_displays.currentText())
-        if display_name in ['Slice']:
-            for cube in cubes:
-                if display_name == 'Slice':
-                    win = TwodWindow(self)
-                win.setCube(cube)
-                win.setTime(self.times[self.time_index])
-                win.show()
-                self.wins.append(win)
 
-        elif display_name in ['3D', 'Plot']:
-            if display_name == '3D':
-                win = ThreedWindow(self)
-            elif display_name == 'Plot':
-                win = PlotWindow(self)
+        Cls = MAP_NAME_TO_CLASS[display_name]
+        if Cls.accepts_multiple_cubes:
+            win = Cls(self)
             win.setCubes(cubes)
             win.setTime(self.times[self.time_index])
             win.show()
             self.wins.append(win)
+        else:
+            for cube in cubes:
+                win = Cls(self)
+                win.setCube(cube)
+                win.setTime(self.times[self.time_index])
+                win.show()
+                self.wins.append(win)
 
     def addCube(self, parent, cube):
         cube_name = ' '.join(cube.name().split())
@@ -161,8 +252,10 @@ class ViewerControlWindow(QtGui.QMainWindow):
         pass
 
     def open(self):
-        dlg = QtGui.QFileDialog()
+        dlg = QtGui.QFileDialog(self, 'Open Cubes', os.getcwd())
         dlg.setFileMode(QtGui.QFileDialog.ExistingFiles)
+        dlg.setFilter("Cube files (*.nc *.pp?)")
+        dlg.setFilter
         filenames = []
         if dlg.exec_():
             for filename in dlg.selectedFiles():
@@ -183,23 +276,23 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.menubar.addAction(self.menuFile.menuAction())
         self.setMenuBar(self.menubar)
 
-        openAction = QtGui.QAction('&Open', self)        
+        openAction = QtGui.QAction('&Open Cubes', self)        
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.open)
 
-        loadSettingsAction = QtGui.QAction('&Load Settings', self)        
-        loadSettingsAction.setShortcut('Ctrl+L')
-        loadSettingsAction.setStatusTip('Load settings')
-        #loadSettingsAction.triggered.connect(self.loadSettings)
+        loadStateAction = QtGui.QAction('&Load State', self)        
+        loadStateAction.setShortcut('Ctrl+L')
+        loadStateAction.setStatusTip('Load settings')
+        loadStateAction.triggered.connect(self.loadState)
 
-        saveSettingsAction = QtGui.QAction('&Save Settings', self)        
-        saveSettingsAction.setShortcut('Ctrl+S')
-        saveSettingsAction.setStatusTip('Save settings')
-        #saveSettingsAction.triggered.connect(self.saveSettings)
+        saveStateAction = QtGui.QAction('&Save State', self)        
+        saveStateAction.setShortcut('Ctrl+S')
+        saveStateAction.setStatusTip('Save settings')
+        saveStateAction.triggered.connect(self.saveState)
 
         self.menuFile.addAction(openAction)
-        self.menuFile.addAction(loadSettingsAction)
-        self.menuFile.addAction(saveSettingsAction)
+        self.menuFile.addAction(loadStateAction)
+        self.menuFile.addAction(saveStateAction)
 
         play_controls = QtGui.QWidget()
         play_controls_layout = QtGui.QGridLayout()
@@ -238,9 +331,9 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.var_selector.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.var_selector.itemSelectionChanged.connect(self.selectedItemChanged)
         self.ui_displays = QtGui.QComboBox()
-        self.ui_displays.addItem('Slice')
-        self.ui_displays.addItem('3D')
-        self.ui_displays.addItem('Plot')
+
+        for name in MAP_NAME_TO_CLASS.keys():
+            self.ui_displays.addItem(name)
 
         ui_launch = QtGui.QPushButton('Launch')
         ui_launch.clicked.connect(self.launch)

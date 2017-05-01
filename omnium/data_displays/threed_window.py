@@ -5,7 +5,9 @@ import numpy as np
 from omnium.data_displays import DataDisplayWindow
 
 class ThreedWindow(DataDisplayWindow):
+    name = '3D'
     title = '3D Display'
+    accepts_multiple_cubes = True
 
     thresh_slider_changed = QtCore.pyqtSignal(float)
     size_slider_changed = QtCore.pyqtSignal(float)
@@ -32,6 +34,15 @@ class ThreedWindow(DataDisplayWindow):
         self.cubes = []
         self.zn = None
         self.thresh = 0.
+
+    def saveState(self):
+        state = super(ThreedWindow, self).saveState()
+        state['camera_position'] = tuple(self.view.cameraPosition())
+        return state
+
+    def loadState(self, state):
+        super(ThreedWindow, self).loadState(state)
+        self.view.setCameraPosition(state['camera_position'])
 
     def pick_colour(self):
         if self.cube_index is not None:
@@ -209,15 +220,6 @@ class ThreedWindow(DataDisplayWindow):
         super(ThreedWindow, self).setupGui()
 
         self.resize(800, 600)
-
-        self.menubar = QtGui.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(20, 20, 800, 23))
-        self.menubar.setObjectName("menubar")
-        self.menuFile = QtGui.QMenu(self.menubar)
-        # self.menuFile.setObjectName(_fromUtf8("menuFile"))
-        self.menuFile.setTitle("File")
-        self.menubar.addAction(self.menuFile.menuAction())
-        self.setMenuBar(self.menubar)
 
         #loadSettingsAction = QtGui.QAction('&Load Settings', self)        
         #loadSettingsAction.setShortcut('Ctrl+L')

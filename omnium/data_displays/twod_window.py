@@ -6,8 +6,14 @@ import pyqtgraph as pg
 from omnium.data_displays import DataDisplayWindow
 
 class TwodWindow(DataDisplayWindow):
+    name = 'Slice'
+
     level_slider_changed = QtCore.pyqtSignal(int)
     level_slider2_changed = QtCore.pyqtSignal(int)
+
+    def __init__(self, parent):
+        super(TwodWindow, self).__init__(parent)
+        self.level_index2 = 0
 
     def setupGui(self):
         super(TwodWindow, self).setupGui()
@@ -40,6 +46,19 @@ class TwodWindow(DataDisplayWindow):
         self.lhs_hsplitter.addWidget(glw)
 
         self.main_layout.addWidget(self.lhs_hsplitter)
+
+    def saveState(self):
+        state = super(TwodWindow, self).saveState()
+        state['level_index'] = self.level_index
+        state['level_index2'] = self.level_index2
+        return state
+
+    def loadState(self, state):
+        super(TwodWindow, self).loadState(state)
+        self.level_index = state['level_index']
+        self.level_index2 = state['level_index2']
+        self.level_slider_changed.emit(self.level_index)
+        self.level_slider2_changed.emit(self.level_index2)
 
     def setLevelSliderValue(self, value):
         self.level_index = value
