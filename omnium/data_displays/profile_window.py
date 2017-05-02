@@ -17,6 +17,8 @@ class ProfileWindow(DataDisplayWindow):
         lhs_hsplitter.addWidget(self.plotWidget)
 
         self.main_layout.addWidget(lhs_hsplitter)
+        self.plots = {}
+        self.data = []
 
     def setCubes(self, cubes):
         # Check all cubes have the same time dimension.
@@ -28,11 +30,18 @@ class ProfileWindow(DataDisplayWindow):
                 msg = 'Two few or too many dims: {} - {}'.format(cube.name(), cube.ndim)
                 raise Exception(msg)
 
+        for cube in self.cubes:
+            heights = cube.coord('level_height').points
+            self.data.append((cube.name(), heights, cube.data.mean(axis=(2, 3))))
         self.update()
 
     def update(self):
-        self.plotWidget.clear()
-        for cube in self.cubes:
-            heights = cube.coord('level_height').points
-            if cube.ndim == 4:
-                self.plotWidget.plot(cube[self.time_index].data.mean(axis=(1, 2)), heights)
+        #self.plotWidget.clear()
+        for name, heights, data in self.data:
+            if name not in self.plots:
+                plot = self.plotWidget.plot(data[self.time_index], heights)
+                self.plots[name] = plot
+            else:
+                plot = self.plots[name]
+                plot.setData(data[self.time_index], heights)
+
