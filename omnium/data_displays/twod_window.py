@@ -18,7 +18,7 @@ class TwodWindow(DataDisplayWindow):
     def setupGui(self):
         super(TwodWindow, self).setupGui()
 
-        self.colour_map = 'black-orange-red'
+        self.colour_map = 'black-red-yellow-white'
 
         self._img = pg.ImageItem(border='w')
         self._img.setOpts(axisOrder='row-major')
@@ -27,7 +27,13 @@ class TwodWindow(DataDisplayWindow):
         view.addItem(self._img)
         lut = np.zeros((256,3), dtype=np.ubyte)
 
-        if self.colour_map == 'black-orange-red':
+        if self.colour_map == 'black-red-yellow-white':
+            pos = np.array([0.0, 0.33, 0.66, 1.0])
+            colour = np.array([[0, 0, 0, 255], 
+                               [255, 0, 0, 255], 
+                               [255, 255, 0, 255], 
+                               [255, 255, 255, 255]], dtype=np.ubyte)
+        elif self.colour_map == 'black-orange-red':
             pos = np.array([0.0, 0.5, 1.0])
             colour = np.array([[0, 0, 0, 255], 
                                [255, 128, 0, 255], 

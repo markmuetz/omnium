@@ -4,7 +4,7 @@ import pickle
 from collections import OrderedDict
 
 from pyqtgraph.Qt import QtCore, QtGui
-from omnium.data_displays import TwodWindow, ThreedWindow, PlotWindow
+from omnium.data_displays import TwodWindow, ThreedWindow, PlotWindow, ProfileWindow
 from omnium import Stash
 
 import iris
@@ -13,6 +13,7 @@ MAP_NAME_TO_CLASS = OrderedDict([
     ('Slice', TwodWindow),
     ('3D', ThreedWindow),
     ('Plot', PlotWindow),
+    ('Profile', ProfileWindow),
 ])
 
 
