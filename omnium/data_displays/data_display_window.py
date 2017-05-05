@@ -11,7 +11,6 @@ class DataDisplayWindow(QtGui.QMainWindow):
         super(DataDisplayWindow, self).__init__(parent)
         self.time_index = 0
         self.level_index = 0
-        self.setupGui()
         self.time_days = 0.
 
     def loadState(self, state):

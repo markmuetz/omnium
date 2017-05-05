@@ -120,16 +120,18 @@ class ViewerControlWindow(QtGui.QMainWindow):
             Cls = MAP_NAME_TO_CLASS[win_state['name']]
             if Cls.accepts_multiple_cubes:
                 win = Cls(self)
+                win.loadState(win_state)
+                win.setupGui()
                 win.setCubes(cubes)
                 win.setTime(self.times[self.time_index])
-                win.loadState(win_state)
                 win.show()
                 self.wins.append(win)
             else:
                 win = Cls(self)
+                win.loadState(win_state)
+                win.setupGui()
                 win.setCube(cubes[0])
                 win.setTime(self.times[self.time_index])
-                win.loadState(win_state)
                 win.show()
                 self.wins.append(win)
 
@@ -155,6 +157,8 @@ class ViewerControlWindow(QtGui.QMainWindow):
         for win in self.wins:
             win.setTime(self.times[self.time_index])
             #win.time_index = self.time_index
+
+        for win in self.wins:
             win.update()
 
     def launch(self):
@@ -215,7 +219,10 @@ class ViewerControlWindow(QtGui.QMainWindow):
             return match.groups()
         else:
             match = re.match('atmos.(?P<stream>pp\d{1})(?P<ext>\.nc|)', filename)
-            return (None, match.group('stream'), match.group('ext'))
+            if match:
+                return (None, match.group('stream'), match.group('ext'))
+            else:
+                return (None, 'default', '.nc')
 
     def addFile(self, filename):
         print(filename)

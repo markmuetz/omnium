@@ -21,11 +21,11 @@ class ThreedWindow(DataDisplayWindow):
                (1, 1, 0, 1)]
 
     def __init__(self, parent):
+        super(ThreedWindow, self).__init__(parent)
         self.data_source = 'UM'
         self.timeout = 250
         self.cube_index = None
 
-        super(ThreedWindow, self).__init__(parent)
         #filenames, data_source='UM', timeout=250
         #self.filenames = filenames
         self.rendered_point_scatters = {}
@@ -42,7 +42,6 @@ class ThreedWindow(DataDisplayWindow):
 
     def loadState(self, state):
         super(ThreedWindow, self).loadState(state)
-        self.view.setCameraPosition(state['camera_position'])
 
     def pick_colour(self):
         if self.cube_index is not None:
