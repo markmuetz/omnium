@@ -39,7 +39,7 @@ class Analyzer(object):
 
         self.results = OrderedDict()
 	self.force = False
-	self.logname = self.filename + '.analyzed'
+	self.logname = self.output_filename + '.analyzed'
 
     def set_config(self, config):
 	self._config = config

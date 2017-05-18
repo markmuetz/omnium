@@ -1,3 +1,4 @@
+import sys
 import logging
 
 
@@ -69,7 +70,7 @@ def setup_logger(debug=False, colour=True):
             level = logging.DEBUG
         else:
             level = logging.INFO
-        streamHandler = logging.StreamHandler()
+        streamHandler = logging.StreamHandler(sys.stdout)
         streamHandler.setFormatter(console_formatter)
         streamHandler.setLevel(level)
 

@@ -9,6 +9,7 @@ except ImportError:
     sys.path.insert(0, path)
     import omnium
 
+
 def read_args():
     data_type = sys.argv[1]
     expt = sys.argv[2]
@@ -17,11 +18,12 @@ def read_args():
 
 def main():
     from omnium.run_control import RunControl
-    from setup_logging import setup_logger
+    from omnium.setup_logging import setup_logger
 
     debug = os.getenv('OMNIUM_DEBUG') == 'True'
     logger = setup_logger(debug, False)
     run_control = RunControl(*read_args())
+    run_control.setup()
     run_control.run()
 
 

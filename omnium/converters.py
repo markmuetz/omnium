@@ -51,6 +51,10 @@ class FF2NC(Converter):
                 logger.info('Deleting: {}'.format(converted_filename))
                 self.messages.append('Deleting: {}'.format(converted_filename))
                 os.remove(converted_filename)
+            if not os.path.exists(converted_filename + '.done'):
+                logger.info('No .done file, deleting: {}'.format(converted_filename))
+                self.messages.append('Deleting: {}'.format(converted_filename))
+                os.remove(converted_filename)
             else:
                 logger.info('Already converted')
                 return converted_filename

@@ -93,14 +93,19 @@ class RunControl(object):
     def convert_all(self, filename_globs, overwrite, delete):
         if self.data_type == 'datam':
             data_dir = self.atmos_datam_dir
-        elif data_type == 'dataw':
+        elif self.data_type == 'dataw':
             data_dir = self.atmos_dataw_dir
 
         filenames = []
         logger.info('Converting files like:')
         for filename_glob in filename_globs:
             logger.info('  ' + filename_glob)
-            filenames.extend(sorted(glob(os.path.join(data_dir, filename_glob))))
+            for filename in sorted(glob(os.path.join(data_dir, filename_glob))):
+                if os.path.exists(filename + '.done'):
+                    logger.debug('  Adding: {}'.format(filename))
+                    filenames.append(filename)
+                else:
+                    logger.debug('  Not finished: {}'.format(filename))
 
         converter = CONVERTERS['ff2nc'](overwrite, delete)
         for filename in filenames:
