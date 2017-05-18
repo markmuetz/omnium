@@ -6,7 +6,7 @@ from collections import OrderedDict
 import inspect
 import imp
 
-from omnium.analyzer import Analyzer
+from analyzer import Analyzer
 
 def get_analysis_classes(cwd=None):
     print(cwd)
