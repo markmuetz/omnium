@@ -6,7 +6,15 @@ from collections import OrderedDict
 import inspect
 import imp
 
-from analyzer import Analyzer
+try:
+    import omnium
+except ImportError:
+    path = os.getenv('OMNIUM_PYTHONPATH')
+    print('Adding to path: {}'.format(path))
+    sys.path.insert(0, path)
+    import omnium
+
+from omnium.analyzer import Analyzer
 
 def get_analysis_classes(cwd=None):
     print(cwd)
@@ -33,6 +41,7 @@ def get_analysis_classes(cwd=None):
         for name, obj in inspect.getmembers(module):
 	    #print((name, obj))
             if inspect.isclass(obj) and issubclass(obj, Analyzer) and not obj == Analyzer:
+		print((name, obj))
                 if obj.analysis_name:
 		    print(obj.analysis_name)
                     analysis_classes[obj.analysis_name] = obj

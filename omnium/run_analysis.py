@@ -6,13 +6,15 @@ from configparser import ConfigParser
 
 import iris
 
-from analyzers import get_analysis_classes
-
 try:
     import omnium
 except ImportError:
-    sys.path.insert(0, os.getenv('OMNIUM_PYTHONPATH'))
+    path = os.getenv('OMNIUM_PYTHONPATH')
+    print('Adding to path: {}'.format(path))
+    sys.path.insert(0, path)
     import omnium
+
+from omnium.analyzers import get_analysis_classes
 
 
 def convert_ff2nc_filename(filepath):
