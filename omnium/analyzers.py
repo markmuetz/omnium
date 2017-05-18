@@ -9,6 +9,7 @@ import imp
 from analyzer import Analyzer
 
 def get_analysis_classes(cwd=None):
+    print(cwd)
     # Discovery of analysis classes in a given directory.
     if not cwd:
         cwd = os.getcwd()
@@ -18,6 +19,7 @@ def get_analysis_classes(cwd=None):
     # Load the modules.
     if os.path.exists(local_python_path):
         for filename in sorted(glob(os.path.join(local_python_path, '*.py'))):
+	    print(filename)
             module_name = os.path.splitext(os.path.basename(filename))[0]
             module = imp.load_source(module_name, filename)
             modules.append(module)
@@ -29,10 +31,12 @@ def get_analysis_classes(cwd=None):
     analysis_classes = OrderedDict()
     for module in modules:
         for name, obj in inspect.getmembers(module):
+	    print((name, obj))
             if inspect.isclass(obj) and\
                issubclass(obj, Analyzer) and\
                not obj == Analyzer:
                 if obj.name:
+		    print(obj.name)
                     analysis_classes[obj.name] = obj
     return analysis_classes
 
