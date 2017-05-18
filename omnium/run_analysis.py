@@ -10,7 +10,7 @@ try:
     import omnium
 except ImportError:
     path = os.getenv('OMNIUM_PYTHONPATH')
-    print('Adding to path: {}'.format(path))
+    print('run_analysis: Adding to path: {}'.format(path))
     sys.path.insert(0, path)
     import omnium
 
@@ -139,6 +139,7 @@ class RunControl(object):
 		raise Exception('COULD NOT FIND ANALYZER: {}'.format(analysis))
 
 	    Analyzer = analyzers[analysis]
+            print(Analyzer)
 
 	    filename = analyzer_config.pop('filename')
 	    if data_type == 'dataw':
@@ -156,7 +157,8 @@ class RunControl(object):
 		    print('analysis already run')
 	    elif data_type == 'datam':
 		# filename can be a glob.
-		dataw_settings = self.config['datam_settings']
+                print(datam_dir)
+                print(filename)
 		filenames = Analyzer.get_files(datam_dir, filename)
 		for actual_filename in filenames:
 		    print(actual_filename)

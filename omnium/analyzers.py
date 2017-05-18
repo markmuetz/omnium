@@ -6,14 +6,7 @@ from collections import OrderedDict
 import inspect
 import imp
 
-try:
-    import omnium
-except ImportError:
-    path = os.getenv('OMNIUM_PYTHONPATH')
-    print('Adding to path: {}'.format(path))
-    sys.path.insert(0, path)
-    import omnium
-
+import omnium
 from omnium.analyzer import Analyzer
 
 def get_analysis_classes(cwd=None):
