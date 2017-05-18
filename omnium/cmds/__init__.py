@@ -17,7 +17,7 @@ commands = [
 
 modules = OrderedDict()
 for command in commands:
-    command_name = 'omnium_cmds.' + command.replace('-', '_')
+    command_name = 'cmds.' + command.replace('-', '_')
     try:
         modules[command] = importlib.import_module('omnium.' + command_name)
     except ImportError, e:
