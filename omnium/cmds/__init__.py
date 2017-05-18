@@ -11,6 +11,7 @@ commands = [
     'shell',
     'stash',
     'suite-info',
+    'sync-mirror',
     'version',
     'viewer',
 ]
@@ -21,5 +22,5 @@ for command in commands:
     try:
         modules[command] = importlib.import_module('omnium.' + command_name)
     except ImportError, e:
-        logger.info('Cannot load module {}'.format(command_name))
-        logger.info(e)
+        logger.warn('Cannot load module {}'.format(command_name))
+        logger.warn(e)
