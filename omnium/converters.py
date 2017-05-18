@@ -64,7 +64,10 @@ class FF2NC(Converter):
         self.messages.append('New filename: {}'.format(converted_filename))
 
         cubes = iris.load(filename)
-        iris.save(cubes, converted_filename)
+        if len(cubes) == 0:
+            logger.info('File contains no data')
+        else:
+            iris.save(cubes, converted_filename)
 
         if self.delete:
             logger.info('Delete: {}'.format(filename))

@@ -3,8 +3,11 @@ import datetime as dt
 from glob import glob
 from collections import OrderedDict
 import abc
+from logging import getLogger
 
 import iris
+
+logger = getLogger('omnium')
 
 class Analyzer(object):
     __metaclass__ = abc.ABCMeta
@@ -13,7 +16,8 @@ class Analyzer(object):
     def get_files(data_dir, filename):
         return sorted(glob(os.path.join(data_dir, filename)))
 
-    def __init__(self, suite, expt, data_type, data_dir, results_dir, filename=None):
+    def __init__(self, suite, expt, data_type, data_dir, results_dir, filename):
+        logger.debug(filename)
         self.suite = suite
         self.expt = expt
         self.data_type = data_type
@@ -25,14 +29,19 @@ class Analyzer(object):
 	    self.filename = filename
 
         self.name = '{}_{}_{}_{}'.format(filename, suite, expt, self.analysis_name)
+        logger.debug(self.name)
 
 	split_filename = filename.split('.')
 	runid = split_filename[0]
 
 	if data_type == 'datam':
-	    time_hours = split_filename[1]
-	    instream = split_filename[2]
-	    self.output_filename = '{}.{}.{}.nc'.format(runid, time_hours, self.analysis_name)
+            if len(split_filename) >= 3:
+                time_hours = split_filename[1]
+                instream = split_filename[2]
+                self.output_filename = '{}.{}.{}.nc'.format(runid, time_hours, self.analysis_name)
+            elif len(split_filename) == 1:
+                # It's a dump. Should have a better way of telling though.
+                self.output_filename = '{}.{}.nc'.format(filename, self.analysis_name)
 	elif data_type == 'dataw':
 	    instream = split_filename[1]
 	    self.output_filename = '{}.{}.nc'.format(runid, self.analysis_name)
