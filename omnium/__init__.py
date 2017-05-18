@@ -1,6 +1,6 @@
 import logging
 # Need to make sure that this is set to log something
-# before everything else starts trying to get the omni logger.
+# before everything else starts trying to get the logger.
 logging.basicConfig()  # nopep8
 
 from .version import __version__

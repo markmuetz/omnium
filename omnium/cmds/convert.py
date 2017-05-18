@@ -3,7 +3,7 @@ import os
 import re
 from logging import getLogger
 
-logger = getLogger('omni')
+logger = getLogger('omnium')
 
 ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
         (['--converter', '-c'], {'help': 'Converter to use', 'default': 'ff2nc'}),

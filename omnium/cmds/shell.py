@@ -19,7 +19,6 @@ def main(args):
 
         stash = Stash()
         suite = Suite()
-        run_control = RunControl()
         try:
             suite.check_in_suite_dir(os.getcwd())
         except OmniumError:

@@ -1,8 +1,13 @@
 import os
 import re
 import abc
+from logging import getLogger
 
 import iris
+
+from omnium.omnium_errors import OmniumError
+
+logger = getLogger('omnium')
 
 
 class Converter(object):
@@ -31,7 +36,7 @@ class FF2NC(Converter):
         dirname = os.path.dirname(old_filename)
         filename = os.path.basename(old_filename)
         if not self.allow_non_ppX and not re.match('pp\d', filename[-3:]):
-            raise Exception('Unrecognized filename {}'.format(filename))
+            raise OmniumError('Filename not of form *.ppX: {}'.format(filename))
 
         newname = filename + '.nc'
         return os.path.join(dirname, newname)
@@ -39,14 +44,15 @@ class FF2NC(Converter):
     def convert(self, filename):
         self.messages = ['archer_analysis convert ' + self.name]
         converted_filename = self.converted_filename(filename)
-        print('Convert: {} -> {}'.format(filename, converted_filename))
+        logger.info('Convert: {} -> {}'.format(filename, converted_filename))
 
         if os.path.exists(converted_filename):
             if self.overwrite:
+                logger.info('Deleting: {}'.format(converted_filename))
                 self.messages.append('Deleting: {}'.format(converted_filename))
                 os.remove(converted_filename)
             else:
-                print('Already converted')
+                logger.info('Already converted')
                 return converted_filename
 
         self.messages.append('Using iris to convert')
@@ -57,7 +63,7 @@ class FF2NC(Converter):
         iris.save(cubes, converted_filename)
 
         if self.delete:
-            print('Delete: {}'.format(filename))
+            logger.info('Delete: {}'.format(filename))
             os.remove(filename)
             self.messages.append('Deleted original')
 

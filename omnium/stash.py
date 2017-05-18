@@ -3,15 +3,14 @@ import re
 from collections import OrderedDict
 from logging import getLogger
 
-logger = getLogger('omni')
+logger = getLogger('omnium')
 
 
 class Stash(OrderedDict):
     def __init__(self):
         super(Stash, self).__init__()
-        omni_home = os.path.dirname(os.path.realpath(__file__))
-        # omni_home = os.path.expandvars('$OMNI_HOME')
-        stash_master_path = os.path.join(omni_home, 'data/files/vn10.5/STASHmaster_A')
+        omnium_home = os.path.dirname(os.path.realpath(__file__))
+        stash_master_path = os.path.join(omnium_home, 'data/files/vn10.5/STASHmaster_A')
         # stash_master_path = 'files/vn10.5/STASHmaster_A'
 
         with open(stash_master_path) as f:

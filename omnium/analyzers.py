@@ -5,15 +5,20 @@ from glob import glob
 from collections import OrderedDict
 import inspect
 import imp
+from logging import getLogger
 
 import omnium
 from omnium.analyzer import Analyzer
+
+logger = getLogger('omnium')
+
 
 def get_analysis_classes(cwd=None):
     """Discovery of analysis classes in a given directory
     
     Searches in dir cwd/analysis for python files.
     Loads all python files and any subclasses of Analyzer are returned in a dict."""
+    logger.debug(cwd)
     if not cwd:
         cwd = os.getcwd()
     modules = []
@@ -22,6 +27,7 @@ def get_analysis_classes(cwd=None):
     # Load the modules.
     if os.path.exists(local_python_path):
         for filename in sorted(glob(os.path.join(local_python_path, '*.py'))):
+            logger.debug(filename)
             module_name = os.path.splitext(os.path.basename(filename))[0]
             module = imp.load_source(module_name, filename)
             modules.append(module)
@@ -34,6 +40,7 @@ def get_analysis_classes(cwd=None):
     for module in modules:
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, Analyzer) and not obj == Analyzer:
+                logger.debug(obj.analysis_name)
                 if obj.analysis_name:
                     analysis_classes[obj.analysis_name] = obj
     return analysis_classes

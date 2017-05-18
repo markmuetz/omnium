@@ -2,10 +2,11 @@ from collections import OrderedDict
 import importlib
 from logging import getLogger
 
-logger = getLogger('omni')
+logger = getLogger('omnium')
 
 commands = [
     'convert',
+    'ls-analyzers',
     'run',
     'shell',
     'stash',
