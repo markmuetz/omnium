@@ -6,7 +6,7 @@ from collections import OrderedDict
 import inspect
 import imp
 
-from analyzer import Analyzer
+from omnium.analyzer import Analyzer
 
 def get_analysis_classes(cwd=None):
     print(cwd)
@@ -31,13 +31,12 @@ def get_analysis_classes(cwd=None):
     analysis_classes = OrderedDict()
     for module in modules:
         for name, obj in inspect.getmembers(module):
-	    print((name, obj))
-            if inspect.isclass(obj) and\
-               issubclass(obj, Analyzer) and\
-               not obj == Analyzer:
-                if obj.name:
-		    print(obj.name)
-                    analysis_classes[obj.name] = obj
+	    #print((name, obj))
+            if inspect.isclass(obj) and issubclass(obj, Analyzer) and not obj == Analyzer:
+                if obj.analysis_name:
+		    print(obj.analysis_name)
+                    analysis_classes[obj.analysis_name] = obj
+    print(analysis_classes)
     return analysis_classes
 
 #from surf_flux_analysis import SurfFluxAnalyzer
