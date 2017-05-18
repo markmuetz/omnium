@@ -14,10 +14,12 @@ def main(args):
         import numpy as np
         from omnium.omnium_errors import OmniumError
         from omnium.stash import Stash
+        from omnium.state import State
         from omnium.suite import Suite
         from omnium.run_control import RunControl
 
         stash = Stash()
+        state = State()
         suite = Suite()
         try:
             suite.check_in_suite_dir(os.getcwd())

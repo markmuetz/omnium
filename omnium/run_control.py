@@ -105,7 +105,7 @@ class RunControl(object):
                     logger.debug('  Adding: {}'.format(filename))
                     filenames.append(filename)
                 else:
-                    logger.debug('  Not finished: {}'.format(filename))
+                    logger.warn('  Not finished: {}'.format(filename))
 
         converter = CONVERTERS['ff2nc'](overwrite, delete)
         for filename in filenames:
@@ -146,8 +146,6 @@ class RunControl(object):
 	    enabled = enabled_str == 'True'
 	    if not enabled:
 		continue
-	    logger.debug('Adding analysis: {}'.format(analysis))
-
 	    if config.has_section(analysis):
 		analyzer_config = config[analysis]
 	    else:
@@ -162,32 +160,42 @@ class RunControl(object):
 	    filename_glob = analyzer_config.pop('filename')
             logger.debug(filename_glob)
 	    if data_type == 'dataw':
-                filenames = [filename_glob]
-
 		data_dir = self.atmos_dataw_dir
 		results_dir = self.atmos_dataw_dir
 
 	    elif data_type == 'datam':
-		filenames = Analyzer.get_files(self.atmos_datam_dir, filename_glob)
                 data_dir = self.atmos_datam_dir
                 results_dir = self.atmos_datam_dir
 
             if analysis in self.analysis_workflow:
                 raise OmniumError('{} already in analysis workflow'.format(analysis))
+
+	    logger.debug('Adding analysis: {}'.format(analysis))
             analyzer_args = [suite_name, expt, data_type, data_dir, results_dir]
-            self.analysis_workflow[analysis] = (Analyzer, analyzer_args, analyzer_config, filenames)
+            self.analysis_workflow[analysis] = (Analyzer, analyzer_args, analyzer_config, filename_glob)
+
+        logger.debug(self.analysis_workflow.keys())
 
     def run_analysis(self, analysis):
-        Analyzer, analyzer_args, analyzer_config, filenames = self.analysis_workflow[analysis]
-        self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filenames)
+        Analyzer, analyzer_args, analyzer_config, filename_glob = self.analysis_workflow[analysis]
+        self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
     def run_all(self):
-        for Analyzer, analyzer_args, analyzer_config, filenames in self.analysis_workflow.values():
-            self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filenames)
+        for Analyzer, analyzer_args, analyzer_config, filename_glob in self.analysis_workflow.values():
+            self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
-    def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filenames):
+    def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filename_glob):
+        suite_name, expt, data_type, data_dir, results_dir = analyzer_args
+
+        if data_type == 'dataw':
+            filenames = [filename_glob]
+        elif data_type == 'datam':
+            filenames = Analyzer.get_files(self.atmos_datam_dir, filename_glob)
+
+        logger.info('Running {} on {} files'.format(Analyzer.analysis_name, len(filenames)))
+
         for filename in filenames:
-            logger.info('Running {} on {}'.format(Analyzer.analysis_name, filename))
+            logger.info('  Running {} on {}'.format(Analyzer.analysis_name, filename))
             analyzer = Analyzer(*analyzer_args, filename=filename)
             analyzer.set_config(analyzer_config)
 

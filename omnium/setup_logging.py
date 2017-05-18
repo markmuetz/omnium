@@ -51,7 +51,7 @@ class ColourConsoleFormatter(logging.Formatter):
         return result
 
 
-def setup_logger(debug=False, colour=True):
+def setup_logger(debug=False, colour=True, warn_stderr=False):
     '''Gets a logger. Sets up root logger ('omnium') if nec.'''
     root_logger = logging.getLogger('omnium')
     root_logger.propagate = False
@@ -70,13 +70,20 @@ def setup_logger(debug=False, colour=True):
             level = logging.DEBUG
         else:
             level = logging.INFO
-        streamHandler = logging.StreamHandler(sys.stdout)
-        streamHandler.setFormatter(console_formatter)
-        streamHandler.setLevel(level)
+
+        stdoutStreamHandler = logging.StreamHandler(sys.stdout)
+        stdoutStreamHandler.setFormatter(console_formatter)
+        stdoutStreamHandler.setLevel(level)
 
         root_logger.setLevel(level)
+        root_logger.addHandler(stdoutStreamHandler)
 
-        root_logger.addHandler(streamHandler)
+        if warn_stderr:
+            stderrStreamHandler = logging.StreamHandler(sys.stderr)
+            stderrStreamHandler.setFormatter(logging.Formatter(fmt))
+            stderrStreamHandler.setLevel(logging.WARNING)
+            root_logger.addHandler(stderrStreamHandler)
+
         root_logger.is_setup = True
 
     return root_logger

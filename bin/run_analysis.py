@@ -5,7 +5,6 @@ try:
     import omnium
 except ImportError:
     path = os.getenv('OMNIUM_PYTHONPATH')
-    print('Adding to path: {}'.format(path))
     sys.path.insert(0, path)
     import omnium
 
@@ -21,7 +20,7 @@ def main():
     from omnium.setup_logging import setup_logger
 
     debug = os.getenv('OMNIUM_DEBUG') == 'True'
-    logger = setup_logger(debug, False)
+    logger = setup_logger(debug, False, True)
     run_control = RunControl(*read_args())
     run_control.setup()
     run_control.run()
