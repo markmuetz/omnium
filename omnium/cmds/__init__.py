@@ -6,13 +6,12 @@ logger = getLogger('omni')
 
 commands = [
     'convert',
-    'create',
-    'ls',
     'run',
+    'shell',
     'stash',
+    'suite-info',
     'version',
     'viewer',
-    'threed_viewer',
 ]
 
 modules = OrderedDict()

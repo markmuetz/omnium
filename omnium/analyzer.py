@@ -13,8 +13,7 @@ class Analyzer(object):
     def get_files(data_dir, filename):
         return sorted(glob(os.path.join(data_dir, filename)))
 
-    def __init__(self, user, suite, expt, data_type, data_dir, results_dir, filename=None):
-        self.user = user
+    def __init__(self, suite, expt, data_type, data_dir, results_dir, filename=None):
         self.suite = suite
         self.expt = expt
         self.data_type = data_type
