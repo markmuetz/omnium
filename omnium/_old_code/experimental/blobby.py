@@ -165,17 +165,26 @@ def test_indices(i, j, diagonal=False, extended=False):
 
 
 def count_blobs_mask(mask, diagonal=False, wrap=True):
-    blobs = np.zeros_like(mask, dtype=np.int32)  # pylint: disable=no-member
+    """Count contiguous areas of mask
+
+    mask: 2D np.array
+    diagonal: whether to count indices like i+1, j+1 as adjacent
+    wrap: wrap on x/y"""
+    blobs = np.zeros_like(mask, dtype=np.int32)
     blob_index = 0
     for j in range(mask.shape[1]):
         for i in range(mask.shape[0]):
             if blobs[i, j]:
+                # Blobs have already been counted.
                 continue
 
             if mask[i, j]:
+                # Found new blobs to count.
                 blob_index += 1
                 blobs[i, j] = blob_index
                 outers = [(i, j)]
+                # Expand out from initial i, j, finding new outers each while loop.
+                # Stop when no more outers.
                 while outers:
                     new_outers = []
                     for ii, jj in outers:
@@ -188,6 +197,7 @@ def count_blobs_mask(mask, diagonal=False, wrap=True):
                                 it %= mask.shape[0]
                                 jt %= mask.shape[1]
 
+                            # Don't add things that have already been added to blobs.
                             if not blobs[it, jt] and mask[it, jt]:
                                 new_outers.append((it, jt))
                                 blobs[it, jt] = blob_index
