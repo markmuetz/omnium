@@ -2,10 +2,13 @@ import os
 import re
 import abc
 from logging import getLogger
+from itertools import izip
 
+import numpy as np
 import iris
 
 from omnium.omnium_errors import OmniumError
+from omnium.utils import get_cube
 
 logger = getLogger('omnium')
 
@@ -13,24 +16,61 @@ logger = getLogger('omnium')
 class Converter(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, overwrite=False, delete=False, allow_non_ppX=False):
+    def __init__(self, overwrite=False, delete=False, verify=False, allow_non_ppX=False):
         self.overwrite = overwrite
         self.delete = delete
+        self.verify = verify
         self.allow_non_ppX = allow_non_ppX
 
     @abc.abstractmethod
-    def converted_filename(self):
+    def _converted_filename(self):
         return
 
     @abc.abstractmethod
-    def convert(self):
+    def _convert(self, filename, converted_filename):
         return
+
+    def convert(self, filename):
+        self.messages = ['archer_analysis convert ' + self.name]
+        converted_filename = self._converted_filename(filename)
+        logger.info('Convert: {} -> {}'.format(filename, converted_filename))
+
+        if os.path.exists(converted_filename):
+            if self.overwrite:
+                logger.info('Deleting: {}'.format(converted_filename))
+                self.messages.append('Deleting: {}'.format(converted_filename))
+                os.remove(converted_filename)
+            elif not os.path.exists(converted_filename + '.done'):
+                logger.info('No .done file, deleting: {}'.format(converted_filename))
+                self.messages.append('Deleting: {}'.format(converted_filename))
+                os.remove(converted_filename)
+            else:
+                logger.info('Already converted')
+                return converted_filename
+
+        self.messages.append('Original filename: {}'.format(filename))
+        self.messages.append('New filename: {}'.format(converted_filename))
+
+        self._convert(filename, converted_filename)
+
+        if self.delete:
+            logger.info('Delete: {}'.format(filename))
+            os.remove(filename)
+            self.messages.append('Deleted original')
+
+        with open(converted_filename + '.done', 'w') as f:
+            logger.debug('Writing ' + converted_filename + '.done')
+            f.write('\n'.join(self.messages))
+            f.write('\n')
+
+        return converted_filename
 
 
 class FF2NC(Converter):
+    """Convert from Fields File (often .pp? extension) to NetCDF4 using iris"""
     name = 'ff2nc'
 
-    def converted_filename(self, old_filename):
+    def _converted_filename(self, old_filename):
         # e.g. atmos.000.pp3 => atmos.000.pp3.nc
         # Who knows why they give a fields file the extension pp??
         dirname = os.path.dirname(old_filename)
@@ -41,44 +81,38 @@ class FF2NC(Converter):
         newname = filename + '.nc'
         return os.path.join(dirname, newname)
 
-    def convert(self, filename):
-        self.messages = ['archer_analysis convert ' + self.name]
-        converted_filename = self.converted_filename(filename)
-        logger.info('Convert: {} -> {}'.format(filename, converted_filename))
-
-        if os.path.exists(converted_filename):
-            if self.overwrite:
-                logger.info('Deleting: {}'.format(converted_filename))
-                self.messages.append('Deleting: {}'.format(converted_filename))
-                os.remove(converted_filename)
-            if not os.path.exists(converted_filename + '.done'):
-                logger.info('No .done file, deleting: {}'.format(converted_filename))
-                self.messages.append('Deleting: {}'.format(converted_filename))
-                os.remove(converted_filename)
-            else:
-                logger.info('Already converted')
-                return converted_filename
-
+    def _convert(self, filename, converted_filename):
         self.messages.append('Using iris to convert')
-        self.messages.append('Original filename: {}'.format(filename))
-        self.messages.append('New filename: {}'.format(converted_filename))
-
         cubes = iris.load(filename)
         if len(cubes) == 0:
-            logger.info('File contains no data')
+            logger.warn('{} contains no data'.format(filename))
         else:
+            logger.debug('Saving data to:{}'.format(converted_filename))
             iris.save(cubes, converted_filename)
 
-        if self.delete:
-            logger.info('Delete: {}'.format(filename))
-            os.remove(filename)
-            self.messages.append('Deleted original')
+        if self.verify:
+            logger.info('Verifying')
+            # Check converted cubes are identical to originals.
+            # Done in the _convert (i.e. derived impl.) because this way I don't have
+            # to reload the data.
+            converted_cubes = iris.load(converted_filename)
+            for cube in cubes:
+                logger.debug('Verify {}'.format(cube.name()))
+                stash = cube.attributes['STASH']
+                conv_cube = get_cube(converted_cubes, stash.section, stash.item)
 
-        with open(converted_filename + '.done', 'w') as f:
-            f.write('\n'.join(self.messages))
-            f.write('\n')
+                # Make cube iterators and slice over all but first dim.
+                cube_it = cube.slices(range(1, cube.ndim))
+                conv_cube_it = conv_cube.slices(range(1, conv_cube.ndim))
 
-        return converted_filename
+                # zip iterators together, grabbing slices and comparing them.
+                for cslice, conv_cslice in izip(cube_it, conv_cube_it):
+                    if not np.all(cslice.data == conv_cslice.data):
+                        logger.error('Cubes not equal')
+                        logger.error('Cube: {}'.format(cslice.name()))
+                        logger.error('Time: {}'.format(cslice.coord('time')))
+                        raise OmniumError('Mismatch in data between cubes')
+            logger.info('Verified')
 
 
 CONVERTERS = {

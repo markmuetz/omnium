@@ -17,6 +17,7 @@ def main(args):
         from omnium.state import State
         from omnium.suite import Suite
         from omnium.run_control import RunControl
+        from omnium.converters import CONVERTERS
 
         stash = Stash()
         state = State()

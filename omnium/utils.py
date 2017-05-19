@@ -1,4 +1,5 @@
 import numpy as np
+from omnium.omnium_errors import OmniumError
 
 
 def is_power_of_two(num):
@@ -79,7 +80,7 @@ def get_cube_from_attr(cubes, key, value):
 	if key in cube.attributes:
 	    if cube.attributes[key] == value:
 		return cube
-    raise Exception('Cube with ({}, {}) not found'.format(key, value))
+    raise OmniumError('Cube with ({}, {}) not found'.format(key, value))
 
 
 def get_cube(cubes, section, item):
@@ -87,4 +88,4 @@ def get_cube(cubes, section, item):
         stash = cube.attributes['STASH']
         if stash.section == section and stash.item == item:
             return cube
-    raise Exception('Cube ({}, {}) not found'.format(section, item))
+    raise OmniumError('Cube ({}, {}) not found'.format(section, item))
