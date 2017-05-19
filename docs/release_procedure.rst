@@ -6,10 +6,7 @@ Release Procedure
 ::
     
     cd tests
-    source activate omnium_testing
     nosetests
-    source deactivate
-    cd ..
 
 * Make sure version.py is at correct version:
 
@@ -36,7 +33,7 @@ Release Procedure
 ::
 
     python setup.py sdist bdist_wheel
-    twine upload dist/*
+    twine upload dist/omnium-0.7.3*
 
 * Upload docs: go to https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=omnium and upload zip file.
 
