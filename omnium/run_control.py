@@ -15,10 +15,11 @@ logger = getLogger('omnium')
 
 
 class RunControl(object):
-    def __init__(self, data_type, expt):
+    def __init__(self, data_type, expt, force=False):
         self.cylc_control = os.getenv('CYLC_CONTROL') == 'True'
         self.data_type = data_type
         self.expt = expt
+        self.force = force
 
         logger.warn('Disabling Python warnings')
         import warnings
@@ -199,7 +200,7 @@ class RunControl(object):
             analyzer = Analyzer(*analyzer_args, filename=filename)
             analyzer.set_config(analyzer_config)
 
-            if not analyzer.already_analyzed() or analyzer.force:
+            if not analyzer.already_analyzed() or analyzer.force or self.force:
                 analyzer.load()
                 analyzer.run()
                 analyzer.save()
