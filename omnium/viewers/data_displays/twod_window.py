@@ -7,6 +7,7 @@ import pyqtgraph as pg
 
 from omnium.viewers.data_displays import DataDisplayWindow
 
+
 class TwodWindow(DataDisplayWindow):
     name = 'Slice'
 
@@ -18,24 +19,24 @@ class TwodWindow(DataDisplayWindow):
     colour_maps = OrderedDict([
         ('blue-white-red', {
             'pos': np.array([0.0, 0.5, 1.0]),
-            'colour': np.array([[0, 0, 255, 255], 
-                               [255, 255, 255, 255], 
+            'colour': np.array([[0, 0, 255, 255],
+                               [255, 255, 255, 255],
                                [255, 0, 0, 255]], dtype=np.ubyte)}),
         ('black-red-yellow-white', {
             'pos': np.array([0.0, 0.33, 0.66, 1.0]),
-            'colour': np.array([[0, 0, 0, 255], 
-                               [255, 0, 0, 255], 
-                               [255, 255, 0, 255], 
+            'colour': np.array([[0, 0, 0, 255],
+                               [255, 0, 0, 255],
+                               [255, 255, 0, 255],
                                [255, 255, 255, 255]], dtype=np.ubyte)}),
         ('black-orange-red', {
             'pos': np.array([0.0, 0.5, 1.0]),
-            'colour': np.array([[0, 0, 0, 255], 
-                               [255, 128, 0, 255], 
+            'colour': np.array([[0, 0, 0, 255],
+                               [255, 128, 0, 255],
                                [255, 0, 0, 255]], dtype=np.ubyte)}),
         ('blue-red', {
             'pos': np.array([0.0, 0.5, 1.0]),
-            'colour': np.array([[0, 0, 255, 255], 
-                               [128, 0, 128, 255], 
+            'colour': np.array([[0, 0, 255, 255],
+                               [128, 0, 128, 255],
                                [255, 0, 0, 255]], dtype=np.ubyte)})])
 
     def __init__(self, parent):
@@ -94,8 +95,8 @@ class TwodWindow(DataDisplayWindow):
     def updateColourMap(self, colour_map, update=True):
         self.colour_map = colour_map
         pos, colour = map(self.colour_maps[self.colour_map].get, ('pos', 'colour'))
-	cmap = pg.ColorMap(pos, colour)
-	self._lut = cmap.getLookupTable(0.0, 1.0, 256)
+        cmap = pg.ColorMap(pos, colour)
+        self._lut = cmap.getLookupTable(0.0, 1.0, 256)
         if update:
             self.update()
 
@@ -120,12 +121,14 @@ class TwodWindow(DataDisplayWindow):
         scaleGroup = QtGui.QActionGroup(self, exclusive=True)
         for scale in self.scales:
             checked = scale == self.scale
-            scaleAction = QtGui.QAction('Scale on {}'.format(scale), self, checkable=True, checked=checked)
+            scaleAction = QtGui.QAction('Scale on {}'.format(scale),
+                                        self, checkable=True, checked=checked)
             scaleAction.triggered.connect(partial(self.updateScale, scale))
             scaleGroup.addAction(scaleAction)
             self.menuView.addAction(scaleAction)
 
-        self.scaleSymmetryAction = QtGui.QAction('Symmetric scale', self, checkable=True, checked=checked)
+        self.scaleSymmetryAction = QtGui.QAction('Symmetric scale',
+                                                 self, checkable=True, checked=checked)
         self.scaleSymmetryAction.triggered.connect(self.scaleSymmetry)
         self.menuView.addAction(self.scaleSymmetryAction)
 
@@ -185,24 +188,24 @@ class TwodWindow(DataDisplayWindow):
             if self.orientation == 'xy':
                 height = self.cube.coord('level_height').points[self.level_index]
                 data = self.cube[self.time_index, self.level_index].data
-                self.setWindowTitle('{0}: {1:.2f}d, z: {2:.2f}m'.format(self.cube.name(), 
+                self.setWindowTitle('{0}: {1:.2f}d, z: {2:.2f}m'.format(self.cube.name(),
                                                                         self.time_days,
                                                                         height))
             elif self.orientation == 'xz':
                 y = self.cube.coord('grid_latitude').points[self.level_index]
                 data = self.cube[self.time_index, :, self.level_index].data
-                self.setWindowTitle('{0}: {1:.2f}d, y: {2:.2f}m'.format(self.cube.name(), 
+                self.setWindowTitle('{0}: {1:.2f}d, y: {2:.2f}m'.format(self.cube.name(),
                                                                         self.time_days,
                                                                         y))
             elif self.orientation == 'yz':
                 x = self.cube.coord('grid_longitude').points[self.level_index]
                 data = self.cube[self.time_index, :, ::-1, self.level_index].data
-                self.setWindowTitle('{0}: {1:.2f}d, x: {2:.2f}m'.format(self.cube.name(), 
+                self.setWindowTitle('{0}: {1:.2f}d, x: {2:.2f}m'.format(self.cube.name(),
                                                                         self.time_days,
                                                                         x))
         elif self.cube.ndim == 5:
             data = self.cube[self.time_index, self.level_index, self.level_index2].data
-            self.setWindowTitle('{0}: {1:.2f}d, {2:.2f}m'.format(self.cube.name(), 
+            self.setWindowTitle('{0}: {1:.2f}d, {2:.2f}m'.format(self.cube.name(),
                                                                  self.time_days,
                                                                  height))
 
@@ -217,13 +220,15 @@ class TwodWindow(DataDisplayWindow):
             key = get_key(self.time_index, 'all', self.orientation)
             min_max = self._get_min_max_cache(key)
             if not min_max:
-                min_max = self.cube[self.time_index].data.min(), self.cube[self.time_index].data.max()
+                min_max = (self.cube[self.time_index].data.min(),
+                           self.cube[self.time_index].data.max())
                 self._min_max_cache[key] = min_max
         elif self.scale == 'time':
             key = get_key('all', self.level_index, self.orientation)
             min_max = self._get_min_max_cache(key)
             if not min_max:
-                min_max = self.cube[:, self.level_index].data.min(), self.cube[:, self.level_index].data.max()
+                min_max = (self.cube[:, self.level_index].data.min(),
+                           self.cube[:, self.level_index].data.max())
                 self._min_max_cache[key] = min_max
         elif self.scale == 'level/time':
             key = get_key('all', 'all', 'all')
@@ -245,5 +250,3 @@ class TwodWindow(DataDisplayWindow):
         if key in self._min_max_cache:
             return self._min_max_cache[key]
         return None
-
-

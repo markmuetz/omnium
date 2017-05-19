@@ -37,4 +37,3 @@ def main(args):
     # IPython.start_ipython(argv=[])
     # This is better because it allows you to access e.g. args, config.
     IPython.embed()
-

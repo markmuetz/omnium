@@ -8,6 +8,7 @@ logger = getLogger('omnium')
 
 ARGS = []
 
+
 def main(args):
     suite = Suite()
     suite.check_in_suite_dir(os.getcwd())

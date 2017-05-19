@@ -1,6 +1,7 @@
 import os
 ARGS = []
 
+
 def main(args):
     from omnium.analyzers import get_analysis_classes
     from omnium.suite import Suite

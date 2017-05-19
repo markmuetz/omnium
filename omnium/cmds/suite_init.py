@@ -10,6 +10,7 @@ logger = getLogger('omnium')
 ARGS = [(['--suite-type', '-t'], {'help': 'type of suite'}),
         (['--host'], {'help': 'mmuetz@login.archer.ac.uk', 'default': 'mmuetz@login.archer.ac.uk'})]
 
+
 def main(args):
     suite = Suite()
     suite.check_in_suite_dir(os.getcwd())

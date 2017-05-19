@@ -13,6 +13,7 @@ ARGS = [(['--search', '-s'], {'help': 'Search for stash var'}),
 def format_var(stash_var):
     return '{0:>3},{1:>4}: {2}'.format(stash_var[0][0], stash_var[0][1], stash_var[1])
 
+
 def main(args):
     import omnium
     stash = omnium.Stash()

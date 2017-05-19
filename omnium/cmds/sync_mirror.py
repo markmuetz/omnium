@@ -10,7 +10,8 @@ logger = getLogger('omnium')
 
 ARGS = [(['--host'], {'help': 'mmuetz@login.archer.ac.uk', 'default': None}),
         (['--create', '-c'], {'help': 'u-AAXXX'}),
-        (['--base-path', '-b'], {'help': 'Base path on remote computer', 'default': 'work/cylc-run'}),
+        (['--base-path', '-b'], {'help': 'Base path on remote computer',
+                                 'default': 'work/cylc-run'}),
         (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'}),
         (['exts'], {'help': 'Additional extensions to include (e.g. .png .pp1.nc)', 'nargs': '*'})]
 
@@ -21,7 +22,7 @@ def main(args):
         suite.check_in_suite_dir(os.getcwd())
     except OmniumError:
         pass
-    
+
     if suite.is_in_suite:
         if args.create:
             logger.error('Cannot use --create from within a suite')
@@ -29,7 +30,7 @@ def main(args):
         if not suite.is_init:
             logger.error('Suite has not been initialized')
             return 1
-        suite_type = suite.config['settings']['suite_type'] 
+        suite_type = suite.config['settings']['suite_type']
         if not suite_type == 'mirror':
             logger.error('Suite is not a mirror, is: {}'.format(suite_type))
             return 1

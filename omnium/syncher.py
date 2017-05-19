@@ -10,9 +10,10 @@ logger = getLogger('omnium')
 class Syncher(object):
     "Provides means for syncing files from a remote host to a mirror"
 
-    # 1st --exclude: must come *before* includes or e.g. .omnium/suite.conf will be downloaded. 
+    # 1st --exclude: must come *before* includes or e.g. .omnium/suite.conf will be downloaded.
     # 2nd --exclude: makes sure that only the filetypes asked for are downloaded.
-    cmd_fmt = "rsync -zar{verbose} --exclude '.omnium/' {progress} {include} --exclude '*' --prune-empty-dirs {host}:{path}/ {dst_suite}"
+    cmd_fmt = ("rsync -zar{verbose} --exclude '.omnium/' {progress} {include} "
+               "--exclude '*' --prune-empty-dirs {host}:{path}/ {dst_suite}")
 
     def __init__(self, suite, host=None, base_path='work/cylc-run', verbose=False):
         self.suite = suite
@@ -22,7 +23,8 @@ class Syncher(object):
         self.progress = '--progress' if verbose else ''
         # First include is necessary to make sure all dirs are included?
         # Gets configuration, python, shell scripts, info, cylc suite, and logs by default.
-        self.includes = ['*/', '*.conf', '*.py', '*.sh', '*.info', 'suite*rc*', 'log*Z', 'log*.tar.gz']
+        self.includes = ['*/', '*.conf', '*.py', '*.sh', '*.info',
+                         'suite*rc*', 'log*Z', 'log*.tar.gz']
         if self.suite.is_in_suite:
             if not host:
                 if self.suite.config['settings']['suite_type'] == 'mirror':
@@ -38,11 +40,11 @@ class Syncher(object):
         include = ' '.join(["--include '{}'".format(inc) for inc in self.includes])
 
         path = os.path.join(self.base_path, suite_name)
-        cmd = self.cmd_fmt.format(verbose=self.verbose, 
-                                  progress=self.progress, 
-                                  include=include, 
-                                  host=self.host, 
-                                  path=path, 
+        cmd = self.cmd_fmt.format(verbose=self.verbose,
+                                  progress=self.progress,
+                                  include=include,
+                                  host=self.host,
+                                  path=path,
                                   dst_suite=dst_suite)
 
         logger.debug(cmd)
@@ -63,7 +65,8 @@ class Syncher(object):
 
         remote_config = self.suite.config['remote']
         if remote_config['host'] != self.host:
-            logger.warn('omnium config host different to requested host: {}, {}'.format(remote_config['host'], self.host))
+            msg_fmt = 'omnium config host different to requested host: {}, {}'
+            logger.warn(msg_fmt.format(remote_config['host'], self.host))
 
         logger.info("Sync'ing suite mirror: {}".format(self.suite.name))
 

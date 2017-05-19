@@ -3,6 +3,7 @@ import datetime as dt
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 
+
 class DataDisplayWindow(QtGui.QMainWindow):
     title = '##Data Display##'
     accepts_multiple_cubes = False
@@ -19,14 +20,14 @@ class DataDisplayWindow(QtGui.QMainWindow):
 
     def saveState(self):
         state = {'name': self.name}
-        state['pos'] = self.pos() 
-        state['size'] = self.size() 
+        state['pos'] = self.pos()
+        state['size'] = self.size()
         return state
 
     def setTime(self, time):
         time_hrs_since_1970 = time
         delta_1970_2000 = dt.datetime(2000, 1, 1) - dt.datetime(1970, 1, 1)
-        self.time_days = (dt.timedelta(hours=time_hrs_since_1970) - 
+        self.time_days = (dt.timedelta(hours=time_hrs_since_1970) -
                           delta_1970_2000).total_seconds() / 86400.
 
         for i, test_time in enumerate(self.cube.coord('time').points):
@@ -42,7 +43,8 @@ class DataDisplayWindow(QtGui.QMainWindow):
         self.time_index = self.cube.shape[0] - 1
 
     def debug(self):
-        import ipdb; ipdb.set_trace()
+        import ipdb
+        ipdb.set_trace()
 
     def setupGui(self):
         self.menubar = QtGui.QMenuBar(self)
@@ -54,7 +56,7 @@ class DataDisplayWindow(QtGui.QMainWindow):
         self.menubar.addAction(self.menuFile.menuAction())
         self.setMenuBar(self.menubar)
 
-        debugAction = QtGui.QAction('&Debug', self)        
+        debugAction = QtGui.QAction('&Debug', self)
         debugAction.setShortcut('Ctrl+D')
         debugAction.triggered.connect(self.debug)
 

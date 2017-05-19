@@ -26,24 +26,25 @@ class RunControl(object):
         warnings.filterwarnings("ignore")
 
     def _read_env(self):
-	omnium_dataw_dir = os.getenv('DATAW')
-	omnium_datam_dir = os.getenv('DATAM')
-	suite_name = os.getenv('CYLC_SUITE_NAME')
+        omnium_dataw_dir = os.getenv('DATAW')
+        omnium_datam_dir = os.getenv('DATAM')
+        suite_name = os.getenv('CYLC_SUITE_NAME')
         initial_cycle_point = os.getenv('CYLC_SUITE_INITIAL_CYCLE_POINT')
         work_dir = os.getenv('CYLC_SUITE_WORK_DIR')
 
-	return omnium_dataw_dir, omnium_datam_dir, suite_name, initial_cycle_point, work_dir
+        return omnium_dataw_dir, omnium_datam_dir, suite_name, initial_cycle_point, work_dir
 
     def _read_config(self, config_dir, config_filename='rose-app-run.conf'):
-	config = ConfigParser()
-	with open(os.path.join(config_dir, config_filename), 'r') as f:
-	    config.read_file(f)
-	return config
+        config = ConfigParser()
+        with open(os.path.join(config_dir, config_filename), 'r') as f:
+            config.read_file(f)
+        return config
 
     def setup(self):
         if self.cylc_control:
             # Running through cylc.
-            omnium_dataw_dir, omnium_datam_dir, suite_name, initial_cycle_point, work_dir = self._read_env()
+            (omnium_dataw_dir, omnium_datam_dir, suite_name,
+             initial_cycle_point, work_dir) = self._read_env()
 
             self.suite_name = suite_name
             self.analyzers_dir = omnium_dataw_dir
@@ -66,7 +67,9 @@ class RunControl(object):
             self.suite_name = suite.name
             self.analyzers_dir = self.suite.omnium_analysis_dir
 
-            self.atmos_datam_dir = os.path.join(self.suite.suite_dir, 'share/data/history', self.expt)
+            self.atmos_datam_dir = os.path.join(self.suite.suite_dir,
+                                                'share/data/history',
+                                                self.expt)
 
             work_dir = os.path.join(self.suite.suite_dir, 'work')
             initial_cycle_point_dir = sorted(glob(os.path.join(work_dir, '*')))[0]
@@ -84,13 +87,13 @@ class RunControl(object):
 
     def print_setup(self):
         for attr in ['cylc_control', 'data_type', 'expt', 'suite_name', 'analyzers_dir',
-                'atmos_datam_dir', 'atmos_dataw_dir']:
+                     'atmos_datam_dir', 'atmos_dataw_dir']:
             print('{}: {}'.format(attr, getattr(self, attr)))
 
     def run(self):
-	self.gen_analysis_workflow()
-	self.run_all()
-    
+        self.gen_analysis_workflow()
+        self.run_all()
+
     def convert_all(self, filename_globs, overwrite, delete):
         if self.data_type == 'datam':
             data_dir = self.atmos_datam_dir
@@ -127,53 +130,54 @@ class RunControl(object):
         data_type = self.data_type
         expt = self.expt
 
-	settings_sec = '{}_settings'.format(data_type)
-	runcontrol_sec = '{}_runcontrol'.format(data_type)
+        settings_sec = '{}_settings'.format(data_type)
+        runcontrol_sec = '{}_runcontrol'.format(data_type)
 
-	settings = config[settings_sec]
-	runcontrol = config[runcontrol_sec]
+        settings = config[settings_sec]
+        runcontrol = config[runcontrol_sec]
 
-	convert = settings['convert_to_nc'] == 'True'
-	overwrite = settings['overwrite'] == 'True'
-	delete = settings['delete'] == 'True'
-	filename_globs = settings['filenames'].split(',')
+        convert = settings['convert_to_nc'] == 'True'
+        overwrite = settings['overwrite'] == 'True'
+        delete = settings['delete'] == 'True'
+        filename_globs = settings['filenames'].split(',')
         if convert:
             self.convert_all(filename_globs, overwrite, delete)
 
-	self.analysis_classes = get_analysis_classes(self.analyzers_dir)
+        self.analysis_classes = get_analysis_classes(self.analyzers_dir)
 
-	for ordered_analysis, enabled_str in sorted(runcontrol.items()):
-	    analysis = ordered_analysis[3:]
-	    enabled = enabled_str == 'True'
-	    if not enabled:
-		continue
-	    if config.has_section(analysis):
-		analyzer_config = config[analysis]
-	    else:
-		raise OmniumError('NO CONFIG FOR ANALYSIS')
+        for ordered_analysis, enabled_str in sorted(runcontrol.items()):
+            analysis = ordered_analysis[3:]
+            enabled = enabled_str == 'True'
+            if not enabled:
+                continue
+            if config.has_section(analysis):
+                analyzer_config = config[analysis]
+            else:
+                raise OmniumError('NO CONFIG FOR ANALYSIS')
 
-	    if analysis not in self.analysis_classes:
-		raise OmniumError('COULD NOT FIND ANALYZER: {}'.format(analysis))
+            if analysis not in self.analysis_classes:
+                raise OmniumError('COULD NOT FIND ANALYZER: {}'.format(analysis))
 
-	    Analyzer = self.analysis_classes[analysis]
+            Analyzer = self.analysis_classes[analysis]
             logger.debug(Analyzer)
 
-	    filename_glob = analyzer_config.pop('filename')
+            filename_glob = analyzer_config.pop('filename')
             logger.debug(filename_glob)
-	    if data_type == 'dataw':
-		data_dir = self.atmos_dataw_dir
-		results_dir = self.atmos_dataw_dir
+            if data_type == 'dataw':
+                data_dir = self.atmos_dataw_dir
+                results_dir = self.atmos_dataw_dir
 
-	    elif data_type == 'datam':
+            elif data_type == 'datam':
                 data_dir = self.atmos_datam_dir
                 results_dir = self.atmos_datam_dir
 
             if analysis in self.analysis_workflow:
                 raise OmniumError('{} already in analysis workflow'.format(analysis))
 
-	    logger.debug('Adding analysis: {}'.format(analysis))
+            logger.debug('Adding analysis: {}'.format(analysis))
             analyzer_args = [suite_name, expt, data_type, data_dir, results_dir]
-            self.analysis_workflow[analysis] = (Analyzer, analyzer_args, analyzer_config, filename_glob)
+            self.analysis_workflow[analysis] = (Analyzer, analyzer_args,
+                                                analyzer_config, filename_glob)
 
         logger.debug(self.analysis_workflow.keys())
 
@@ -182,7 +186,8 @@ class RunControl(object):
         self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
     def run_all(self):
-        for Analyzer, analyzer_args, analyzer_config, filename_glob in self.analysis_workflow.values():
+        for (Analyzer, analyzer_args,
+             analyzer_config, filename_glob) in self.analysis_workflow.values():
             self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
     def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filename_glob):

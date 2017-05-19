@@ -16,14 +16,14 @@ def coarse_grain(data, mask):
 
     coarse_data = []
     for n in 2**np.arange(pow + 1):
-	coarse = np.zeros((n, n))
-	l = nx / n
-	for i in range(n):
-	    s1 = slice(i * l, (i + 1) * l)
-	    for j in range(n):
-		s2 = slice(j * l, (j + 1) * l)
-		coarse[i, j] = data[s1, s2][mask[s1, s2]].sum()
-	coarse_data.append((n, coarse))
+        coarse = np.zeros((n, n))
+        l = nx / n
+        for i in range(n):
+            s1 = slice(i * l, (i + 1) * l)
+            for j in range(n):
+                s2 = slice(j * l, (j + 1) * l)
+                coarse[i, j] = data[s1, s2][mask[s1, s2]].sum()
+        coarse_data.append((n, coarse))
     return coarse_data
 
 
@@ -77,9 +77,9 @@ def count_blobs_mask(mask, diagonal=False, wrap=True):
 
 def get_cube_from_attr(cubes, key, value):
     for cube in cubes:
-	if key in cube.attributes:
-	    if cube.attributes[key] == value:
-		return cube
+        if key in cube.attributes:
+            if cube.attributes[key] == value:
+                return cube
     raise OmniumError('Cube with ({}, {}) not found'.format(key, value))
 
 

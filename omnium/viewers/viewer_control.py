@@ -5,8 +5,8 @@ from collections import OrderedDict
 from logging import getLogger
 
 from pyqtgraph.Qt import QtCore, QtGui
-from omnium.viewers.data_displays import (TwodWindow, ThreedWindow, 
-        PlotWindow, ProfileWindow, ProfileContourWindow)
+from omnium.viewers.data_displays import (TwodWindow, ThreedWindow,
+                                          PlotWindow, ProfileWindow, ProfileContourWindow)
 from omnium import Stash
 
 import iris
@@ -39,7 +39,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
         if not state and self.filenames:
             self.addVarItems(self.filenames)
 
-        #self.time_slider.setRange(0, self.cube_list_viewer.cubes[0].shape[0])
+        # self.time_slider.setRange(0, self.cube_list_viewer.cubes[0].shape[0])
         self.time_slider.setSingleStep(1)
         self.time_slider.setPageStep(15)
         self.time_slider.setTickInterval(60)
@@ -55,8 +55,8 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
     def saveState(self):
         state = {}
-        state['pos'] = self.pos() 
-        state['size'] = self.size() 
+        state['pos'] = self.pos()
+        state['size'] = self.size()
         state['time_index'] = self.time_index
         state['filenames'] = self.filenames
         state['child_windows'] = []
@@ -70,7 +70,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
                             if cube in self.cubes[stream]:
                                 win_state['cubes'].append((stream, cube.name()))
                 else:
-                    #import ipdb; ipdb.set_trace()
+                    # import ipdb; ipdb.set_trace()
                     cube = win.cube
                     for stream in self.cubes.keys():
                         if cube in self.cubes[stream]:
@@ -78,15 +78,15 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
                 state['child_windows'].append(win_state)
 
-	filename = QtGui.QFileDialog.getSaveFileName(self, 'Save State', 
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save State',
                                                      os.getcwd(), selectedFilter='*.pkl')
-	if filename:
-	    with open(filename, 'w') as f:
-		pickle.dump(state, f)
+        if filename:
+            with open(filename, 'w') as f:
+                pickle.dump(state, f)
 
     def loadState(self, state_filename=None):
         if not state_filename:
-            filename = QtGui.QFileDialog.getOpenFileName(self, 'Load State', 
+            filename = QtGui.QFileDialog.getOpenFileName(self, 'Load State',
                                                          os.getcwd(), 'State files (*.pkl)')
 
             if not filename:
@@ -94,7 +94,6 @@ class ViewerControlWindow(QtGui.QMainWindow):
         filename = state_filename
         with open(filename, 'r') as f:
             state = pickle.load(f)
-
 
         self.move(state['pos'])
         self.resize(state['size'])
@@ -159,7 +158,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.ui_time_index.setText(str(self.time_index))
         for win in self.wins:
             win.setTime(self.times[self.time_index])
-            #win.time_index = self.time_index
+            # win.time_index = self.time_index
 
         for win in self.wins:
             win.update()
@@ -169,11 +168,11 @@ class ViewerControlWindow(QtGui.QMainWindow):
         for item in self.var_selector.selectedItems():
             data = item.data(0, QtCore.Qt.UserRole)
             cube = data.toPyObject()
-            #cube = self.cubes[index]
+            # cube = self.cubes[index]
             cubes.append(cube)
 
         cb = self.ui_displays
-        #import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
 
         display_name = str(self.ui_displays.currentText())
 
@@ -213,7 +212,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
     def updateTimes(self, cube):
         new_times = cube.coord('time').points
-        #import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         if len(self.times) and (new_times[0] > self.times[-1] or new_times[-1] < self.times[0]):
             print('WARNING: times do not overlap')
         if len(new_times) > len(self.times):
@@ -240,14 +239,13 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
         new_cubes = iris.load(filename)
 
-        #self.stash.rename_unknown_cubes(new_cubes, True)
-        
+        # self.stash.rename_unknown_cubes(new_cubes, True)
+
         if stream in self.cubes:
             self.cubes[stream].extend(new_cubes)
             self.cubes[stream] = self.cubes[stream].concatenate()
         else:
             self.cubes[stream] = new_cubes
-
 
     def addVarItems(self, filenames):
         for filename in filenames:
@@ -262,7 +260,6 @@ class ViewerControlWindow(QtGui.QMainWindow):
             stream_item.setExpanded(True)
             for cube in cubes:
                 self.addCube(stream_item, cube)
-
 
     def selectedItemChanged(self):
         print('selectedItemChanged')
@@ -295,16 +292,16 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.menubar.addAction(self.menuFile.menuAction())
         self.setMenuBar(self.menubar)
 
-        openAction = QtGui.QAction('&Open Cubes', self)        
+        openAction = QtGui.QAction('&Open Cubes', self)
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.open)
 
-        loadStateAction = QtGui.QAction('&Load State', self)        
+        loadStateAction = QtGui.QAction('&Load State', self)
         loadStateAction.setShortcut('Ctrl+L')
         loadStateAction.setStatusTip('Load settings')
         loadStateAction.triggered.connect(self.loadState)
 
-        saveStateAction = QtGui.QAction('&Save State', self)        
+        saveStateAction = QtGui.QAction('&Save State', self)
         saveStateAction.setShortcut('Ctrl+S')
         saveStateAction.setStatusTip('Save settings')
         saveStateAction.triggered.connect(self.saveState)

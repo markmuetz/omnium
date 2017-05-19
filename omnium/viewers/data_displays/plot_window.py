@@ -3,6 +3,7 @@ import pyqtgraph as pg
 
 from omnium.viewers.data_displays import DataDisplayWindow
 
+
 class PlotWindow(DataDisplayWindow):
     name = 'Plot'
     title = 'Plot Display'
@@ -34,11 +35,11 @@ class PlotWindow(DataDisplayWindow):
             else:
                 msg = 'Two few or too many dims: {} - {}'.format(cube.name(), cube.ndim)
                 raise Exception(msg)
-        self.time_line = pg.InfiniteLine(movable=False, angle=90, label='t={value:0.2f}', 
-                                         labelOpts={'position':0.1, 'color': (200,200,100), 'fill': (200,200,200,50), 'movable': True})
+        self.time_line = pg.InfiniteLine(movable=False, angle=90, label='t={value:0.2f}',
+                                         labelOpts={'position': 0.1, 'color': (200, 200, 100),
+                                                    'fill': (200, 200, 200, 50), 'movable': True})
         self.plotWidget.addItem(self.time_line)
         self.update()
 
     def update(self):
         self.time_line.setPos(self.time_index)
-

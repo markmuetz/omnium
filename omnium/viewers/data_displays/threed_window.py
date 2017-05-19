@@ -4,6 +4,7 @@ import numpy as np
 
 from omnium.viewers.data_displays import DataDisplayWindow
 
+
 class ThreedWindow(DataDisplayWindow):
     name = '3D'
     title = '3D Display'
@@ -58,9 +59,8 @@ class ThreedWindow(DataDisplayWindow):
         frac = value / 1000.
         print(frac)
         if self.cube_index is not None and (self.cube_index in self.rendered_point_scatters or
-                self.cube_index + 9999 in self.rendered_point_scatters):
+                                            self.cube_index + 9999 in self.rendered_point_scatters):
             cube = self.cubes[self.cube_index]
-            #thresh = cube.data.max() * frac
             thresh = 20 * frac
             print(thresh)
             self.cube_settings[self.cube_index]['thresh'] = thresh
@@ -70,12 +70,12 @@ class ThreedWindow(DataDisplayWindow):
             self.add_remove()
             self.add_cube(self.cube_index)
             self.add_remove()
-	    self.ui_thresh.setText('{0:.3f}'.format(thresh))
+            self.ui_thresh.setText('{0:.3f}'.format(thresh))
 
     def set_neg_thresh_slider_value(self, value):
         frac = (1000 - value) / 1000.
         if self.cube_index is not None and (self.cube_index in self.rendered_point_scatters or
-                self.cube_index + 9999 in self.rendered_point_scatters):
+                                            self.cube_index + 9999 in self.rendered_point_scatters):
             cube = self.cubes[self.cube_index]
             neg_thresh = -20 * frac
             self.cube_settings[self.cube_index]['neg_thresh'] = neg_thresh
@@ -85,7 +85,7 @@ class ThreedWindow(DataDisplayWindow):
             self.add_remove()
             self.add_cube(self.cube_index)
             self.add_remove()
-	    self.ui_neg_thresh.setText('{0:.3f}'.format(neg_thresh))
+            self.ui_neg_thresh.setText('{0:.3f}'.format(neg_thresh))
 
     def set_size_slider_value(self, value):
         if self.cube_index is not None and self.cube_index in self.rendered_point_scatters:
@@ -97,7 +97,7 @@ class ThreedWindow(DataDisplayWindow):
             self.add_remove()
             self.add_cube(self.cube_index)
             self.add_remove()
-	    self.ui_size.setText('{0:.3f}'.format(value))
+            self.ui_size.setText('{0:.3f}'.format(value))
 
     def addCube(self, parent, cube):
         cube_name = ' '.join(cube.name().split())
@@ -123,15 +123,10 @@ class ThreedWindow(DataDisplayWindow):
             d = (cube.data > thresh)
         print(neg)
         print(cube.shape)
-        #multiplier = size_scale / cube_max
 
         # Get value of array where comparison is True.
-        #size = cube.data[d] * multiplier
+        # size = cube.data[d] * multiplier
         size = 5
-        # size = 5
-        # Needs some unpacking:
-        # np.where(d) gets indices where comparison is true, but needs transposed.
-        # indices are currently in order z, x, y, np.roll fixes this.
         if self.data_source == 'UM':
             # Needs some unpacking:
             # np.where(d) gets indices where comparison is true, but needs transposed.
@@ -141,11 +136,11 @@ class ThreedWindow(DataDisplayWindow):
             # Map indices to values.
             pos = np.empty_like(pos_indices, dtype=np.float64)
             pos[:, 0] = -cube.coord('grid_longitude')\
-                        .points[pos_indices[:, 0]] / 1000
+                             .points[pos_indices[:, 0]] / 1000
             pos[:, 1] = cube.coord('grid_latitude')\
-                        .points[pos_indices[:, 1]] / 1000
+                            .points[pos_indices[:, 1]] / 1000
             pos[:, 2] = cube.coord('level_height')\
-                        .points[pos_indices[:, 2]] / 1000
+                            .points[pos_indices[:, 2]] / 1000
 
             pos -= [-128, 128, 0]
             print(pos.shape)
@@ -159,7 +154,7 @@ class ThreedWindow(DataDisplayWindow):
             # TODO: these need to be calculated properly.
             xy_map = np.linspace(-(48 - 0.75), 48 - 0.75, cube.shape[0])
             # z_map = np.linspace(0, 40, cube.shape[-1])
-	    z_map = self.zn / 1000
+            z_map = self.zn / 1000
 
             pos[:, 0] = xy_map[pos_indices[:, 0]]
             pos[:, 1] = xy_map[pos_indices[:, 1]]
@@ -191,14 +186,13 @@ class ThreedWindow(DataDisplayWindow):
                 point_scatter = self.rendered_point_scatters.pop(index)
                 self.view.removeItem(point_scatter)
 
-
     def add_cube(self, cube_index):
         cube = self.cubes[cube_index]
         thresh = self.cube_settings[cube_index]['thresh']
         neg_thresh = self.cube_settings[cube_index]['neg_thresh']
         colour = self.cube_settings[cube_index]['colour']
         size_scale = self.cube_settings[cube_index]['size_scale']
-        #cube_max = self.cube_settings[cube_index]['cube_max']
+        # cube_max = self.cube_settings[cube_index]['cube_max']
 
         pos, size = self.get_pos_size(cube[self.time_index], thresh, size_scale)
         point_scatter = gl.GLScatterPlotItem(pos=pos, color=(1, 0, 0, 1), size=size)
@@ -225,7 +219,7 @@ class ThreedWindow(DataDisplayWindow):
                 self.cube_settings[index]['thresh'] = 1
                 self.cube_settings[index]['neg_thresh'] = -1
                 self.cube_settings[index]['size_scale'] = 5
-                #self.cube_settings[index]['cube_max'] = cube.data.max()
+                # self.cube_settings[index]['cube_max'] = cube.data.max()
             # Initial scatter.
             self.add_cube(index)
             self.add_remove()
@@ -238,7 +232,6 @@ class ThreedWindow(DataDisplayWindow):
                     self.point_scatters.pop(index + 9999)
                 self.add_remove()
 
-
     def selectedItemChanged(self):
         item = self.var_selector.selectedItems()[0]
         data = item.data(0, QtCore.Qt.UserRole)
@@ -249,9 +242,9 @@ class ThreedWindow(DataDisplayWindow):
         self.var_info.setText(cube.__str__())
         if 'thresh' in self.cube_settings[index]:
             thresh = self.cube_settings[index]['thresh']
-            #frac = thresh / cube.data.max()
+            # frac = thresh / cube.data.max()
             frac = thresh / 20
-            value = 1000 * frac 
+            value = 1000 * frac
             self.thresh_slider_changed.emit(value)
         if 'size_scale' in self.cube_settings[index]:
             size_scale = self.cube_settings[index]['size_scale']
@@ -261,19 +254,6 @@ class ThreedWindow(DataDisplayWindow):
         super(ThreedWindow, self).setupGui()
 
         self.resize(800, 600)
-
-        #loadSettingsAction = QtGui.QAction('&Load Settings', self)        
-        #loadSettingsAction.setShortcut('Ctrl+L')
-        #loadSettingsAction.setStatusTip('Load settings')
-        #loadSettingsAction.triggered.connect(self.loadSettings)
-
-        #saveSettingsAction = QtGui.QAction('&Save Settings', self)        
-        #saveSettingsAction.setShortcut('Ctrl+S')
-        #saveSettingsAction.setStatusTip('Save settings')
-        #saveSettingsAction.triggered.connect(self.saveSettings)
-
-        #self.menuFile.addAction(loadSettingsAction)
-        #self.menuFile.addAction(saveSettingsAction)
 
         self.var_selector = QtGui.QTreeWidget()
         self.var_selector.setHeaderLabels(["Tree"])
@@ -314,12 +294,12 @@ class ThreedWindow(DataDisplayWindow):
         ui_pick_colour = QtGui.QPushButton('Pick Colour')
         ui_pick_colour.clicked.connect(self.pick_colour)
 
-	self.ui_thresh = QtGui.QLabel()
-	self.ui_thresh.setFixedWidth(50)
-	self.ui_neg_thresh = QtGui.QLabel()
-	self.ui_neg_thresh.setFixedWidth(50)
-	self.ui_size = QtGui.QLabel()
-	self.ui_size.setFixedWidth(50)
+        self.ui_thresh = QtGui.QLabel()
+        self.ui_thresh.setFixedWidth(50)
+        self.ui_neg_thresh = QtGui.QLabel()
+        self.ui_neg_thresh.setFixedWidth(50)
+        self.ui_size = QtGui.QLabel()
+        self.ui_size.setFixedWidth(50)
 
         lhs_bpanel = QtGui.QWidget()
         lhs_blayout = QtGui.QGridLayout()

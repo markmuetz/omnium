@@ -5,7 +5,7 @@ import subprocess as sp
 
 class State(object):
     """State of the omnium project directory
-    
+
     location, git_hash, git_status and conda_env.
     """
     def __init__(self):

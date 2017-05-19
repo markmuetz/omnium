@@ -15,7 +15,7 @@ logger = getLogger('omnium')
 
 def get_analysis_classes(cwd=None):
     """Discovery of analysis classes in a given directory
-    
+
     Searches in dir cwd/analysis for python files.
     Loads all python files and any subclasses of Analyzer are returned in a dict."""
     logger.debug(cwd)

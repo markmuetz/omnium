@@ -3,6 +3,7 @@ import pyqtgraph as pg
 
 from omnium.viewers.data_displays import DataDisplayWindow
 
+
 class ProfileWindow(DataDisplayWindow):
     name = 'Plot'
     title = 'Plot Display'
@@ -36,7 +37,7 @@ class ProfileWindow(DataDisplayWindow):
         self.update()
 
     def update(self):
-        #self.plotWidget.clear()
+        # self.plotWidget.clear()
         for name, heights, data in self.data:
             if name not in self.plots:
                 plot = self.plotWidget.plot(data[self.time_index], heights)
@@ -44,4 +45,3 @@ class ProfileWindow(DataDisplayWindow):
             else:
                 plot = self.plots[name]
                 plot.setData(data[self.time_index], heights)
-
