@@ -8,11 +8,10 @@ from omnium.suite import Suite
 
 logger = getLogger('omnium')
 
-ARGS = [(['--host'], {'help': 'mmuetz@login.archer.ac.uk', 'default': 'mmuetz@login.archer.ac.uk'}),
+ARGS = [(['--host'], {'help': 'mmuetz@login.archer.ac.uk', 'default': None}),
         (['--create', '-c'], {'help': 'u-AAXXX'}),
-        (['--verbose', '-v'], {'help': 'Set verbose on for rsync', 'action': 'store_true'}),
-        # TODO: Not properly working with multiple args.
-        (['--rsync-args'], {'help': 'Additional rsync args (e.g. --rsync-args="--update"', 'default': ''}),
+        (['--base-path', '-b'], {'help': 'Base path on remote computer', 'default': 'work/cylc-run'}),
+        (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'}),
         (['exts'], {'help': 'Additional extensions to include (e.g. .png .pp1.nc)', 'nargs': '*'})]
 
 
@@ -46,7 +45,12 @@ def main(args):
                 logger.error('Mirror {} already exists'.format(suite_name))
                 return 1
 
-    syncher = Syncher(suite, args.host, args.verbose)
+    if not args.host and args.create:
+        host = 'mmuetz@login.archer.ac.uk'
+    else:
+        host = args.host
+
+    syncher = Syncher(suite, host, args.base_path, args.verbose)
     # Extend with any exts passed by user.
     syncher.add_exts(args.exts)
 

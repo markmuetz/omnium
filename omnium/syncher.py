@@ -11,11 +11,12 @@ class Syncher(object):
     "Provides means for syncing files from a remote host to a mirror"
 
     # --exclude makes sure that only the filetypes asked for are downloaded.
-    cmd_fmt = "rsync -zar{verbose} {progress} {include} --exclude '*' --prune-empty-dirs {host}:work/cylc-run/{src_suite}/ {dst_suite}"
+    cmd_fmt = "rsync -zar{verbose} {progress} {include} --exclude '*' --prune-empty-dirs {host}:{path}/ {dst_suite}"
 
-    def __init__(self, suite, host=None, verbose=False):
+    def __init__(self, suite, host=None, base_path='work/cylc-run', verbose=False):
         self.suite = suite
         self.host = host
+        self.base_path = base_path
         self.verbose = 'v' if verbose else ''
         self.progress = '--progress' if verbose else ''
         # First include is necessary to make sure all dirs are included?
@@ -35,11 +36,12 @@ class Syncher(object):
     def _sync(self, suite_name, dst_suite):
         include = ' '.join(["--include '{}'".format(inc) for inc in self.includes])
 
+        path = os.path.join(self.base_path, suite_name)
         cmd = self.cmd_fmt.format(verbose=self.verbose, 
                                   progress=self.progress, 
                                   include=include, 
                                   host=self.host, 
-                                  src_suite=suite_name, 
+                                  path=path, 
                                   dst_suite=dst_suite)
 
         logger.debug(cmd)
