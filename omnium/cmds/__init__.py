@@ -11,6 +11,7 @@ commands = [
     'shell',
     'stash',
     'suite-info',
+    'suite-init',
     'sync-mirror',
     'version',
     'viewer',

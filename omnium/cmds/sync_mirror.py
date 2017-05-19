@@ -3,6 +3,8 @@ import os
 from logging import getLogger
 
 from omnium.omnium_errors import OmniumError
+from omnium.syncher import Syncher
+from omnium.suite import Suite
 
 logger = getLogger('omnium')
 
@@ -15,8 +17,6 @@ ARGS = [(['--host'], {'help': 'mmuetz@login.archer.ac.uk', 'default': 'mmuetz@lo
 
 
 def main(args):
-    import subprocess as sp
-    from omnium.suite import Suite
     suite = Suite()
     try:
         suite.check_in_suite_dir(os.getcwd())
@@ -27,7 +27,14 @@ def main(args):
         if args.create:
             logger.error('Cannot use --create from within a suite')
             return 1
-        logger.info("Sync'ing suite mirror: {}".format(suite.name))
+        if not suite.is_init:
+            logger.error('Suite has not been initialized')
+            return 1
+        suite_type = suite.config['settings']['suite_type'] 
+        if not suite_type == 'mirror':
+            logger.error('Suite is not a mirror, is: {}'.format(suite_type))
+            return 1
+
         suite_name = suite.name
     else:
         if not args.create:
@@ -38,43 +45,15 @@ def main(args):
             if os.path.exists(suite_name):
                 logger.error('Mirror {} already exists'.format(suite_name))
                 return 1
-            logger.info('Creating suite mirror: {}'.format(suite.name))
 
-    # First include is necessary to make sure all dirs are included?
-    # Gets configuration, python, shell scripts, info, cylc suite, and logs by default.
-    includes = ['*/', '*.conf', '*.py', '*.sh', '*.info', 'suite*rc*', 'log*Z', 'log*.tar.gz']
+    syncher = Syncher(suite, args.host, args.verbose)
     # Extend with any exts passed by user.
-    includes.extend(['*' + ext for ext in args.exts])
-    include = ' '.join(["--include '{}'".format(inc) for inc in includes])
+    syncher.add_exts(args.exts)
 
-    verbose = 'v' if args.verbose else ''
-    progress = '--progress' if args.verbose else ''
-    # --exclude makes sure that only the filetypes asked for are downloaded.
-    cmd_fmt = "rsync -zar{verbose} {progress} {rsync_args} {include} --exclude '*' --prune-empty-dirs {host}:work/cylc-run/{src_suite}/ {dst_suite}"
-
-    if suite.is_in_suite:
-        logger.debug('cd to {}'.format(suite.suite_dir))
-        cwd = os.getcwd()
-        os.chdir(suite.suite_dir)
-        dst_suite = '.'
+    if args.create:
+        syncher.create(suite_name)
+        # create <suite>/.omnium/suite.conf etc.
+        suite.check_in_suite_dir(os.path.join(os.getcwd(), suite_name))
+        suite.init('mirror', args.host)
     else:
-        dst_suite = suite_name
-
-    cmd = cmd_fmt.format(verbose=verbose, 
-                         progress=progress, 
-                         rsync_args=args.rsync_args, 
-                         include=include, 
-                         host=args.host, 
-                         src_suite=suite_name, 
-                         dst_suite=suite_name)
-
-    logger.debug(cmd)
-    sp.call(cmd, shell=True)
-
-    if suite.is_in_suite:
-        logger.debug('cd back to {}'.format(cwd))
-        os.chdir(cwd)
-        logger.info("Sync'd")
-    else:
-        logger.info('Created')
-        # TODO: create <suite>/.omnium/suite.conf etc.
+        syncher.sync()

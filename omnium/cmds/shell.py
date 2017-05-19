@@ -18,6 +18,7 @@ def main(args):
         from omnium.suite import Suite
         from omnium.run_control import RunControl
         from omnium.converters import CONVERTERS
+        from omnium.syncher import Syncher
 
         stash = Stash()
         state = State()
@@ -30,6 +31,7 @@ def main(args):
 
         if suite.is_in_suite:
             from omnium.analyzers import get_analysis_classes
+            syncher = Syncher(suite)
             analysis_classes = get_analysis_classes(suite.omnium_analysis_dir)
         import pylab as plt
     # IPython.start_ipython(argv=[])
