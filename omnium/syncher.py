@@ -10,8 +10,9 @@ logger = getLogger('omnium')
 class Syncher(object):
     "Provides means for syncing files from a remote host to a mirror"
 
-    # --exclude makes sure that only the filetypes asked for are downloaded.
-    cmd_fmt = "rsync -zar{verbose} {progress} {include} --exclude '*' --prune-empty-dirs {host}:{path}/ {dst_suite}"
+    # 1st --exclude: must come *before* includes or e.g. .omnium/suite.conf will be downloaded. 
+    # 2nd --exclude: makes sure that only the filetypes asked for are downloaded.
+    cmd_fmt = "rsync -zar{verbose} --exclude '.omnium/' {progress} {include} --exclude '*' --prune-empty-dirs {host}:{path}/ {dst_suite}"
 
     def __init__(self, suite, host=None, base_path='work/cylc-run', verbose=False):
         self.suite = suite
