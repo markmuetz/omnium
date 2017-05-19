@@ -5,7 +5,7 @@ from collections import OrderedDict
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 
-from omnium.data_displays import DataDisplayWindow
+from omnium.viewers.data_displays import DataDisplayWindow
 
 class TwodWindow(DataDisplayWindow):
     name = 'Slice'

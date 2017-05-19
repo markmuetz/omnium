@@ -2,7 +2,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 import numpy as np
 
-from omnium.data_displays import DataDisplayWindow
+from omnium.viewers.data_displays import DataDisplayWindow
 
 class ThreedWindow(DataDisplayWindow):
     name = '3D'

@@ -2,13 +2,16 @@ import os
 import re
 import pickle
 from collections import OrderedDict
+from logging import getLogger
 
 from pyqtgraph.Qt import QtCore, QtGui
-from omnium.data_displays import (TwodWindow, ThreedWindow, 
+from omnium.viewers.data_displays import (TwodWindow, ThreedWindow, 
         PlotWindow, ProfileWindow, ProfileContourWindow)
 from omnium import Stash
 
 import iris
+
+logger = getLogger('omnium')
 
 MAP_NAME_TO_CLASS = OrderedDict([
     ('Slice', TwodWindow),
@@ -177,6 +180,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
         Cls = MAP_NAME_TO_CLASS[display_name]
         if Cls.accepts_multiple_cubes:
             win = Cls(self)
+            win.setupGui()
             win.setCubes(cubes)
             win.setTime(self.times[self.time_index])
             win.show()
@@ -184,6 +188,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
         else:
             for cube in cubes:
                 win = Cls(self)
+                win.setupGui()
                 win.setCube(cube)
                 win.setTime(self.times[self.time_index])
                 win.show()
@@ -191,6 +196,10 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
     def addCube(self, parent, cube):
         cube_name = ' '.join(cube.name().split())
+        if cube.ndim < 2:
+            logger.info('Cube {} only has {} dim(s) - not adding'.format(cube_name, cube.ndim))
+            return
+
         nt = str(cube.shape[0])
         nx = str(cube.shape[-2])
         ny = str(cube.shape[-1])
@@ -231,7 +240,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
         new_cubes = iris.load(filename)
 
-        self.stash.rename_unknown_cubes(new_cubes, True)
+        #self.stash.rename_unknown_cubes(new_cubes, True)
         
         if stream in self.cubes:
             self.cubes[stream].extend(new_cubes)
