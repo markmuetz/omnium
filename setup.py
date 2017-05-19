@@ -26,8 +26,10 @@ setup(
     maintainer='Mark Muetzelfeldt',
     maintainer_email='m.muetzelfeldt@pgr.reading.ac.uk',
     packages=['omnium',
+              'omnium.cmds',
               'omnium.data', 
-              'omnium.omnium_cmds'],
+              'omnium.viewers', 
+              'omnium.viewers.data_displays'],
     scripts=[
         'bin/omnium',
         ],
