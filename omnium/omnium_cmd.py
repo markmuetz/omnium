@@ -15,7 +15,7 @@ def main(argv):
         logger = setup_logger(True)
     else:
         logger = setup_logger()
-    logger.debug(argv[:1])
+    logger.debug(argv)
     logger.debug(args.cmd_name)
     cmd = omnium_cmds[args.cmd_name]
     if not args.throw_exceptions:
