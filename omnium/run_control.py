@@ -192,10 +192,6 @@ class RunControl(object):
             filenames = [filename_glob]
         elif data_type == 'datam':
             data_dir = self.atmos_datam_dir
-            if 'use_cycle_point' in analyzer_config:
-                if analyzer_config['use_cycle_point'] == True:
-                    data_dir = os.path.join(self.atmos_datam_dir, os.getenv('CYLC_TASK_CYCLE_POINT'))
-
             filenames = Analyzer.get_files(data_dir, filename_glob)
 
         logger.info('Running {} on {} files'.format(Analyzer.analysis_name, len(filenames)))
