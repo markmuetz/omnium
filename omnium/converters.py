@@ -16,15 +16,29 @@ logger = getLogger('omnium')
 class Converter(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, overwrite=False, delete=False, verify=False, allow_non_ppX=False):
+    def __init__(self, overwrite=False, delete=False, verify=False, allow_non_standard=False):
         self.overwrite = overwrite
         self.delete = delete
         self.verify = verify
-        self.allow_non_ppX = allow_non_ppX
+        self.allow_non_standard = allow_non_standard
 
-    @abc.abstractmethod
-    def _converted_filename(self):
-        return
+    def _converted_filename(self, old_filename):
+        dirname = os.path.dirname(old_filename)
+        filename = os.path.basename(old_filename)
+
+        if not self.allow_non_standard:
+            for pattern in self.standard_patterns:
+                match = re.match(pattern, filename)
+
+                if match:
+                    logger.debug('matched {} with {}'.format(filename, pattern))
+                    break
+
+            if not match:
+                raise OmniumError('Filename not standard: {}'.format(filename))
+
+        newname = filename + '.nc'
+        return os.path.join(dirname, newname)
 
     @abc.abstractmethod
     def _convert(self, filename, converted_filename):
@@ -41,9 +55,11 @@ class Converter(object):
                 self.messages.append('Deleting: {}'.format(converted_filename))
                 os.remove(converted_filename)
             elif not os.path.exists(converted_filename + '.done'):
-                logger.info('No .done file, deleting: {}'.format(converted_filename))
-                self.messages.append('Deleting: {}'.format(converted_filename))
-                os.remove(converted_filename)
+                # Could have been a problem creating file *or*
+                # could still be being written.
+                logger.info('Already converted but:')
+                logger.warn('No .done file: {}'.format(converted_filename))
+                return converted_filename
             else:
                 logger.info('Already converted')
                 return converted_filename
@@ -69,17 +85,8 @@ class Converter(object):
 class FF2NC(Converter):
     """Convert from Fields File (often .pp? extension) to NetCDF4 using iris"""
     name = 'ff2nc'
-
-    def _converted_filename(self, old_filename):
-        # e.g. atmos.000.pp3 => atmos.000.pp3.nc
-        # Who knows why they give a fields file the extension pp??
-        dirname = os.path.dirname(old_filename)
-        filename = os.path.basename(old_filename)
-        if not self.allow_non_ppX and not re.match('pp\d', filename[-3:]):
-            raise OmniumError('Filename not of form *.ppX: {}'.format(filename))
-
-        newname = filename + '.nc'
-        return os.path.join(dirname, newname)
+    standard_patterns = ['.*\.pp\d', '^atmosa_da(?P<ts>\d{3}$)']
+    out_ext = '.nc'
 
     def _convert(self, filename, converted_filename):
         self.messages.append('Using iris to convert')

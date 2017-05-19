@@ -8,7 +8,7 @@ logger = getLogger('omnium')
 ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
         (['--converter', '-c'], {'help': 'Converter to use', 'default': 'ff2nc'}),
         (['--delete'], {'help': 'Delete after successful conversion', 'action': 'store_true'}),
-        (['--allow-non-ppX'], {'help': 'Allow conversion of files not ending in .pp?', 'action': 'store_true'}),
+        (['--allow-non-standard'], {'help': 'Allow conversion of non-standard files', 'action': 'store_true'}),
         (['--overwrite'], {'help': 'Overwrite new file if already exists', 'action': 'store_true'})]
 
 
