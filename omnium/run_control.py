@@ -213,7 +213,7 @@ class RunControl(object):
                 if (analysis, expt) in self.analysis_workflow:
                     raise OmniumError('({}, {}) already in analysis workflow'.format(analysis, expt))
 
-                analyzer_args = [suite_name, expt, analyzer_config['data_type'], data_dir, results_dir]
+                analyzer_args = [suite_name, analyzer_config['data_type'], data_dir, results_dir, expt]
                 self.analysis_workflow[(analysis, expt)] = (Analyzer, analyzer_args,
                                                             analyzer_config, filename_glob)
 
@@ -222,35 +222,38 @@ class RunControl(object):
     def run_analysis(self, analysis, expt):
         (Analyzer, analyzer_args, 
          analyzer_config, filename_glob) = self.analysis_workflow[(analysis, expt)]
-        self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
+        self._setup_run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
     def run_all(self):
         for (Analyzer, analyzer_args,
              analyzer_config, filename_glob) in self.analysis_workflow.values():
-            self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
+            self._setup_run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
-    def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filename_glob):
-        suite_name, expt, data_type, data_dir, results_dir = analyzer_args
+    def _setup_run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filename_glob):
+        suite_name, data_type, data_dir, results_dir, expt = analyzer_args
 
         if analyzer_config['data_type'] == 'datam':
-            data_dir = self.atmos_datam_dir[expt]
             filenames = Analyzer.get_files(data_dir, filename_glob)
         elif analyzer_config['data_type'] == 'dataw':
-            data_dir = self.atmos_datam_dir[expt]
             filenames = [filename_glob]
 
         logger.info('Running {} on {} files'.format(Analyzer.analysis_name, len(filenames)))
 
-        for filename in filenames:
-            logger.info('  Running {} on {}'.format(Analyzer.analysis_name, filename))
-            logger.debug('analyzer_args: {}'.format(analyzer_args))
-            logger.debug('filename: {}'.format(filename))
-            analyzer = Analyzer(*analyzer_args, filename=filename)
-            analyzer.set_config(analyzer_config)
+        if analyzer_config.getboolean('multi_file', False):
+            self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filenames=filenames)
+        else:
+            for filename in filenames:
+                self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename=filename)
 
-            if not analyzer.already_analyzed() or analyzer.force or self.force:
-                analyzer.load()
-                analyzer.run()
-                analyzer.save()
-            else:
-                logger.info('  Analysis already run')
+    def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filename=None, filenames=None):
+        logger.info('  Running {} on {}'.format(Analyzer.analysis_name, filename))
+        logger.debug('analyzer_args: {}'.format(analyzer_args))
+        analyzer = Analyzer(*analyzer_args, filename=filename, filenames=filenames)
+        analyzer.set_config(analyzer_config)
+
+        if not analyzer.already_analyzed() or analyzer.force or self.force:
+            analyzer.load()
+            analyzer.run()
+            analyzer.save()
+        else:
+            logger.info('  Analysis already run')
