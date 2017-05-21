@@ -83,8 +83,8 @@ class RunControl(object):
 
         for expt in self.expts:
             self.atmos_datam_dir[expt] = os.path.join(suite_dir, 'share/data/history', expt)
-            self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work', 
-                                                      initial_cycle_point, expt + '_atmos') 
+            self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work',
+                                                      initial_cycle_point, expt + '_atmos')
 
     def check_setup(self):
         if not os.path.exists(self.analyzers_dir):
@@ -96,7 +96,6 @@ class RunControl(object):
             data_dir = self.atmos_dataw_dir[expt]
             if not os.path.exists(data_dir):
                 logger.warn('Dir does not exist: {}'.format(data_dir))
-
 
     def print_setup(self):
         for attr in ['cylc_control', 'run_type', 'expts', 'suite_name', 'analyzers_dir',
@@ -136,7 +135,7 @@ class RunControl(object):
                     with open(filename + '.converting', 'w') as f:
                         f.write('Converting with {}\n'.format(converter_name))
                     filenames_for_conversion.append(filename)
-                
+
             if not filenames:
                 logger.warn('No files to convert')
 
@@ -211,16 +210,18 @@ class RunControl(object):
                     results_dir = self.atmos_dataw_dir[expt]
 
                 if (analysis, expt) in self.analysis_workflow:
-                    raise OmniumError('({}, {}) already in analysis workflow'.format(analysis, expt))
+                    raise OmniumError('({}, {}) already in analysis workflow'.format(analysis,
+                                                                                     expt))
 
-                analyzer_args = [suite_name, analyzer_config['data_type'], data_dir, results_dir, expt]
+                analyzer_args = [suite_name, analyzer_config['data_type'],
+                                 data_dir, results_dir, expt]
                 self.analysis_workflow[(analysis, expt)] = (Analyzer, analyzer_args,
                                                             analyzer_config, filename_glob)
 
         logger.debug(self.analysis_workflow.keys())
 
     def run_analysis(self, analysis, expt):
-        (Analyzer, analyzer_args, 
+        (Analyzer, analyzer_args,
          analyzer_config, filename_glob) = self.analysis_workflow[(analysis, expt)]
         self._setup_run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
@@ -245,7 +246,8 @@ class RunControl(object):
             for filename in filenames:
                 self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename=filename)
 
-    def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filename=None, filenames=None):
+    def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config,
+                      filename=None, filenames=None):
         logger.info('  Running {} on {}'.format(Analyzer.analysis_name, filename))
         logger.debug('analyzer_args: {}'.format(analyzer_args))
         analyzer = Analyzer(*analyzer_args, filename=filename, filenames=filenames)

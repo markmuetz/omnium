@@ -19,7 +19,8 @@ class Analyzer(object):
     def get_files(data_dir, filename):
         return sorted(glob(os.path.join(data_dir, filename)))
 
-    def __init__(self, suite, data_type, data_dir, results_dir, expt, filename=None, filenames=None):
+    def __init__(self, suite, data_type, data_dir,
+                 results_dir, expt, filename=None, filenames=None):
         if (filename and filenames) or (not filename and not filenames):
             raise OmniumError('Analyzer should be called with one of filename and filenames')
         self.suite = suite
@@ -51,13 +52,15 @@ class Analyzer(object):
                 if self.multi_file:
                     self.output_filename = '{}.{}.nc'.format(runid, self.analysis_name)
                 else:
-                    self.output_filename = '{}.{}.{}.nc'.format(runid, time_hours, self.analysis_name)
+                    self.output_filename = '{}.{}.{}.nc'.format(runid,
+                                                                time_hours,
+                                                                self.analysis_name)
             elif len(split_filename) <= 2:
                 # It's a dump. Should have a better way of telling though.
                 if self.multi_file:
                     # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
                     dump_without_time_hours = split_filename[0][:-3]
-                    self.output_filename = '{}.{}.nc'.format(dump_without_time_hours, 
+                    self.output_filename = '{}.{}.nc'.format(dump_without_time_hours,
                                                              self.analysis_name)
                 else:
                     self.output_filename = '{}.{}.nc'.format(split_filename[0], self.analysis_name)
