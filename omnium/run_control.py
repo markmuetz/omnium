@@ -15,10 +15,15 @@ logger = getLogger('omnium')
 
 
 class RunControl(object):
-    def __init__(self, data_type, expt, force=False):
+    def __init__(self, run_type, expts, force=False):
         self.cylc_control = os.getenv('CYLC_CONTROL') == 'True'
-        self.data_type = data_type
-        self.expt = expt
+        self.run_type = run_type
+        if self.run_type == 'suite':
+            self.expts = expts
+        else:
+            assert len(expts) == 1
+            self.expts = expts
+
         self.force = force
 
         logger.warn('Disabling Python warnings')
@@ -26,13 +31,11 @@ class RunControl(object):
         warnings.filterwarnings("ignore")
 
     def _read_env(self):
-        omnium_dataw_dir = os.getenv('DATAW')
-        omnium_datam_dir = os.getenv('DATAM')
         suite_name = os.getenv('CYLC_SUITE_NAME')
         initial_cycle_point = os.getenv('CYLC_SUITE_INITIAL_CYCLE_POINT')
-        work_dir = os.getenv('CYLC_SUITE_WORK_DIR')
+        suite_dir = os.getenv('CYLC_SUITE_RUN_DIR')
 
-        return omnium_dataw_dir, omnium_datam_dir, suite_name, initial_cycle_point, work_dir
+        return suite_name, initial_cycle_point, suite_dir
 
     def _read_config(self, config_dir, config_filename='rose-app-run.conf'):
         config = ConfigParser()
@@ -41,20 +44,16 @@ class RunControl(object):
         return config
 
     def setup(self):
+        suite = Suite()
         if self.cylc_control:
             # Running through cylc.
-            (omnium_dataw_dir, omnium_datam_dir, suite_name,
-             initial_cycle_point, work_dir) = self._read_env()
-
-            self.suite_name = suite_name
-            self.analyzers_dir = omnium_dataw_dir
-
-            self.atmos_datam_dir = omnium_datam_dir
-            self.atmos_dataw_dir = os.path.join(work_dir, initial_cycle_point, self.expt + '_atmos')
-
-            self.config = self._read_config(omnium_dataw_dir)
+            (suite_name, initial_cycle_point, suite_dir) = self._read_env()
+            try:
+                suite.check_in_suite_dir(suite_dir)
+            except OmniumError:
+                logger.warn('Not a suite dir: {}'.format(suite_dir))
+                return
         else:
-            # Standalone - work out all paths based on suite's path and load config.
             suite = Suite()
             try:
                 suite.check_in_suite_dir(os.getcwd())
@@ -62,31 +61,45 @@ class RunControl(object):
                 logger.warn('Not in suite')
                 return
 
-            self.suite = suite
+        self.suite = suite
+        suite_name = suite.name
 
-            self.suite_name = suite.name
-            self.analyzers_dir = self.suite.omnium_analysis_dir
+        work_dir = os.path.join(self.suite.suite_dir, 'work')
+        initial_cycle_point_dir = sorted(glob(os.path.join(work_dir, '*')))[0]
+        initial_cycle_point = os.path.basename(initial_cycle_point_dir)
+        suite_dir = suite.suite_dir
+        self.analyzers_dir = self.suite.omnium_analysis_dir
 
-            self.atmos_datam_dir = os.path.join(self.suite.suite_dir,
-                                                'share/data/history',
-                                                self.expt)
+        self.suite_name = suite_name
+        self.suite_dir = suite_dir
 
-            work_dir = os.path.join(self.suite.suite_dir, 'work')
-            initial_cycle_point_dir = sorted(glob(os.path.join(work_dir, '*')))[0]
-            initial_cycle_point = os.path.basename(initial_cycle_point_dir)
+        # Reading from this dir means I can't change the conf based on the cycle,
+        # Is this a problem?
+        conf_dir = os.path.join(self.suite_dir, 'app/omnium')
+        self.config = self._read_config(conf_dir, 'rose-app.conf')
 
-            self.atmos_dataw_dir = os.path.join(work_dir, initial_cycle_point, self.expt + '_atmos')
+        self.atmos_datam_dir = {}
+        self.atmos_dataw_dir = {}
 
-            conf_dir = os.path.join(self.suite.suite_dir, 'app/omnium')
-            self.config = self._read_config(conf_dir, 'rose-app.conf')
+        for expt in self.expts:
+            self.atmos_datam_dir[expt] = os.path.join(suite_dir, 'share/data/history', expt)
+            self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work', 
+                                                      initial_cycle_point, expt + '_atmos') 
 
     def check_setup(self):
-        for attr in ['analyzers_dir', 'atmos_datam_dir', 'atmos_dataw_dir']:
-            if not os.path.exists(getattr(self, attr)):
-                logger.warn('Dir does not exist: {}'.format(attr))
+        if not os.path.exists(self.analyzers_dir):
+            logger.warn('Dir does not exist: {}'.format(self.analyzers_dir))
+        for expt in self.expts:
+            data_dir = self.atmos_datam_dir[expt]
+            if not os.path.exists(data_dir):
+                logger.warn('Dir does not exist: {}'.format(data_dir))
+            data_dir = self.atmos_dataw_dir[expt]
+            if not os.path.exists(data_dir):
+                logger.warn('Dir does not exist: {}'.format(data_dir))
+
 
     def print_setup(self):
-        for attr in ['cylc_control', 'data_type', 'expt', 'suite_name', 'analyzers_dir',
+        for attr in ['cylc_control', 'run_type', 'expts', 'suite_name', 'analyzers_dir',
                      'atmos_datam_dir', 'atmos_dataw_dir']:
             print('{}: {}'.format(attr, getattr(self, attr)))
 
@@ -94,54 +107,78 @@ class RunControl(object):
         self.gen_analysis_workflow()
         self.run_all()
 
-    def convert_all(self, filename_globs, overwrite, delete):
-        if self.data_type == 'datam':
-            data_dir = self.atmos_datam_dir
-        elif self.data_type == 'dataw':
-            data_dir = self.atmos_dataw_dir
+    def convert_all(self, converter_name, filename_globs, overwrite, delete):
+        for expt in self.expts:
+            if self.run_type == 'cycle':
+                data_dir = self.atmos_datam_dir[expt]
+            elif self.run_type == 'expt':
+                data_dir = self.atmos_dataw_dir[expt]
 
-        filenames = []
-        logger.info('Converting files like:')
-        for filename_glob in filename_globs:
-            logger.info('  ' + filename_glob)
-            for filename in sorted(glob(os.path.join(data_dir, filename_glob))):
-                if os.path.exists(filename + '.done'):
-                    logger.debug('  Adding: {}'.format(filename))
-                    filenames.append(filename)
+            filenames = []
+            logger.info('Converting files like:')
+            for filename_glob in filename_globs:
+                logger.info('  ' + filename_glob)
+                for filename in sorted(glob(os.path.join(data_dir, filename_glob))):
+                    # Make sure that UM has finished writing file.
+                    if os.path.exists(filename + '.done'):
+                        logger.debug('  Adding: {}'.format(filename))
+                        filenames.append(filename)
+                    else:
+                        logger.warn('  Not finished: {}'.format(filename))
+
+            converter = CONVERTERS[converter_name](overwrite, delete)
+            filenames_for_conversion = []
+            for filename in filenames:
+                # Check that file is not being converted by another process.
+                if os.path.exists(filename + '.converting'):
+                    logger.warn('  Already being converted: {}'.format(filename))
                 else:
-                    logger.warn('  Not finished: {}'.format(filename))
+                    with open(filename + '.converting', 'w') as f:
+                        f.write('Converting with {}\n'.format(converter_name))
+                    filenames_for_conversion.append(filename)
+                
+            if not filenames:
+                logger.warn('No files to convert')
 
-        converter = CONVERTERS['ff2nc'](overwrite, delete)
-        for filename in filenames:
-            try:
-                converter.convert(filename)
-            except OmniumError as oe:
-                logger.error('Could not convert {}'.format(filename))
-                logger.error(oe)
+            for filename in filenames_for_conversion:
+                try:
+                    converter.convert(filename)
+                    # N.B. if converter fails, there will be a left over .converting file.
+                    # This is intentional: I want to see if this has failed.
+                    os.remove(filename + '.converting')
+                except OmniumError as oe:
+                    logger.error('Could not convert {}'.format(filename))
+                    logger.error(oe)
 
-        if not filenames:
-            logger.warn('No files to convert')
+            if not filenames_for_conversion:
+                logger.warn('No files not already being converted to convert')
 
     def gen_analysis_workflow(self):
         self.analysis_workflow = OrderedDict()
 
         config = self.config
         suite_name = self.suite_name
-        data_type = self.data_type
-        expt = self.expt
+        run_type = self.run_type
+        expts = self.expts
 
-        settings_sec = '{}_settings'.format(data_type)
-        runcontrol_sec = '{}_runcontrol'.format(data_type)
+        settings_sec = 'settings_{}'.format(run_type)
+        runcontrol_sec = 'runcontrol_{}'.format(run_type)
 
         settings = config[settings_sec]
-        runcontrol = config[runcontrol_sec]
 
-        convert = settings['convert_to_nc'] == 'True'
-        overwrite = settings['overwrite'] == 'True'
-        delete = settings['delete'] == 'True'
-        filename_globs = settings['filenames'].split(',')
+        convert = settings.getboolean('convert', False)
         if convert:
-            self.convert_all(filename_globs, overwrite, delete)
+            converter_name = settings.get('converter', 'ff2nc')
+            overwrite = settings.getboolean('overwrite', False)
+            delete = settings.getboolean('delete', False)
+            filename_globs = settings['filenames'].split(',')
+            self.convert_all(converter_name, filename_globs, overwrite, delete)
+
+        if runcontrol_sec in config:
+            runcontrol = config[runcontrol_sec]
+        else:
+            logger.info('No runcontrol for {}'.format(self.run_type))
+            return
 
         self.analysis_classes = get_analysis_classes(self.analyzers_dir)
 
@@ -163,26 +200,28 @@ class RunControl(object):
 
             filename_glob = analyzer_config.pop('filename')
             logger.debug(filename_glob)
-            if data_type == 'dataw':
-                data_dir = self.atmos_dataw_dir
-                results_dir = self.atmos_dataw_dir
+            for expt in expts:
+                logger.debug('Adding analysis, expt: {}, {}'.format(analysis, expt))
 
-            elif data_type == 'datam':
-                data_dir = self.atmos_datam_dir
-                results_dir = self.atmos_datam_dir
+                if analyzer_config['data_type'] == 'datam':
+                    data_dir = self.atmos_datam_dir[expt]
+                    results_dir = self.atmos_datam_dir[expt]
+                elif analyzer_config['data_type'] == 'dataw':
+                    data_dir = self.atmos_dataw_dir[expt]
+                    results_dir = self.atmos_dataw_dir[expt]
 
-            if analysis in self.analysis_workflow:
-                raise OmniumError('{} already in analysis workflow'.format(analysis))
+                if (analysis, expt) in self.analysis_workflow:
+                    raise OmniumError('({}, {}) already in analysis workflow'.format(analysis, expt))
 
-            logger.debug('Adding analysis: {}'.format(analysis))
-            analyzer_args = [suite_name, expt, data_type, data_dir, results_dir]
-            self.analysis_workflow[analysis] = (Analyzer, analyzer_args,
-                                                analyzer_config, filename_glob)
+                analyzer_args = [suite_name, expt, analyzer_config['data_type'], data_dir, results_dir]
+                self.analysis_workflow[(analysis, expt)] = (Analyzer, analyzer_args,
+                                                            analyzer_config, filename_glob)
 
         logger.debug(self.analysis_workflow.keys())
 
-    def run_analysis(self, analysis):
-        Analyzer, analyzer_args, analyzer_config, filename_glob = self.analysis_workflow[analysis]
+    def run_analysis(self, analysis, expt):
+        (Analyzer, analyzer_args, 
+         analyzer_config, filename_glob) = self.analysis_workflow[(analysis, expt)]
         self._run_analyzer(Analyzer, analyzer_args, analyzer_config, filename_glob)
 
     def run_all(self):
@@ -193,16 +232,19 @@ class RunControl(object):
     def _run_analyzer(self, Analyzer, analyzer_args, analyzer_config, filename_glob):
         suite_name, expt, data_type, data_dir, results_dir = analyzer_args
 
-        if data_type == 'dataw':
-            filenames = [filename_glob]
-        elif data_type == 'datam':
-            data_dir = self.atmos_datam_dir
+        if analyzer_config['data_type'] == 'datam':
+            data_dir = self.atmos_datam_dir[expt]
             filenames = Analyzer.get_files(data_dir, filename_glob)
+        elif analyzer_config['data_type'] == 'dataw':
+            data_dir = self.atmos_datam_dir[expt]
+            filenames = [filename_glob]
 
         logger.info('Running {} on {} files'.format(Analyzer.analysis_name, len(filenames)))
 
         for filename in filenames:
             logger.info('  Running {} on {}'.format(Analyzer.analysis_name, filename))
+            logger.debug('analyzer_args: {}'.format(analyzer_args))
+            logger.debug('filename: {}'.format(filename))
             analyzer = Analyzer(*analyzer_args, filename=filename)
             analyzer.set_config(analyzer_config)
 
