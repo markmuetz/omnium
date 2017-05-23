@@ -9,6 +9,10 @@ import sys
 
 try:
     # Omnium was correctly installed (using e.g. pip).
+    omnium_dev = os.getenv('OMNIUM_DEV') == 'True'
+    if omnium_dev:
+        # Force it to use one of the below methods of loading omnium.
+        raise ImportError()
     import omnium
     import_log_msg = 'correctly_installed'
 except ImportError:

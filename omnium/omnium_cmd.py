@@ -22,6 +22,7 @@ def main(argv, import_log_msg=''):
 
     env_debug = os.getenv('OMNIUM_DEBUG') == 'True'
     cylc_control = os.getenv('CYLC_CONTROL') == 'True'
+    omnium_dev = os.getenv('OMNIUM_DEV') == 'True'
 
     if args.DEBUG or env_debug:
         debug = True
@@ -37,6 +38,10 @@ def main(argv, import_log_msg=''):
 
     logger = setup_logger(debug, colour, warn_stderr)
 
+    if omnium_dev:
+        logger.info('running omnium_dev')
+        import omnium
+        logger.info(omnium)
     logger.debug('omnium import: {}'.format(import_log_msg))
     logger.debug(argv)
     logger.debug(args.cmd_name)
