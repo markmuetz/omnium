@@ -41,7 +41,7 @@ class Analyzer(object):
         if self.multi_file:
             self.filenames = filenames
             self.filename = None
-            filename = self.filenames[0]
+            filename = os.path.basename(self.filenames[0])
         else:
             assert len(filenames) == 1
             filename = os.path.basename(filenames[0])
@@ -49,7 +49,7 @@ class Analyzer(object):
                 self.expt_filename = OrderedDict()
                 for expt in self.expts:
                     self.expt_filename[expt] = os.path.join(self.data_dir[expt], filename)
-                filename = self.expt_filename.values()[0]
+                filename = os.path.basename(self.expt_filename.values()[0])
             else:
                 self.filename = os.path.join(self.data_dir[self.expt], filename)
             self.filenames = None
@@ -61,8 +61,8 @@ class Analyzer(object):
         split_filename = filename.split('.')
         runid = split_filename[0]
 
-        logger.debug('split_filename: {}'.format(split_filename))
         logger.debug('filename: {}'.format(filename))
+        logger.debug('split_filename: {}'.format(split_filename))
         if data_type == 'datam':
             if len(split_filename) >= 3:
                 time_hours = split_filename[1]
@@ -143,6 +143,7 @@ class Analyzer(object):
         if not len(cubelist):
             logger.warn('No results to save')
         else:
+	    logger.debug('Saving to {}'.format(cubelist_filename))
 	    # TODO: Make this a setting somewhere.
 	    # Use default compression: complevel 4.
             iris.save(cubelist, cubelist_filename, zlib=True)
