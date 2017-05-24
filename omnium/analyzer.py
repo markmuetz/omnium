@@ -44,7 +44,7 @@ class Analyzer(object):
             filename = self.filenames[0]
         else:
             assert len(filenames) == 1
-            filename = filenames[0]
+            filename = os.path.basename(filenames[0])
             if self.multi_expt:
                 self.expt_filename = OrderedDict()
                 for expt in self.expts:
@@ -143,7 +143,9 @@ class Analyzer(object):
         if not len(cubelist):
             logger.warn('No results to save')
         else:
-            iris.save(cubelist, cubelist_filename)
+	    # TODO: Make this a setting somewhere.
+	    # Use default compression: complevel 4.
+            iris.save(cubelist, cubelist_filename, zlib=True)
 
         self.save_analysis()
         self.append_log('Saved')
