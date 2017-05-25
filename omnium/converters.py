@@ -88,14 +88,15 @@ class FF2NC(Converter):
     standard_patterns = ['.*\.pp\d', '^atmosa_da(?P<ts>\d{3}$)']
     out_ext = '.nc'
 
-    def _convert(self, filename, converted_filename):
+    def _convert(self, filename, converted_filename, zlib=True):
         self.messages.append('Using iris to convert')
         cubes = iris.load(filename)
         if len(cubes) == 0:
             logger.warn('{} contains no data'.format(filename))
         else:
-            logger.debug('Saving data to:{}'.format(converted_filename))
-            iris.save(cubes, converted_filename)
+            logger.debug('Saving data to:{} (zlib={})'.format(converted_filename, zlib))
+	    # Use default compression: complevel 4.
+            iris.save(cubes, converted_filename, zlib=zlib)
 
         if self.verify:
             logger.info('Verifying')
