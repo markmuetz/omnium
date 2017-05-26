@@ -100,9 +100,11 @@ class Analyzer(object):
             os.makedirs(self.results_dir)
 
     def set_config(self, config):
+        logger.debug(config)
+        for item in config.items():
+            logger.debug(item)
         self._config = config
-        if 'force' in self._config:
-            self.force = self._config['force'] == 'True'
+        self.force = self._config.getboolean('force', False)
 
     def already_analyzed(self):
         return os.path.exists(self.logname)

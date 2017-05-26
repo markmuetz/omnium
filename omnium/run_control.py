@@ -257,7 +257,6 @@ class RunControl(object):
     def _run_analyzer(self, Analyzer, data_type, analyzer_config,
                       filenames, expts, multi_file, multi_expt):
         logger.info('  Running {}'.format(Analyzer.analysis_name))
-        logger.debug('    data_type: {}'.format(data_type))
 
         if data_type == 'datam':
             data_dir = self.atmos_datam_dir
