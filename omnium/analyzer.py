@@ -94,6 +94,11 @@ class Analyzer(object):
         # N.B. there is only one results_dir, even for multi_expt
         self.logname = os.path.join(self.results_dir, self.output_filename + '.analyzed')
 
+        # Need to make sure results dir exists before first call to self.append_log.
+        if not os.path.exists(self.results_dir):
+            logger.debug('Creating results_dir: {}'.format(self.results_dir))
+            os.makedirs(self.results_dir)
+
     def set_config(self, config):
         self._config = config
         if 'force' in self._config:
@@ -129,9 +134,6 @@ class Analyzer(object):
 
     def save(self):
         self.append_log('Saving')
-        if not os.path.exists(self.results_dir):
-            logger.debug('Creating results_dir: {}'.format(self.results_dir))
-            os.makedirs(self.results_dir)
 
         cubelist_filename = os.path.join(self.results_dir, self.output_filename)
         for cube_id, cube in self.results.items():
