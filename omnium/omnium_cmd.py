@@ -11,7 +11,7 @@ from setup_logging import setup_logger
 import cmds
 
 # Top level args, e.g. omnium -D ...
-ARGS = [(['--throw-exceptions', '-x'], {'action': 'store_true', 'default': False}),
+ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False}),
         (['--DEBUG', '-D'], {'action': 'store_true', 'default': False}),
         (['--bw-logs', '-b'], {'action': 'store_true', 'default': False})]
 

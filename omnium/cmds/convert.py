@@ -16,7 +16,7 @@ ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
 def main(args):
     import iris
     from omnium.converters import CONVERTERS
-    converter = CONVERTERS[args.converter](args.overwrite, args.delete, args.allow_non_ppX)
+    converter = CONVERTERS[args.converter](args.overwrite, args.delete, args.allow_non_standard)
 
     for filename in args.filenames:
         converter.convert(filename)

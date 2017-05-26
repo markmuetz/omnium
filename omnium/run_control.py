@@ -197,7 +197,7 @@ class RunControl(object):
             Analyzer = self.analysis_classes[analysis]
             logger.debug(Analyzer)
 
-            filename_glob = analyzer_config.pop('filename')
+            filename_glob = analyzer_config['filename']
             logger.debug(filename_glob)
 
             logger.debug('Adding analysis: {}'.format(analysis))
