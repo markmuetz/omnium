@@ -29,6 +29,8 @@ class RunControl(object):
         logger.warn('Disabling Python warnings')
         import warnings
         warnings.filterwarnings("ignore")
+        self.setup()
+        self.check_setup()
 
     def _read_env(self):
         suite_name = os.getenv('CYLC_SUITE_NAME')

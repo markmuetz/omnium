@@ -12,6 +12,8 @@ def main(args):
         import iris
         import datetime as dt
         import numpy as np
+
+        import omnium as om
         from omnium.omnium_errors import OmniumError
         from omnium.stash import Stash
         from omnium.state import State
