@@ -186,8 +186,8 @@ class RunControl(object):
         for ordered_analysis, enabled_str in sorted(runcontrol.items()):
             analysis = ordered_analysis[3:]
             enabled = enabled_str == 'True'
-            if not enabled:
-                continue
+            # N.B. even if analyzer not enabled in config, want to make sure it
+            # can still be run by e.g. run_analysis.
             if config.has_section(analysis):
                 analyzer_config = config[analysis]
             else:
@@ -208,18 +208,25 @@ class RunControl(object):
                 raise OmniumError('{} already in analysis workflow'.format(analysis))
 
             self.analysis_workflow[analysis] = (Analyzer, analyzer_config['data_type'], 
-                                                analyzer_config, filename_glob)
+                                                analyzer_config, filename_glob, enabled)
 
         logger.debug(self.analysis_workflow.keys())
 
-    def run_analysis(self, analysis):
-        (Analyzer, data_type, analyzer_config, filename_glob) = self.analysis_workflow[analysis]
+    def run_analysis(self, analysis, user_filename_glob=None):
+        if not self.analysis_workflow:
+            self.gen_analysis_workflow()
+        (Analyzer, data_type, analyzer_config, 
+         filename_glob, enabled) = self.analysis_workflow[analysis]
+        if user_filename_glob:
+            filename_glob = user_filename_glob
+            logger.debug('Using user defined glob: {}'.format(filename_glob))
         return self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
 
     def run_all(self):
-        for (Analyzer, data_type,
-             analyzer_config, filename_glob) in self.analysis_workflow.values():
-            self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
+        for (Analyzer, data_type, analyzer_config, 
+             filename_glob, enabled) in self.analysis_workflow.values():
+            if enabled:
+                self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
 
     def _setup_run_analyzer(self, Analyzer, data_type, analyzer_config, filename_glob):
         logger.info('Running {} on {} files'.format(Analyzer.analysis_name, filename_glob))
