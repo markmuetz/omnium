@@ -16,11 +16,13 @@ logger = getLogger('omnium')
 class Converter(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, overwrite=False, delete=False, verify=False, allow_non_standard=False):
+    def __init__(self, overwrite=False, delete=False, verify=False, allow_non_standard=False,
+                 zlib=True):
         self.overwrite = overwrite
         self.delete = delete
         self.verify = verify
         self.allow_non_standard = allow_non_standard
+        self.zlib = zlib
 
     def _converted_filename(self, old_filename):
         dirname = os.path.dirname(old_filename)
@@ -88,15 +90,15 @@ class FF2NC(Converter):
     standard_patterns = ['.*\.pp\d', '^atmosa_da(?P<ts>\d{3}$)']
     out_ext = '.nc'
 
-    def _convert(self, filename, converted_filename, zlib=True):
+    def _convert(self, filename, converted_filename):
         self.messages.append('Using iris to convert')
         cubes = iris.load(filename)
         if len(cubes) == 0:
             logger.warn('{} contains no data'.format(filename))
         else:
-            logger.debug('Saving data to:{} (zlib={})'.format(converted_filename, zlib))
+            logger.debug('Saving data to:{} (zlib={})'.format(converted_filename, self.zlib))
 	    # Use default compression: complevel 4.
-            iris.save(cubes, converted_filename, zlib=zlib)
+            iris.save(cubes, converted_filename, zlib=self.zlib)
 
         if self.verify:
             logger.info('Verifying')

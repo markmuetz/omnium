@@ -181,7 +181,12 @@ class RunControl(object):
             logger.info('No runcontrol for {}'.format(self.run_type))
             return
 
-        self.analysis_classes = get_analysis_classes(self.analyzers_dir)
+        if 'analysis_dir' in config['env']:
+            logger.debug('loading analyzers from: {}'.format(config['env']['analysis_dir']))
+            self.analysis_classes = get_analysis_classes(config['env']['analysis_dir'])
+        else:
+            logger.debug('loading analyzers from: {}'.format(self.analyzers_dir))
+            self.analysis_classes = get_analysis_classes(self.analyzers_dir)
 
         for ordered_analysis, enabled_str in sorted(runcontrol.items()):
             analysis = ordered_analysis[3:]
@@ -220,7 +225,7 @@ class RunControl(object):
         if user_filename_glob:
             filename_glob = user_filename_glob
             logger.debug('Using user defined glob: {}'.format(filename_glob))
-        return self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
+        self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
 
     def run_all(self):
         for (Analyzer, data_type, analyzer_config, 
@@ -231,8 +236,8 @@ class RunControl(object):
     def _setup_run_analyzer(self, Analyzer, data_type, analyzer_config, filename_glob):
         logger.info('Running {} on {} files'.format(Analyzer.analysis_name, filename_glob))
 
-        multi_file = analyzer_config.getboolean('multi_file', False)
-        multi_expt = analyzer_config.getboolean('multi_expt', False)
+        multi_file = Analyzer.multi_file
+        multi_expt = Analyzer.multi_expt
 
         if data_type == 'datam':
             data_dir = self.atmos_datam_dir
@@ -242,26 +247,21 @@ class RunControl(object):
         if multi_file and multi_expt:
             raise OmniumError('Only one of multi_file, multi_expt can be True')
 
-        analyzers = []
         if multi_expt:
             # N.B. multi_file == 'False'
-            analyzer = self._run_analyzer(Analyzer, data_type, analyzer_config, 
-                                          [filename_glob], self.expts, multi_file, multi_expt)
-            analyzers.append(analyzer)
+            self._run_analyzer(Analyzer, data_type, analyzer_config, 
+                               [filename_glob], self.expts, multi_file, multi_expt)
         else:
             for expt in self.expts:
                 filenames = Analyzer.get_files(data_dir[expt], filename_glob)
                 if multi_file:
-                    analyzer = self._run_analyzer(Analyzer, data_type, analyzer_config, 
-                                                  filenames, [expt], multi_file, multi_expt)
-                    analyzers.append(analyzer)
+                    self._run_analyzer(Analyzer, data_type, analyzer_config, 
+                                       filenames, [expt], multi_file, multi_expt)
                 else:
                     for filename in filenames:
-                        analyzer = self._run_analyzer(Analyzer, data_type, analyzer_config, 
-                                                      [filename], [expt], 
-                                                      multi_file, multi_expt)
-                        analyzers.append(analyzer)
-        return analyzers
+                        self._run_analyzer(Analyzer, data_type, analyzer_config, 
+                                           [filename], [expt], 
+                                           multi_file, multi_expt)
 
     def _run_analyzer(self, Analyzer, data_type, analyzer_config,
                       filenames, expts, multi_file, multi_expt):
@@ -277,8 +277,7 @@ class RunControl(object):
         else:
             results_dir = data_dir[expts[0]]
 
-        analyzer = Analyzer(data_type, data_dir, results_dir, 
-                            filenames, expts, multi_file, multi_expt)
+        analyzer = Analyzer(data_type, data_dir, results_dir, filenames, expts)
         analyzer.set_config(analyzer_config)
 
         if not analyzer.already_analyzed() or analyzer.force or self.force:

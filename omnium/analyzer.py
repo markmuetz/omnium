@@ -16,21 +16,22 @@ logger = getLogger('omnium')
 class Analyzer(object):
     __metaclass__ = abc.ABCMeta
 
+    multi_file = False
+    multi_expt = False
+
     @staticmethod
     def get_files(data_dir, filename):
         return sorted(glob(os.path.join(data_dir, filename)))
 
     def __init__(self, data_type, data_dir, results_dir, 
-                 filenames, expts, multi_file=False, multi_expt=False):
+                 filenames, expts):
 
-        if multi_file and multi_expt:
+        if self.multi_file and self.multi_expt:
             raise OmniumError('Only one of multi_file, multi_expt can be True')
         self.data_type = data_type
         self.data_dir = data_dir
         self.results_dir = results_dir
-        self.multi_file = multi_file
-        self.multi_expt = multi_expt
-        if multi_expt:
+        if self.multi_expt:
             self.expt = None
             self.expts = expts
         else:
@@ -69,7 +70,8 @@ class Analyzer(object):
                 instream = split_filename[2]
                 if self.multi_file:
                     # TODO: v hacky nipping off last 3 chars.
-                    self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
+                    # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
+                    self.output_filename = '{}.{}.nc'.format(runid, self.analysis_name)
                 else:
                     self.output_filename = '{}.{}.{}.nc'.format(runid,
                                                                 time_hours,
@@ -123,8 +125,10 @@ class Analyzer(object):
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
                 for expt in self.expts:
+                    logger.debug('Loading {}/{}'.format(expt, self.expt_filename[expt]))
                     self.expt_cubes[expt] = iris.load(self.expt_filename[expt])
             else:
+                logger.debug('Loading {}'.format(self.filename))
                 self.cubes = iris.load(self.filename)
 
         self.append_log('Loaded')
@@ -141,6 +145,7 @@ class Analyzer(object):
         for cube_id, cube in self.results.items():
             logger.debug('Saving cube: {}'.format(cube.name()))
             logger.debug('omnium_cube_id: {}'.format(cube_id))
+            logger.debug('cube shape: {}'.format(cube.shape))
             cube.attributes['omnium_vn'] = get_version('long')
             cube.attributes['omnium_cube_id'] = cube_id
         cubelist = iris.cube.CubeList(self.results.values())
@@ -148,9 +153,11 @@ class Analyzer(object):
             logger.warn('No results to save')
         else:
 	    logger.debug('Saving to {}'.format(cubelist_filename))
+	    #logger.debug('Not using zlib')
 	    # TODO: Make this a setting somewhere.
 	    # Use default compression: complevel 4.
             iris.save(cubelist, cubelist_filename, zlib=True)
+            #iris.save(cubelist, cubelist_filename)
 
         self.save_analysis()
         self.append_log('Saved')
