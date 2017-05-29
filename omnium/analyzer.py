@@ -133,9 +133,14 @@ class Analyzer(object):
 
         self.append_log('Loaded')
 
-    def run(self):
+    def run(self, interactive=False):
         self.append_log('Analyzing')
-        self.run_analysis()
+        if interactive:
+            logger.info('Running interactively')
+            import ipdb
+            ipdb.runcall(self.run_analysis)
+        else:
+            self.run_analysis()
         self.append_log('Analyzed')
 
     def save(self, state=None, suite=None):

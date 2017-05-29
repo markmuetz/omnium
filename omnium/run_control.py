@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 from glob import glob
 from collections import OrderedDict
 from logging import getLogger
@@ -15,7 +16,7 @@ logger = getLogger('omnium')
 
 
 class RunControl(object):
-    def __init__(self, run_type, expts, force=False):
+    def __init__(self, run_type, expts, force=False, interactive=False):
         self.cylc_control = os.getenv('CYLC_CONTROL') == 'True'
         self.run_type = run_type
         if self.run_type == 'suite':
@@ -25,6 +26,7 @@ class RunControl(object):
             self.expts = expts
 
         self.force = force
+        self.interactive = interactive
 
         logger.warn('Disabling Python warnings')
         import warnings
@@ -34,11 +36,23 @@ class RunControl(object):
 
     def _read_env(self):
         suite_name = os.getenv('CYLC_SUITE_NAME')
+        suite_base_dir = os.getenv('OMNIUM_BASE_SUITE_DIR')
+        suite_dir = os.path.join(suite_base_dir, suite_name)
+
+        cylc_suite_run_dir = os.getenv('CYLC_SUITE_RUN_DIR')
+        if suite_dir != cylc_suite_run_dir:
+            # TODO: HACKY!
+            omnium_app_conf_path = 'app/omnium/rose-app.conf'
+            src = os.path.join(cylc_suite_run_dir, omnium_app_conf_path)
+            dst = os.path.join(suite_dir, omnium_app_conf_path)
+            shutil.copyfile(src, dst)
+            logger.debug('Copying omnium conf from {}'.format(src))
+            logger.debug('                      to {}'.format(dst))
+
         initial_cycle_point = os.getenv('CYLC_SUITE_INITIAL_CYCLE_POINT')
-        suite_dir = os.getenv('CYLC_SUITE_RUN_DIR')
         production = os.getenv('PRODUCTION') == 'True'
 
-        return suite_name, initial_cycle_point, suite_dir, omnium_analyzers_dir, production
+        return suite_name, initial_cycle_point, suite_dir, production
 
     def setup(self):
         suite = Suite()
@@ -88,7 +102,7 @@ class RunControl(object):
                                                       initial_cycle_point, expt + '_atmos')
 
     def check_setup(self):
-        if not os.path.exists(self.analyzers_dir):
+        if self.analyzers_dir and not os.path.exists(self.analyzers_dir):
             logger.warn('Dir does not exist: {}'.format(self.analyzers_dir))
         for expt in self.expts:
             data_dir = self.atmos_datam_dir[expt]
@@ -180,7 +194,7 @@ class RunControl(object):
             logger.info('No runcontrol for {}'.format(self.run_type))
             return
 
-        self.analysis_classes = suite.analysis_classes
+        self.analysis_classes = self.suite.analysis_classes
 
         for ordered_analysis, enabled_str in sorted(runcontrol.items()):
             analysis = ordered_analysis[3:]
@@ -276,7 +290,7 @@ class RunControl(object):
 
         if not analyzer.already_analyzed() or analyzer.force or self.force:
             analyzer.load()
-            analyzer.run()
+            analyzer.run(self.interactive)
             analyzer.save(self.state, self.suite)
         else:
             logger.info('  Analysis already run')
