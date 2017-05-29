@@ -220,7 +220,7 @@ class RunControl(object):
             if analysis in self.analysis_workflow:
                 raise OmniumError('{} already in analysis workflow'.format(analysis))
 
-            self.analysis_workflow[analysis] = (Analyzer, analyzer_config['data_type'], 
+            self.analysis_workflow[analysis] = (Analyzer, analyzer_config['data_type'],
                                                 analyzer_config, filename_glob, enabled)
 
         logger.debug(self.analysis_workflow.keys())
@@ -228,7 +228,7 @@ class RunControl(object):
     def run_analysis(self, analysis, user_filename_glob=None):
         if not self.analysis_workflow:
             self.gen_analysis_workflow()
-        (Analyzer, data_type, analyzer_config, 
+        (Analyzer, data_type, analyzer_config,
          filename_glob, enabled) = self.analysis_workflow[analysis]
         if user_filename_glob:
             filename_glob = user_filename_glob
@@ -236,7 +236,7 @@ class RunControl(object):
         self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
 
     def run_all(self):
-        for (Analyzer, data_type, analyzer_config, 
+        for (Analyzer, data_type, analyzer_config,
              filename_glob, enabled) in self.analysis_workflow.values():
             if enabled:
                 self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
@@ -257,18 +257,18 @@ class RunControl(object):
 
         if multi_expt:
             # N.B. multi_file == 'False'
-            self._run_analyzer(Analyzer, data_type, analyzer_config, 
+            self._run_analyzer(Analyzer, data_type, analyzer_config,
                                [filename_glob], self.expts, multi_file, multi_expt)
         else:
             for expt in self.expts:
                 filenames = Analyzer.get_files(data_dir[expt], filename_glob)
                 if multi_file:
-                    self._run_analyzer(Analyzer, data_type, analyzer_config, 
+                    self._run_analyzer(Analyzer, data_type, analyzer_config,
                                        filenames, [expt], multi_file, multi_expt)
                 else:
                     for filename in filenames:
-                        self._run_analyzer(Analyzer, data_type, analyzer_config, 
-                                           [filename], [expt], 
+                        self._run_analyzer(Analyzer, data_type, analyzer_config,
+                                           [filename], [expt],
                                            multi_file, multi_expt)
 
     def _run_analyzer(self, Analyzer, data_type, analyzer_config,

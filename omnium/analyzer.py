@@ -23,7 +23,7 @@ class Analyzer(object):
     def get_files(data_dir, filename):
         return sorted(glob(os.path.join(data_dir, filename)))
 
-    def __init__(self, data_type, data_dir, results_dir, 
+    def __init__(self, data_type, data_dir, results_dir,
                  filenames, expts):
 
         if self.multi_file and self.multi_expt:
@@ -165,12 +165,12 @@ class Analyzer(object):
         if not len(cubelist):
             logger.warn('No results to save')
         else:
-	    logger.debug('Saving to {}'.format(cubelist_filename))
-	    #logger.debug('Not using zlib')
-	    # TODO: Make this a setting somewhere.
-	    # Use default compression: complevel 4.
+            logger.debug('Saving to {}'.format(cubelist_filename))
+            # logger.debug('Not using zlib')
+            # TODO: Make this a setting somewhere.
+            # Use default compression: complevel 4.
             iris.save(cubelist, cubelist_filename, zlib=True)
-            #iris.save(cubelist, cubelist_filename)
+            # iris.save(cubelist, cubelist_filename)
 
         self.save_analysis()
         self.append_log('Saved')

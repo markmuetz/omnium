@@ -97,7 +97,7 @@ class FF2NC(Converter):
             logger.warn('{} contains no data'.format(filename))
         else:
             logger.debug('Saving data to:{} (zlib={})'.format(converted_filename, self.zlib))
-	    # Use default compression: complevel 4.
+            # Use default compression: complevel 4.
             iris.save(cubes, converted_filename, zlib=self.zlib)
 
         if self.verify:
