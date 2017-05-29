@@ -9,6 +9,7 @@ from configparser import ConfigParser
 from omnium.converters import CONVERTERS
 from omnium.omnium_errors import OmniumError
 from omnium.suite import Suite
+from omnium.state import State
 
 logger = getLogger('omnium')
 
@@ -35,14 +36,15 @@ class RunControl(object):
         suite_name = os.getenv('CYLC_SUITE_NAME')
         initial_cycle_point = os.getenv('CYLC_SUITE_INITIAL_CYCLE_POINT')
         suite_dir = os.getenv('CYLC_SUITE_RUN_DIR')
+        production = os.getenv('PRODUCTION') == 'True'
 
-        return suite_name, initial_cycle_point, suite_dir, omnium_analyzers_dir
+        return suite_name, initial_cycle_point, suite_dir, omnium_analyzers_dir, production
 
     def setup(self):
         suite = Suite()
         if self.cylc_control:
             # Running through cylc.
-            (suite_name, initial_cycle_point, suite_dir) = self._read_env()
+            (suite_name, initial_cycle_point, suite_dir, production) = self._read_env()
             try:
                 suite.load(suite_dir)
             except OmniumError:
@@ -50,6 +52,7 @@ class RunControl(object):
                 return
         else:
             suite = Suite()
+            production = True
             try:
                 suite.load(os.getcwd())
             except OmniumError:
@@ -58,6 +61,14 @@ class RunControl(object):
 
         self.suite = suite
         suite_name = suite.name
+        state = State()
+
+        if production:
+            logger.debug('running in production mode')
+            if state.git_status != 'clean':
+                raise OmniumError('omnium is not clean, not running')
+            if suite.central_analysis_classes and suite.central_analysis_status != 'clean':
+                raise OmniumError('omnium central analysis is not clean, not running')
 
         work_dir = os.path.join(self.suite.suite_dir, 'work')
         initial_cycle_point_dir = sorted(glob(os.path.join(work_dir, '*')))[0]
