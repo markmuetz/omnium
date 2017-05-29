@@ -81,7 +81,7 @@ class RunControl(object):
             logger.debug('running in production mode')
             if self.state.git_status != 'clean':
                 raise OmniumError('omnium is not clean, not running')
-            if suite.central_analysis_classes and suite.central_analysis_status != 'clean':
+            if suite.central_analyzers_dir and suite.central_analysis_status != 'clean':
                 raise OmniumError('omnium central analysis is not clean, not running')
 
         work_dir = os.path.join(self.suite.suite_dir, 'work')
