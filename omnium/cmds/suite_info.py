@@ -11,7 +11,7 @@ ARGS = []
 
 def main(args):
     suite = Suite()
-    suite.check_in_suite_dir(os.getcwd())
+    suite.load(os.getcwd())
 
     logger.info('Suite: {}'.format(suite.name))
     logger.info('')
@@ -21,5 +21,5 @@ def main(args):
     logger.info('')
     if suite.is_init:
         logger.info('Suite config:')
-        for line in suite.config_lines():
+        for line in suite.suite_config_lines():
             logger.info(line)

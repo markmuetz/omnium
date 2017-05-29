@@ -26,15 +26,11 @@ def main(args):
         state = State()
         suite = Suite()
         try:
-            suite.check_in_suite_dir(os.getcwd())
+            suite.load(os.getcwd())
         except OmniumError:
             print('NOT IN A SUITE')
             print('')
 
-        if suite.is_in_suite:
-            from omnium.analyzers import get_analysis_classes
-            syncher = Syncher(suite)
-            analysis_classes = get_analysis_classes(suite.omnium_analysis_dir)
         import pylab as plt
     # IPython.start_ipython(argv=[])
     # This is better because it allows you to access e.g. args, config.

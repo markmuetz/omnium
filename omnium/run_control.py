@@ -6,7 +6,6 @@ from logging import getLogger
 
 from configparser import ConfigParser
 
-from omnium.analyzers import get_analysis_classes
 from omnium.converters import CONVERTERS
 from omnium.omnium_errors import OmniumError
 from omnium.suite import Suite
@@ -37,13 +36,7 @@ class RunControl(object):
         initial_cycle_point = os.getenv('CYLC_SUITE_INITIAL_CYCLE_POINT')
         suite_dir = os.getenv('CYLC_SUITE_RUN_DIR')
 
-        return suite_name, initial_cycle_point, suite_dir
-
-    def _read_config(self, config_dir, config_filename='rose-app-run.conf'):
-        config = ConfigParser()
-        with open(os.path.join(config_dir, config_filename), 'r') as f:
-            config.read_file(f)
-        return config
+        return suite_name, initial_cycle_point, suite_dir, omnium_analyzers_dir
 
     def setup(self):
         suite = Suite()
@@ -51,14 +44,14 @@ class RunControl(object):
             # Running through cylc.
             (suite_name, initial_cycle_point, suite_dir) = self._read_env()
             try:
-                suite.check_in_suite_dir(suite_dir)
+                suite.load(suite_dir)
             except OmniumError:
                 logger.warn('Not a suite dir: {}'.format(suite_dir))
                 return
         else:
             suite = Suite()
             try:
-                suite.check_in_suite_dir(os.getcwd())
+                suite.load(os.getcwd())
             except OmniumError:
                 logger.warn('Not in suite')
                 return
@@ -70,15 +63,10 @@ class RunControl(object):
         initial_cycle_point_dir = sorted(glob(os.path.join(work_dir, '*')))[0]
         initial_cycle_point = os.path.basename(initial_cycle_point_dir)
         suite_dir = suite.suite_dir
-        self.analyzers_dir = self.suite.omnium_analysis_dir
+        self.analyzers_dir = self.suite.local_analyzers_dir
 
         self.suite_name = suite_name
         self.suite_dir = suite_dir
-
-        # Reading from this dir means I can't change the conf based on the cycle,
-        # Is this a problem?
-        conf_dir = os.path.join(self.suite_dir, 'app/omnium')
-        self.config = self._read_config(conf_dir, 'rose-app.conf')
 
         self.atmos_datam_dir = {}
         self.atmos_dataw_dir = {}
@@ -157,7 +145,7 @@ class RunControl(object):
     def gen_analysis_workflow(self):
         self.analysis_workflow = OrderedDict()
 
-        config = self.config
+        config = self.suite.app_config
         suite_name = self.suite_name
         run_type = self.run_type
         expts = self.expts
@@ -181,12 +169,7 @@ class RunControl(object):
             logger.info('No runcontrol for {}'.format(self.run_type))
             return
 
-        if 'analysis_dir' in config['env']:
-            logger.debug('loading analyzers from: {}'.format(config['env']['analysis_dir']))
-            self.analysis_classes = get_analysis_classes(config['env']['analysis_dir'])
-        else:
-            logger.debug('loading analyzers from: {}'.format(self.analyzers_dir))
-            self.analysis_classes = get_analysis_classes(self.analyzers_dir)
+        self.analysis_classes = suite.analysis_classes
 
         for ordered_analysis, enabled_str in sorted(runcontrol.items()):
             analysis = ordered_analysis[3:]

@@ -27,8 +27,8 @@ class Syncher(object):
                          'suite*rc*', 'log*Z', 'log*.tar.gz']
         if self.suite.is_in_suite:
             if not host:
-                if self.suite.config['settings']['suite_type'] == 'mirror':
-                    remote_config = self.suite.config['remote']
+                if self.suite.suite_config['settings']['suite_type'] == 'mirror':
+                    remote_config = self.suite.suite_config['remote']
                     self.host = remote_config['host']
                     logger.debug('Set host to: {}'.format(self.host))
 
@@ -60,10 +60,10 @@ class Syncher(object):
         "Syncs a suite with files from remote host, must be used within a suite"
         if not self.suite.is_in_suite:
             raise OmniumError('Sync can only be used with a valid suite')
-        if self.suite.config['settings']['suite_type'] != 'mirror':
+        if self.suite.suite_config['settings']['suite_type'] != 'mirror':
             raise OmniumError('Sync can only be used with a suite that is a mirror')
 
-        remote_config = self.suite.config['remote']
+        remote_config = self.suite.suite_config['remote']
         if remote_config['host'] != self.host:
             msg_fmt = 'omnium config host different to requested host: {}, {}'
             logger.warn(msg_fmt.format(remote_config['host'], self.host))

@@ -19,7 +19,7 @@ ARGS = [(['--host'], {'help': 'mmuetz@login.archer.ac.uk', 'default': None}),
 def main(args):
     suite = Suite()
     try:
-        suite.check_in_suite_dir(os.getcwd())
+        suite.load(os.getcwd())
     except OmniumError:
         pass
 
@@ -30,7 +30,7 @@ def main(args):
         if not suite.is_init:
             logger.error('Suite has not been initialized')
             return 1
-        suite_type = suite.config['settings']['suite_type']
+        suite_type = suite.suite_config['settings']['suite_type']
         if not suite_type == 'mirror':
             logger.error('Suite is not a mirror, is: {}'.format(suite_type))
             return 1
@@ -58,7 +58,7 @@ def main(args):
     if args.create:
         syncher.create(suite_name)
         # create <suite>/.omnium/suite.conf etc.
-        suite.check_in_suite_dir(os.path.join(os.getcwd(), suite_name))
+        suite.load(os.path.join(os.getcwd(), suite_name))
         suite.init('mirror', args.host)
     else:
         syncher.sync()
