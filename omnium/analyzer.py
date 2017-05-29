@@ -138,7 +138,7 @@ class Analyzer(object):
         self.run_analysis()
         self.append_log('Analyzed')
 
-    def save(self):
+    def save(self, state=None, suite=None):
         self.append_log('Saving')
 
         cubelist_filename = os.path.join(self.results_dir, self.output_filename)
@@ -148,6 +148,14 @@ class Analyzer(object):
             logger.debug('cube shape: {}'.format(cube.shape))
             cube.attributes['omnium_vn'] = get_version('long')
             cube.attributes['omnium_cube_id'] = cube_id
+
+            if state:
+                cube.attributes['omnium_git_hash'] = state.git_hash
+                cube.attributes['omnium_git_status'] = state.git_status
+            if suite:
+                cube.attributes['analyzers_git_hash'] = suite.central_analysis_hash
+                cube.attributes['analyzers_git_status'] = suite.central_analysis_status
+
         cubelist = iris.cube.CubeList(self.results.values())
         if not len(cubelist):
             logger.warn('No results to save')

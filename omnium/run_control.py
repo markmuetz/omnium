@@ -52,7 +52,7 @@ class RunControl(object):
                 return
         else:
             suite = Suite()
-            production = True
+            production = False
             try:
                 suite.load(os.getcwd())
             except OmniumError:
@@ -61,11 +61,11 @@ class RunControl(object):
 
         self.suite = suite
         suite_name = suite.name
-        state = State()
+        self.state = State()
 
         if production:
             logger.debug('running in production mode')
-            if state.git_status != 'clean':
+            if self.state.git_status != 'clean':
                 raise OmniumError('omnium is not clean, not running')
             if suite.central_analysis_classes and suite.central_analysis_status != 'clean':
                 raise OmniumError('omnium central analysis is not clean, not running')
@@ -277,7 +277,7 @@ class RunControl(object):
         if not analyzer.already_analyzed() or analyzer.force or self.force:
             analyzer.load()
             analyzer.run()
-            analyzer.save()
+            analyzer.save(self.state, self.suite)
         else:
             logger.info('  Analysis already run')
         return analyzer
