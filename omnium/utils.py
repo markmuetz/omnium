@@ -1,5 +1,24 @@
+import os
+import subprocess as sp
+
 import numpy as np
+
 from omnium.omnium_errors import OmniumError
+
+
+def get_git_info(location):
+    cwd = os.getcwd()
+    os.chdir(location)
+    try:
+        git_hash = sp.check_output('git rev-parse HEAD'.split()).strip()
+        if sp.check_output('git status --porcelain'.split()) == '':
+            return git_hash, 'clean'
+        else:
+            return git_hash, 'uncommitted_changes'
+    except sp.CalledProcessError as ex:
+        return None, 'not_git_repo'
+    finally:
+        os.chdir(cwd)
 
 
 def is_power_of_two(num):

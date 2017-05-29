@@ -8,6 +8,7 @@ import sys
 
 from command_parser import parse_commands
 from setup_logging import setup_logger
+from state import State
 import cmds
 
 # Top level args, e.g. omnium -D ...
@@ -46,6 +47,9 @@ def main(argv, import_log_msg=''):
     logger.debug(argv)
     logger.debug(args.cmd_name)
     logger.debug('cylc_control: {}'.format(cylc_control))
+
+    state = State()
+    logger.debug('omnium git_hash, status: {}, {}'.format(state.git_hash, state.git_status))
 
     cmd = omnium_cmds[args.cmd_name]
     if not args.throw_exceptions:

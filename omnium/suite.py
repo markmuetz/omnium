@@ -6,6 +6,7 @@ from configparser import ConfigParser
 
 from omnium.analyzers import get_analysis_classes
 from omnium_errors import OmniumError
+from utils import get_git_info
 
 logger = getLogger('omnium')
 
@@ -68,7 +69,11 @@ class Suite(object):
 
             if self.central_analyzers_dir:
                 logger.debug('loading central analyzers')
+                git_hash, git_status = get_git_info(self.central_analyzers_dir)
+                logger.debug('analyzers git_hash, status: {}, {}'.format(git_hash, git_status))
                 central_analysis_classes = get_analysis_classes(self.central_analyzers_dir)
+                self.central_analysis_hash = git_hash
+                self.central_analysis_status = git_status
                 # Add any analyzers *not already in classes*.
                 for k, v in central_analysis_classes.items():
                     if k not in self.analysis_classes:
