@@ -12,7 +12,7 @@ class Syncher(object):
 
     # 1st --exclude: must come *before* includes or e.g. .omnium/suite.conf will be downloaded.
     # 2nd --exclude: makes sure that only the filetypes asked for are downloaded.
-    cmd_fmt = ("rsync -zar{verbose} --exclude '.omnium/' {progress} {include} "
+    cmd_fmt = ("rsync -zuar{verbose} --exclude '.omnium/' {progress} {include} "
                "--exclude '*' --prune-empty-dirs {host}:{path}/ {dst_suite}")
 
     def __init__(self, suite, host=None, base_path='work/cylc-run', verbose=False):
