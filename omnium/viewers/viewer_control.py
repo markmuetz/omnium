@@ -239,7 +239,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
 
         new_cubes = iris.load(filename)
 
-        # self.stash.rename_unknown_cubes(new_cubes, True)
+        self.stash.rename_unknown_cubes(new_cubes, True)
 
         if stream in self.cubes:
             self.cubes[stream].extend(new_cubes)
