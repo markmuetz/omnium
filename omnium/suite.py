@@ -44,6 +44,7 @@ class Suite(object):
             with open(config_filename, 'r') as f:
                 self.suite_config.read_file(f)
             logger.debug('loaded suite config')
+            self.settings = self.suite_config['settings']
 
         # Check for omnium app.
         if os.path.exists(os.path.join(self.suite_dir, 'app/omnium/rose-app.conf')):
@@ -78,6 +79,7 @@ class Suite(object):
                 for k, v in central_analysis_classes.items():
                     if k not in self.analysis_classes:
                         self.analysis_classes[k] = v
+        self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
 
     def init(self, suite_type, host=None):
         assert suite_type in Suite.suite_types

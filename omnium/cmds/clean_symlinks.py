@@ -1,0 +1,39 @@
+import os
+from logging import getLogger
+
+from omnium.suite import Suite
+
+logger = getLogger('omnium')
+
+ARGS = [(['--dry-run', '-d'], {'help': 'Dry run', 'action': 'store_true'})]
+
+
+def main(args):
+    suite = Suite()
+    try:
+        suite.load(os.getcwd())
+    except OmniumError:
+        pass
+    cwd = os.getcwd()
+    os.chdir(suite.suite_dir)
+
+    total = 0
+    for root, dirs, filenames in os.walk('.'):
+        path = root.split(os.sep)
+        for filename in filenames:
+            full_filename = os.path.join(root, filename)
+            if os.path.islink(full_filename):
+                if os.path.realpath(full_filename) == suite.missing_file_path:
+                    logger.debug('removing link: {}'.format(full_filename))
+                    total += 1
+                    if not args.dry_run:
+                        os.remove(full_filename)
+
+    os.chdir(cwd)
+
+    if args.dry_run:
+        logger.info('Dry run, no links were harmed.')
+        logger.info('Would have removed {} symlinks'.format(total))
+    else:
+        logger.info('Dry run, no links were harmed.')
+        logger.info('Removed {} symlinks'.format(total))

@@ -5,14 +5,19 @@ from logging import getLogger
 logger = getLogger('omnium')
 
 commands = [
+    'clean-symlinks',
     'convert',
+    'file-info',
+    'file-cat',
     'ls-analyzers',
     'run',
     'shell',
     'stash',
     'suite-info',
     'suite-init',
-    'sync-mirror',
+    'sync',
+    'fetch',
+    'send',
     'version',
     'viewer',
 ]
