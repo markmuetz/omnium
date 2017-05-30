@@ -13,6 +13,7 @@ class TwodWindow(DataDisplayWindow):
 
     level_slider_changed = QtCore.pyqtSignal(int)
     level_slider2_changed = QtCore.pyqtSignal(int)
+    level_slider3_changed = QtCore.pyqtSignal(int)
 
     orientations = ['xy', 'xz', 'yz']
     scales = ['image', 'level', 'time', 'level/time']
@@ -42,6 +43,7 @@ class TwodWindow(DataDisplayWindow):
     def __init__(self, parent):
         super(TwodWindow, self).__init__(parent)
         self.level_index2 = 0
+        self.level_index3 = 0
         self.orientation = 'xy'
         self.scale = 'image'
         self.colour_map = 'blue-white-red'
@@ -53,6 +55,7 @@ class TwodWindow(DataDisplayWindow):
         state = super(TwodWindow, self).saveState()
         state['level_index'] = self.level_index
         state['level_index2'] = self.level_index2
+        state['level_index3'] = self.level_index3
         state['orientation'] = self.orientation
         state['scale'] = self.scale
         state['colour_map'] = self.colour_map
@@ -62,6 +65,7 @@ class TwodWindow(DataDisplayWindow):
         super(TwodWindow, self).loadState(state)
         self.level_index = state['level_index']
         self.level_index2 = state['level_index2']
+        self.level_index3 = state['level_index3']
         self.orientation = state['orientation']
         self.scale = state['scale']
         self.colour_map = state['colour_map']
@@ -69,6 +73,7 @@ class TwodWindow(DataDisplayWindow):
 
         self.level_slider_changed.emit(self.level_index)
         self.level_slider2_changed.emit(self.level_index2)
+        self.level_slider3_changed.emit(self.level_index3)
 
     def scaleSymmetry(self):
         self.scaleSymmetrySetting = self.scaleSymmetryAction.isChecked()
@@ -161,8 +166,12 @@ class TwodWindow(DataDisplayWindow):
         self.level_index2 = value
         self.update()
 
+    def setLevelSlider3Value(self, value):
+        self.level_index3 = value
+        self.update()
+
     def setCube(self, cube):
-        assert 3 <= cube.ndim <= 5
+        assert 3 <= cube.ndim <= 6
         self.cube = cube
         if self.cube.ndim >= 4:
             self.level_slider = QtGui.QSlider(QtCore.Qt.Vertical)
@@ -171,12 +180,19 @@ class TwodWindow(DataDisplayWindow):
             self.level_slider.setRange(0, self.cube.shape[1] - 1)
             self.lhs_hsplitter.addWidget(self.level_slider)
 
-        if self.cube.ndim == 5:
+        if self.cube.ndim >= 5:
             self.level_slider2 = QtGui.QSlider(QtCore.Qt.Vertical)
             self.level_slider2_changed.connect(self.level_slider2.setValue)
             self.level_slider2.valueChanged.connect(self.setLevelSlider2Value)
             self.level_slider2.setRange(0, self.cube.shape[2] - 1)
             self.lhs_hsplitter.addWidget(self.level_slider2)
+
+        if self.cube.ndim == 6:
+            self.level_slider3 = QtGui.QSlider(QtCore.Qt.Vertical)
+            self.level_slider3_changed.connect(self.level_slider3.setValue)
+            self.level_slider3.valueChanged.connect(self.setLevelSlider3Value)
+            self.level_slider3.setRange(0, self.cube.shape[2] - 1)
+            self.lhs_hsplitter.addWidget(self.level_slider3)
 
         self.update()
 
@@ -186,11 +202,12 @@ class TwodWindow(DataDisplayWindow):
             self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
         elif self.cube.ndim == 4:
             if self.orientation == 'xy':
-                height = self.cube.coord('level_height').points[self.level_index]
+                #height = self.cube.coord('level_height').points[self.level_index]
                 data = self.cube[self.time_index, self.level_index].data
-                self.setWindowTitle('{0}: {1:.2f}d, z: {2:.2f}m'.format(self.cube.name(),
-                                                                        self.time_days,
-                                                                        height))
+                #self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(),
+                #                                                        self.time_days,
+                #                                                        height))
+                self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
             elif self.orientation == 'xz':
                 y = self.cube.coord('grid_latitude').points[self.level_index]
                 data = self.cube[self.time_index, :, self.level_index].data
@@ -205,9 +222,10 @@ class TwodWindow(DataDisplayWindow):
                                                                         x))
         elif self.cube.ndim == 5:
             data = self.cube[self.time_index, self.level_index, self.level_index2].data
-            self.setWindowTitle('{0}: {1:.2f}d, {2:.2f}m'.format(self.cube.name(),
-                                                                 self.time_days,
-                                                                 height))
+            self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
+        elif self.cube.ndim == 6:
+            data = self.cube[self.time_index, self.level_index, self.level_index2, self.level_index3].data
+            self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
 
         kwargs = {}
 

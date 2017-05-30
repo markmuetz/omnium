@@ -42,8 +42,9 @@ class Stash(OrderedDict):
 
     def rename_unknown_cube(self, cube, force=False):
         if force or cube.name()[:7] == 'unknown':
-            section = cube.attributes['STASH'].section
-            item = cube.attributes['STASH'].item
-            name = self[section][item]
-            logger.info('Renaming {}->{}'.format(cube.name(), name))
-            cube.rename(name)
+            if 'STASH' in cube.attributes:
+                section = cube.attributes['STASH'].section
+                item = cube.attributes['STASH'].item
+                name = self[section][item]
+                logger.info('Renaming {}->{}'.format(cube.name(), name))
+                cube.rename(name)
