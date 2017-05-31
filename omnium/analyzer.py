@@ -78,7 +78,7 @@ class Analyzer(object):
                                                                 time_hours,
                                                                 self.analysis_name)
             elif len(split_filename) <= 2:
-                logger.debug('Analyzing dump')
+                logger.debug('analyzing dump')
                 # It's a dump. Should have a better way of telling though.
                 if self.multi_file:
                     # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
@@ -99,7 +99,7 @@ class Analyzer(object):
 
         # Need to make sure results dir exists before first call to self.append_log.
         if not os.path.exists(self.results_dir):
-            logger.debug('Creating results_dir: {}'.format(self.results_dir))
+            logger.debug('creating results_dir: {}'.format(self.results_dir))
             os.makedirs(self.results_dir)
 
     def set_config(self, config):
@@ -120,7 +120,7 @@ class Analyzer(object):
     def load(self):
         self.append_log('Loading')
         if self.multi_file:
-            logger.debug('Loading {}'.format(self.filenames))
+            logger.debug('loading {}'.format(self.filenames))
             for filename in self.filenames:
                 self.suite.abort_if_missing(filename)
             self.cubes = iris.load(self.filenames)
@@ -128,11 +128,11 @@ class Analyzer(object):
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
                 for expt in self.expts:
-                    logger.debug('Loading {}/{}'.format(expt, self.expt_filename[expt]))
+		    logger.debug('loading expt:{} fn:{}'.format(expt, self.expt_filename[expt]))
                     self.suite.abort_if_missing(self.expt_filename[expt])
                     self.expt_cubes[expt] = iris.load(self.expt_filename[expt])
             else:
-                logger.debug('Loading {}'.format(self.filename))
+                logger.debug('loading {}'.format(self.filename))
                 self.suite.abort_if_missing(self.filename)
                 self.cubes = iris.load(self.filename)
 
@@ -153,7 +153,7 @@ class Analyzer(object):
 
         cubelist_filename = os.path.join(self.results_dir, self.output_filename)
         for cube_id, cube in self.results.items():
-            logger.debug('Saving cube: {}'.format(cube.name()))
+            logger.debug('saving cube: {}'.format(cube.name()))
             logger.debug('omnium_cube_id: {}'.format(cube_id))
             logger.debug('cube shape: {}'.format(cube.shape))
 
@@ -173,7 +173,7 @@ class Analyzer(object):
         if not len(cubelist):
             logger.warn('No results to save')
         else:
-            logger.debug('Saving to {}'.format(cubelist_filename))
+            logger.debug('saving to {}'.format(cubelist_filename))
             # logger.debug('Not using zlib')
             # TODO: Make this a setting somewhere.
             # Use default compression: complevel 4.
