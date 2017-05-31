@@ -10,9 +10,6 @@ ARGS = []
 
 
 def main(args):
-    suite = Suite()
-    suite.load(os.getcwd())
-
     logger.info('Suite: {}'.format(suite.name))
     logger.info('')
     logger.info('Suite info:')

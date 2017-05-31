@@ -10,6 +10,7 @@ from command_parser import parse_commands
 from setup_logging import setup_logger, add_file_logging
 from state import State
 from suite import Suite
+from omnium_errors import OmniumError
 import cmds
 
 # Top level args, e.g. omnium -D ...

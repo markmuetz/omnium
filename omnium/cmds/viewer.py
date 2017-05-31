@@ -5,7 +5,7 @@ ARGS = [(['filenames'], {'nargs': '*'}),
         (['--ignore-prev-settings'], {'action': 'store_true', 'default': False})]
 
 
-def main(args):
+def main(suite, args):
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         from pyqtgraph.Qt import QtCore, QtGui
         from omnium.viewers.viewer_control import ViewerControlWindow

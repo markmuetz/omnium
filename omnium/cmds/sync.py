@@ -12,12 +12,6 @@ ARGS = [(['--remote', '-r'], {'help': 'Remote'}),
         (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'})]
 
 
-def main(args):
-    suite = Suite()
-    try:
-        suite.load(os.getcwd())
-    except OmniumError:
-        pass
-
+def main(suite, args):
     syncher = Syncher(suite, args.remote, args.verbose)
     syncher.sync()

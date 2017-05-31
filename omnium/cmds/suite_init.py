@@ -12,9 +12,6 @@ ARGS = [(['--suite-type', '-t'], {'help': 'type of suite'}),
 
 
 def main(args):
-    suite = Suite()
-    suite.load(os.getcwd())
-
     if args.suite_type not in Suite.suite_types:
         logger.error('--suite-type must be one of: {}'.format(Suite.suite_types))
         return 1

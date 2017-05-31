@@ -6,7 +6,7 @@ ARGS = [(['-l', '--long'], {'help': 'print long version',
                             'action': 'store_true'})]
 
 
-def main(args):
+def main(suite, args):
     if args.long:
         print('Version ' + get_version('long'))
     else:
