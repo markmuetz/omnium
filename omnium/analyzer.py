@@ -23,11 +23,12 @@ class Analyzer(object):
     def get_files(data_dir, filename):
         return sorted(glob(os.path.join(data_dir, filename)))
 
-    def __init__(self, data_type, data_dir, results_dir,
+    def __init__(self, suite, data_type, data_dir, results_dir,
                  filenames, expts):
 
         if self.multi_file and self.multi_expt:
             raise OmniumError('Only one of multi_file, multi_expt can be True')
+        self.suite = suite
         self.data_type = data_type
         self.data_dir = data_dir
         self.results_dir = results_dir
@@ -109,7 +110,7 @@ class Analyzer(object):
         self.force = self._config.getboolean('force', False)
 
     def already_analyzed(self):
-        return os.path.exists(self.logname)
+        return os.path.exists(self.logname) and not self.suite.check_filename_missing(self.logname)
 
     def append_log(self, message):
         logger.debug('{}: {}'.format(self.analysis_name, message))
@@ -120,15 +121,19 @@ class Analyzer(object):
         self.append_log('Loading')
         if self.multi_file:
             logger.debug('Loading {}'.format(self.filenames))
+            for filename in self.filenames:
+                self.suite.abort_if_missing(filename)
             self.cubes = iris.load(self.filenames)
         else:
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
                 for expt in self.expts:
                     logger.debug('Loading {}/{}'.format(expt, self.expt_filename[expt]))
+                    self.suite.abort_if_missing(self.expt_filename[expt])
                     self.expt_cubes[expt] = iris.load(self.expt_filename[expt])
             else:
                 logger.debug('Loading {}'.format(self.filename))
+                self.suite.abort_if_missing(self.filename)
                 self.cubes = iris.load(self.filename)
 
         self.append_log('Loaded')
@@ -151,6 +156,7 @@ class Analyzer(object):
             logger.debug('Saving cube: {}'.format(cube.name()))
             logger.debug('omnium_cube_id: {}'.format(cube_id))
             logger.debug('cube shape: {}'.format(cube.shape))
+
             cube.attributes['omnium_vn'] = get_version('long')
             cube.attributes['omnium_cube_id'] = cube_id
 
@@ -158,8 +164,10 @@ class Analyzer(object):
                 cube.attributes['omnium_git_hash'] = state.git_hash
                 cube.attributes['omnium_git_status'] = state.git_status
             if suite:
-                cube.attributes['analyzers_git_hash'] = suite.central_analysis_hash
-                cube.attributes['analyzers_git_status'] = suite.central_analysis_status
+                cube.attributes['omnium_analyzers_git_hash'] = suite.central_analysis_hash
+                cube.attributes['omnium_analyzers_git_status'] = suite.central_analysis_status
+
+            cube.attributes['omnium_process'] = self.analysis_name
 
         cubelist = iris.cube.CubeList(self.results.values())
         if not len(cubelist):

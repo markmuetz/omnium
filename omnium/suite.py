@@ -31,7 +31,7 @@ class Suite(object):
             suite_dir = os.path.dirname(suite_dir)
             if os.path.dirname(suite_dir) == suite_dir:
                 # at root dir: /
-                raise OmniumError('No rose-suite.info found - not in a suite?')
+                return
         self.is_in_suite = True
         self.suite_dir = suite_dir
         self.name = os.path.basename(suite_dir)
@@ -107,6 +107,13 @@ class Suite(object):
         with open(os.path.join(dotomnium_dir, 'suite.conf'), 'wb') as configfile:
             suite_config.write(configfile)
         self.load(self.suite_dir)
+
+    def abort_if_missing(self, filename):
+        if self.check_filename_missing(filename):
+            raise OmniumError('File missing {}'.format(filename))
+
+    def check_filename_missing(self, filename):
+        return os.path.islink(filename) and os.path.realpath(filename) == self.missing_file_path
 
     def suite_config_lines(self):
         conf_text = io.StringIO()

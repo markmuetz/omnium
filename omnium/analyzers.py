@@ -9,6 +9,7 @@ from logging import getLogger
 
 import omnium
 from omnium.analyzer import Analyzer
+from omnium.omnium_errors import OmniumError
 
 logger = getLogger('omnium')
 
@@ -41,5 +42,8 @@ def get_analysis_classes(cwd=None):
             if inspect.isclass(obj) and issubclass(obj, Analyzer) and not obj == Analyzer:
                 if obj.analysis_name:
                     logger.debug('loading from: {}, {}'.format(cwd, obj.analysis_name))
+                    if obj.analysis_name in analysis_classes:
+                        msg = 'Analysis {} has already been added'.format(obj.analysis_name)
+                        raise OmniumError(msg)
                     analysis_classes[obj.analysis_name] = obj
     return analysis_classes

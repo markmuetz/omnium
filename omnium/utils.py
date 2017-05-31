@@ -31,10 +31,11 @@ def coarse_grain(data, mask):
     assert is_power_of_two(data.shape[0])
 
     nx = data.shape[0]
-    pow = int(np.log2(data.shape[0]))
+    npow = int(np.log2(data.shape[0]))
 
     coarse_data = []
-    for n in 2**np.arange(pow + 1):
+    # Don't go to the grid scale (i.e. don't use npow + 1).
+    for n in 2**np.arange(npow):
         coarse = np.zeros((n, n))
         l = nx / n
         for i in range(n):

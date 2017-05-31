@@ -42,9 +42,8 @@ def main(argv, import_log_msg=''):
     logger = setup_logger(debug, colour, warn_stderr)
 
     suite = Suite()
-    try:
-        suite.load(os.getcwd())
-    except OmniumError:
+    suite.load(os.getcwd())
+    if not suite.is_in_suite:
         logger.debug('Not in a suite')
 
     if suite.is_in_suite:

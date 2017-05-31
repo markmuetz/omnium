@@ -223,6 +223,9 @@ class RunControl(object):
             self.analysis_workflow[analysis] = (Analyzer, analyzer_config['data_type'],
                                                 analyzer_config, filename_glob, enabled)
 
+        for analyzer_name in self.analysis_classes.keys():
+            if analyzer_name not in self.analysis_workflow:
+                logger.warn('Analyzer found but has no config: {}'.format(analyzer_name))
         logger.debug(self.analysis_workflow.keys())
 
     def run_analysis(self, analysis, user_filename_glob=None):
@@ -285,7 +288,7 @@ class RunControl(object):
         else:
             results_dir = data_dir[expts[0]]
 
-        analyzer = Analyzer(data_type, data_dir, results_dir, filenames, expts)
+        analyzer = Analyzer(self.suite, data_type, data_dir, results_dir, filenames, expts)
         analyzer.set_config(analyzer_config)
 
         if not analyzer.already_analyzed() or analyzer.force or self.force:

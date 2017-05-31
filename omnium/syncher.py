@@ -104,8 +104,8 @@ class Syncher(object):
                 continue
 
             if rel_filename[:2] != './':
-                rel_filename = './' + rel_filename
-            if rel_filename not in remote_index:
+                dot_rel_filename = './' + rel_filename
+            if dot_rel_filename not in remote_index:
                 logger.debug('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
                 rel_filenames.remove(rel_filename)
 
