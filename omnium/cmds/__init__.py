@@ -2,7 +2,7 @@ from collections import OrderedDict
 import importlib
 from logging import getLogger
 
-logger = getLogger('omnium')
+logger = getLogger('om.cmds')
 
 commands = [
     'cat-log',

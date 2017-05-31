@@ -10,7 +10,7 @@ import iris
 from omnium.omnium_errors import OmniumError
 from omnium.version import get_version
 
-logger = getLogger('omnium')
+logger = getLogger('om.analyzer')
 
 
 class Analyzer(object):

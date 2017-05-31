@@ -4,7 +4,7 @@ from logging import getLogger
 
 from omnium.suite import Suite
 
-logger = getLogger('omnium')
+logger = getLogger('om.suite_info')
 
 ARGS = []
 

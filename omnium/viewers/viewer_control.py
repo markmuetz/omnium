@@ -11,7 +11,7 @@ from omnium import Stash
 
 import iris
 
-logger = getLogger('omnium')
+logger = getLogger('om.vc_win')
 
 MAP_NAME_TO_CLASS = OrderedDict([
     ('Slice', TwodWindow),

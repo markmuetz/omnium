@@ -12,7 +12,7 @@ from omnium.omnium_errors import OmniumError
 from omnium.suite import Suite
 from omnium.state import State
 
-logger = getLogger('omnium')
+logger = getLogger('om.run_con')
 
 
 class RunControl(object):

@@ -6,7 +6,7 @@ from omnium.omnium_errors import OmniumError
 from omnium.syncher import Syncher
 from omnium.suite import Suite
 
-logger = getLogger('omnium')
+logger = getLogger('om.sync')
 
 ARGS = [(['--remote', '-r'], {'help': 'Remote'}),
         (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'})]

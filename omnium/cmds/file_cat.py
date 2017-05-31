@@ -5,7 +5,7 @@ from logging import getLogger
 from omnium.syncher import Syncher
 from omnium.suite import Suite
 
-logger = getLogger('omnium')
+logger = getLogger('om.file_cat')
 
 ARGS = [(['filename'], {'help': 'Filenames to cat', 'nargs': 1}),
         (['--remote', '-r'], {'help': 'Remote'}),

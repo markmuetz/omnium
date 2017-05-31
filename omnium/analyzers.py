@@ -11,7 +11,7 @@ import omnium
 from omnium.analyzer import Analyzer
 from omnium.omnium_errors import OmniumError
 
-logger = getLogger('omnium')
+logger = getLogger('om.analyzers')
 
 
 def get_analysis_classes(cwd=None):

@@ -52,7 +52,7 @@ class ColourConsoleFormatter(logging.Formatter):
 
 
 def add_file_logging(logging_filename):
-    root_logger = logging.getLogger('omnium')
+    root_logger = logging.getLogger('om')
 
     if getattr(root_logger, 'has_file_logging', False):
         # Stops log being setup for a 2nd time during ipython reload(...)
@@ -70,7 +70,7 @@ def add_file_logging(logging_filename):
 
 def setup_logger(debug=False, colour=True, warn_stderr=False):
     '''Gets a logger. Sets up root logger ('omnium') if nec.'''
-    root_logger = logging.getLogger('omnium')
+    root_logger = logging.getLogger('om')
     root_logger.propagate = False
 
     if getattr(root_logger, 'is_setup', False):

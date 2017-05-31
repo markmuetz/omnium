@@ -9,7 +9,7 @@ from omnium.analyzers import get_analysis_classes
 from omnium_errors import OmniumError
 from utils import get_git_info
 
-logger = getLogger('omnium')
+logger = getLogger('om.suite')
 
 
 class Suite(object):

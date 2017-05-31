@@ -10,7 +10,7 @@ import iris
 from omnium.omnium_errors import OmniumError
 from omnium.utils import get_cube
 
-logger = getLogger('omnium')
+logger = getLogger('om.converters')
 
 
 class Converter(object):

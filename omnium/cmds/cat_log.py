@@ -4,7 +4,7 @@ import os
 import re
 from logging import getLogger
 
-logger = getLogger('omnium')
+logger = getLogger('om.cat_log')
 
 ARGS = [(['--search', '-s'], {'help': 'Regex to search for'}),
         (['--level', '-l'], {'help': 'Logging level'}),

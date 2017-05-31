@@ -5,7 +5,7 @@ from logging import getLogger
 
 from omnium.omnium_errors import OmniumError
 
-logger = getLogger('omnium')
+logger = getLogger('om.syncher')
 
 
 class Syncher(object):

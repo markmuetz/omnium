@@ -3,7 +3,7 @@ import re
 from collections import OrderedDict
 from logging import getLogger
 
-logger = getLogger('omnium')
+logger = getLogger('om.stash')
 
 
 class Stash(OrderedDict):
