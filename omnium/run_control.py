@@ -236,9 +236,11 @@ class RunControl(object):
         self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
 
     def run_all(self):
+        logger.debug('running all analysis')
         for (Analyzer, data_type, analyzer_config,
              filename_glob, enabled) in self.analysis_workflow.values():
             if enabled:
+                logger.debug('analysis {} enabled'.format(Analyzer.analysis_name))
                 self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
 
     def _setup_run_analyzer(self, Analyzer, data_type, analyzer_config, filename_glob):
