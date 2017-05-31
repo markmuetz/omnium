@@ -8,12 +8,7 @@ logger = getLogger('omnium')
 ARGS = [(['--dry-run', '-d'], {'help': 'Dry run', 'action': 'store_true'})]
 
 
-def main(args):
-    suite = Suite()
-    try:
-        suite.load(os.getcwd())
-    except OmniumError:
-        pass
+def main(suite, args):
     cwd = os.getcwd()
     os.chdir(suite.suite_dir)
 

@@ -3,6 +3,7 @@ import io
 from collections import OrderedDict
 from logging import getLogger
 from configparser import ConfigParser
+import socket
 
 from omnium.analyzers import get_analysis_classes
 from omnium_errors import OmniumError
@@ -79,7 +80,13 @@ class Suite(object):
                 for k, v in central_analysis_classes.items():
                     if k not in self.analysis_classes:
                         self.analysis_classes[k] = v
+
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
+        localhost =  self.settings.get('localhost', socket.gethostname())
+        self.logging_filename = os.path.join(self.suite_dir, '.omnium/log/{}.log'.format(localhost))
+
+        if not os.path.exists(os.path.dirname(self.logging_filename)):
+            os.makedirs(os.path.dirname(self.logging_filename))
 
     def init(self, suite_type, host=None):
         assert suite_type in Suite.suite_types

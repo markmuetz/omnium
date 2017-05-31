@@ -12,10 +12,7 @@ ARGS = [(['filenames'], {'help': 'Filenames to fetch', 'nargs': '+'}),
         (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'})]
 
 
-def main(args):
-    suite = Suite()
-    suite.load(os.getcwd())
-
+def main(suite, args):
     syncher = Syncher(suite, args.remote, args.verbose)
 
     filenames = args.filenames

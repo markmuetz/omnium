@@ -51,6 +51,23 @@ class ColourConsoleFormatter(logging.Formatter):
         return result
 
 
+def add_file_logging(logging_filename):
+    root_logger = logging.getLogger('omnium')
+
+    if getattr(root_logger, 'has_file_logging', False):
+        # Stops log being setup for a 2nd time during ipython reload(...)
+        root_logger.debug('Root logger already has file logging')
+
+    else:
+        file_formatter = logging.Formatter('%(asctime)s:%(name)-12s:%(levelname)-8s: %(message)s')
+        fileHandler = logging.FileHandler(logging_filename, mode='a')
+        fileHandler.setFormatter(file_formatter)
+        fileHandler.setLevel(logging.DEBUG)
+
+        root_logger.addHandler(fileHandler)
+        root_logger.has_file_logging = True
+
+
 def setup_logger(debug=False, colour=True, warn_stderr=False):
     '''Gets a logger. Sets up root logger ('omnium') if nec.'''
     root_logger = logging.getLogger('omnium')
@@ -75,7 +92,7 @@ def setup_logger(debug=False, colour=True, warn_stderr=False):
         stdoutStreamHandler.setFormatter(console_formatter)
         stdoutStreamHandler.setLevel(level)
 
-        root_logger.setLevel(level)
+        root_logger.setLevel(logging.DEBUG)
         root_logger.addHandler(stdoutStreamHandler)
 
         if warn_stderr:

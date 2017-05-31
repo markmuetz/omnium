@@ -7,8 +7,9 @@ import os
 import sys
 
 from command_parser import parse_commands
-from setup_logging import setup_logger
+from setup_logging import setup_logger, add_file_logging
 from state import State
+from suite import Suite
 import cmds
 
 # Top level args, e.g. omnium -D ...
@@ -39,6 +40,15 @@ def main(argv, import_log_msg=''):
 
     logger = setup_logger(debug, colour, warn_stderr)
 
+    suite = Suite()
+    try:
+        suite.load(os.getcwd())
+    except OmniumError:
+        logger.debug('Not in a suite')
+
+    if suite.is_in_suite:
+        add_file_logging(suite.logging_filename)
+
     if omnium_dev:
         logger.info('running omnium_dev')
         import omnium
@@ -50,15 +60,14 @@ def main(argv, import_log_msg=''):
 
     state = State()
     logger.debug('omnium git_hash, status: {}, {}'.format(state.git_hash, state.git_status))
-
     cmd = omnium_cmds[args.cmd_name]
     if not args.throw_exceptions:
         logger.debug('Catching all exceptions')
         try:
             # dispatch on arg
-            return cmd.main(args)
+            return cmd.main(suite, args)
         except Exception as e:
-            logger.error('{}'.format(e))
+            logger.exception('{}'.format(e))
             return 1
     else:
-        return cmd.main(args)
+        return cmd.main(suite, args)

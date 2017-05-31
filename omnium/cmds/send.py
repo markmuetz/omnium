@@ -7,7 +7,7 @@ ARGS = [(['filenames'], {'help': 'Filenames to send', 'nargs': '+'}),
         (['--remote', '-r'], {'help': 'Remote'}),
         (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'})]
 
-def main(args):
+def main(suite, args):
     suite = Suite()
     suite.load(os.getcwd())
 

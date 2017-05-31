@@ -5,6 +5,7 @@ from logging import getLogger
 logger = getLogger('omnium')
 
 commands = [
+    'cat-log',
     'clean-symlinks',
     'convert',
     'file-info',

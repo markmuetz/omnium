@@ -13,10 +13,7 @@ ARGS = [(['filenames'], {'help': 'Filenames to fetch', 'nargs': '+'}),
         (['--long', '-l'], {'help': 'Output ls -l', 'action': 'store_true'})]
 
 
-def main(args):
-    suite = Suite()
-    suite.load(os.getcwd())
-
+def main(suite, args):
     syncher = Syncher(suite, args.remote, args.verbose)
 
     filenames = args.filenames

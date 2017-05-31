@@ -7,7 +7,7 @@ ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
         (['--interactive', '-i'], {'help': 'Run interactively', 'action': 'store_true'})]
 
 
-def main(args):
+def main(suite, args):
     from omnium.run_control import RunControl
     run_control = RunControl(args.run_type, args.expts, args.force, args.interactive)
     run_control.gen_analysis_workflow()
