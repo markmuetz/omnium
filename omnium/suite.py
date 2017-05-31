@@ -27,7 +27,7 @@ class Suite(object):
 
     def load(self, cwd):
         suite_dir = cwd
-        while not os.path.exists(os.path.join(suite_dir, 'rose-suite.info')):
+        while not os.path.exists(os.path.join(suite_dir, '.omnium')):
             suite_dir = os.path.dirname(suite_dir)
             if os.path.dirname(suite_dir) == suite_dir:
                 # at root dir: /
@@ -70,43 +70,70 @@ class Suite(object):
                 self.analysis_classes = get_analysis_classes(self.local_analyzers_dir)
 
             if self.central_analyzers_dir:
-                logger.debug('loading central analyzers')
-                git_hash, git_status = get_git_info(self.central_analyzers_dir)
-                logger.debug('analyzers git_hash, status: {}, {}'.format(git_hash, git_status))
-                central_analysis_classes = get_analysis_classes(self.central_analyzers_dir)
-                self.central_analysis_hash = git_hash
-                self.central_analysis_status = git_status
-                # Add any analyzers *not already in classes*.
-                for k, v in central_analysis_classes.items():
-                    if k not in self.analysis_classes:
-                        self.analysis_classes[k] = v
+                if not os.path.exists(self.central_analyzers_dir):
+                    logger.warn('Analyzers dir does not exists: {}'
+                                .format(self.central_analyzers_dir))
+                    logger.warn('Edit "app/omnium/rose-app.conf" to fix this')
+                else:
+                    logger.debug('loading central analyzers')
+                    git_hash, git_status = get_git_info(self.central_analyzers_dir)
+                    logger.debug('analyzers git_hash, status: {}, {}'.format(git_hash, git_status))
+                    central_analysis_classes = get_analysis_classes(self.central_analyzers_dir)
+                    self.central_analysis_hash = git_hash
+                    self.central_analysis_status = git_status
+                    # Add any analyzers *not already in classes*.
+                    for k, v in central_analysis_classes.items():
+                        if k not in self.analysis_classes:
+                            self.analysis_classes[k] = v
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
+        if not os.path.exists(self.missing_file_path):
+            with open(self.missing_file_path, 'w') as f:
+                # Missing files will be symlinked to this.
+                f.write('Missing file, use "omnium fetch" to fetch file')
+
         localhost =  self.settings.get('localhost', socket.gethostname())
-        self.logging_filename = os.path.join(self.suite_dir, '.omnium/log/{}.log'.format(localhost))
+        self.logging_filename = os.path.join(self.suite_dir, 
+                                             '.omnium/log/{}.log'.format(localhost))
 
         if not os.path.exists(os.path.dirname(self.logging_filename)):
             os.makedirs(os.path.dirname(self.logging_filename))
 
-    def init(self, suite_type, host=None):
+    def init(self, suite_name, suite_type, host_name=None, host=None, base_path=None):
         assert suite_type in Suite.suite_types
-        logger.info('Initializing suite, type: {}'.format(suite_type))
-        logger.debug('Creating in {}'.format(self.suite_dir))
-        self.load(self.suite_dir)
+        cwd = os.getcwd()
+        self.load(cwd)
+        if self.is_in_suite:
+            raise OmniumError('Suite already initialized')
+        else:
+            if suite_name:
+                if os.path.exists(suite_name):
+                    raise OmniumError('dir {} already exists'.format(suite_name))
+                logger.debug('creating in {}'.format(os.path.abspath(suite_name)))
+                # TODO: sanitize.
+                os.makedirs(suite_name)
+                os.chdir(suite_name)
+            elif not os.path.exists('rose-suite.info'):
+                raise OmniumInfo('Could not find "rose-suite.info" in current dir')
 
-        suite_config = ConfigParser()
-        suite_config.add_section('settings')
-        suite_config.set('settings', 'suite_type', suite_type)
+        self.suite_config = ConfigParser()
+        self.suite_config.add_section('settings')
+        self.suite_config.set('settings', 'suite_type', suite_type)
+        self.suite_config.set('settings', 'default_remote', host_name)
 
         if suite_type == 'mirror':
-            suite_config.add_section('remote')
-            suite_config.set('remote', 'host', host)
+            remote_sec = 'remote "{}"'.format(host_name)
+            self.suite_config.add_section(remote_sec)
+            self.suite_config.set(remote_sec, 'host', host)
+            self.suite_config.set(remote_sec, 'base_path', base_path)
 
-        dotomnium_dir = os.path.join(self.suite_dir, '.omnium')
+        dotomnium_dir = '.omnium'
         os.makedirs(dotomnium_dir)
         with open(os.path.join(dotomnium_dir, 'suite.conf'), 'wb') as configfile:
-            suite_config.write(configfile)
-        self.load(self.suite_dir)
+            self.suite_config.write(configfile)
+
+        self.load(os.getcwd())
+        os.chdir(cwd)
 
     def abort_if_missing(self, filename):
         if self.check_filename_missing(filename):

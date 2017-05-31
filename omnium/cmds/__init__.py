@@ -14,6 +14,7 @@ commands = [
     'run',
     'shell',
     'stash',
+    'suite-clone',
     'suite-info',
     'suite-init',
     'sync',

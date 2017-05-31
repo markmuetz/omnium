@@ -18,6 +18,11 @@ class Syncher(object):
                     '> .omnium/{remote_name}.file_index.txt {ignore_stderr}')
     info_cmd_fmt = ('ssh {host} "cd {path} && ls -lh {rel_filenames}"')
     cat_cmd_fmt = ('ssh {host} "cd {path} && cat {rel_filename}"')
+    # 1st --exclude: must come *before* includes or e.g. .omnium/suite.conf will be downloaded.
+    # 2nd --exclude: makes sure that only the filetypes asked for are downloaded.
+    clone_cmd_fmt = ("rsync -zuar{verbose} --exclude '.omnium/' {progress} {include} "
+                     "--exclude '*' {host}:{path}/ {dst_suite}")
+
 
     def __init__(self, suite, remote_name=None, verbose=False):
         self.suite = suite
@@ -26,6 +31,7 @@ class Syncher(object):
 
         if not remote_name:
             remote_name = suite.settings['default_remote']
+
         self.remote_name = remote_name
         self.remote = suite.suite_config['remote "{}"'.format(remote_name)]
         self.remote_host = self.remote['host']
@@ -33,6 +39,21 @@ class Syncher(object):
         logger.debug('remote_name: {}'.format(self.remote_name))
         logger.debug('remote_host: {}'.format(self.remote_host))
         logger.debug('remote_base_path: {}'.format(self.remote_base_path))
+
+    def clone(self):
+        includes = ['*/', '*.conf', '*.py', '*.sh', '*.info', 'suite*rc*', 'log*Z', 'log*.tar.gz']
+	include = ' '.join(["--include '{}'".format(inc) for inc in includes])
+
+	path = os.path.join(self.remote_base_path, self.suite.name)
+        cmd = self.clone_cmd_fmt.format(verbose=self.verbose,
+                                        progress=self.progress,
+                                        include=include,
+                                        host=self.remote_host,
+                                        path=path,
+                                        dst_suite=self.suite.name)
+        logger.debug(cmd)
+        sp.call(cmd, shell=True)
+
 
     def _sync(self):
         path = os.path.join(self.remote_base_path, self.suite.name)
@@ -105,6 +126,8 @@ class Syncher(object):
 
             if rel_filename[:2] != './':
                 dot_rel_filename = './' + rel_filename
+            else:
+                dot_rel_filename = rel_filename
             if dot_rel_filename not in remote_index:
                 logger.debug('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
                 rel_filenames.remove(rel_filename)
