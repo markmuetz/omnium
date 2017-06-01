@@ -25,13 +25,14 @@ def is_power_of_two(num):
     return num & (num - 1) == 0
 
 
-def coarse_grain(data, mask):
+def coarse_grain(data, mask, npow=None):
     assert data.ndim == 2
     assert data.shape[0] == data.shape[1]
     assert is_power_of_two(data.shape[0])
 
     nx = data.shape[0]
-    npow = int(np.log2(data.shape[0]))
+    if not npow:
+	npow = int(np.log2(data.shape[0]))
 
     coarse_data = []
     # Don't go to the grid scale (i.e. don't use npow + 1).
