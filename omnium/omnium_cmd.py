@@ -44,7 +44,7 @@ def main(argv, import_log_msg=''):
     suite = Suite()
     suite.load(os.getcwd())
     if not suite.is_in_suite:
-        logger.debug('Not in a suite')
+        logger.debug('Not in a rose suite')
 
     if suite.is_in_suite:
         add_file_logging(suite.logging_filename)
