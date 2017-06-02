@@ -183,7 +183,7 @@ class Syncher(object):
 
         path = os.path.join(self.remote_base_path, self.suite.name)
         cmd = self.info_cmd_fmt.format(path=path,
-                                       rel_filenames=' :'.join(rel_filenames),
+                                       rel_filenames=' '.join(rel_filenames),
                                        host=self.remote_host)
         logger.debug(cmd)
 

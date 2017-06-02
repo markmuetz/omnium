@@ -296,14 +296,14 @@ class RunControl(object):
         analyzer = Analyzer(self.suite, data_type, data_dir, results_dir, filenames, expts)
         analyzer.set_config(analyzer_config)
 
-        if not analyzer.already_analyzed() or analyzer.force or self.force:
+	if self.display_only:
+	    logger.info('  Display results only')
+	    analyzer.load_results()
+	    analyzer.display(self.interactive)
+        elif not analyzer.already_analyzed() or analyzer.force or self.force:
             analyzer.load()
             analyzer.run(self.interactive)
             analyzer.save(self.state, self.suite)
-	    analyzer.display(self.interactive)
-	elif self.display_only:
-	    logger.info('  Display results only')
-	    analyzer.load_results()
 	    analyzer.display(self.interactive)
         else:
             logger.info('  Analysis already run')
