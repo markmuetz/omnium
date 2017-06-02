@@ -13,7 +13,7 @@ class Syncher(object):
 
     index_file_fmt = ".omnium/{}.file_index.txt"
     send_cmd_fmt = ("rsync -Rza{verbose} {rel_filenames} {host}:{path}/")
-    fetch_cmd_fmt = ("rsync -Rza{verbose} {host}:{rel_filenames} .")
+    fetch_cmd_fmt = ("rsync -Rza{verbose} {progress} {host}:{rel_filenames} .")
     sync_cmd_fmt = ('ssh {host} "cd {path} && find . -type f"'
                     '> .omnium/{remote_name}.file_index.txt {ignore_stderr}')
     info_cmd_fmt = ('ssh {host} "cd {path} && ls -lh {rel_filenames}"')
@@ -124,6 +124,7 @@ class Syncher(object):
             if os.path.isdir(rel_filename):
                 continue
 
+            rel_filename = os.path.normpath(rel_filename)
             if rel_filename[:2] != './':
                 dot_rel_filename = './' + rel_filename
             else:
@@ -140,6 +141,7 @@ class Syncher(object):
         # The '.' is important: it tells rsync what to use as its relative path.
         remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
         cmd = self.fetch_cmd_fmt.format(verbose=self.verbose,
+                                        progress=self.progress,
                                         rel_filenames=' :'.join(remote_rel_filenames),
                                         host=self.remote_host)
         logger.debug(cmd)
