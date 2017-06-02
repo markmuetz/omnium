@@ -138,6 +138,17 @@ class Analyzer(object):
 
         self.append_log('Loaded')
 
+    def load_results(self):
+        cubelist_filename = os.path.join(self.results_dir, self.output_filename)
+	if not os.path.exists(cubelist_filename):
+	    raise OmniumError('Results file does not exist')
+	self.append_log('Loading results: {}'.format(cubelist_filename))
+	cubes = iris.load(cubelist_filename)
+	for cube in cubes:
+	    omnium_cube_id = cube.attributes['omnium_cube_id']
+	    self.results[omnium_cube_id] = cube
+	self.append_log('Loaded results')
+
     def run(self, interactive=False):
         self.append_log('Analyzing')
         if interactive:
