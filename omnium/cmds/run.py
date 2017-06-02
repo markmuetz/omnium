@@ -1,6 +1,6 @@
 ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
         (['--run-type', '-d'], {'help': 'cycle/expt/[suite]', 'default': 'suite'}),
-        (['expts'], {'nargs': '*', 'help': 'Experiment to analyze'}),
+        (['expts'], {'nargs': '+', 'help': 'Experiment to analyze'}),
         (['--all'], {'help': 'Run all analysis', 'action': 'store_true'}),
         (['--filenames', '-n'], {'help': 'Filenames to run on'}),
         (['--force', '-f'], {'help': 'Force run', 'action': 'store_true'}),

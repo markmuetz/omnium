@@ -27,7 +27,7 @@ def setup_ipython():
     # Thanks: http://stackoverflow.com/a/14298025/54557
     builtin = sys.modules['__builtin__'].__dict__
 
-    config, process_classes, dag, proc_eng, stash = init()
+    stash = init()
     globals_vars = OrderedDict()
     globals_vars['stash'] = stash
     print('Adding to global namespace:')

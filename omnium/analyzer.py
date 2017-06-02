@@ -180,11 +180,27 @@ class Analyzer(object):
             iris.save(cubelist, cubelist_filename, zlib=True)
             # iris.save(cubelist, cubelist_filename)
 
-        self.save_analysis()
         self.append_log('Saved')
 
-    def save_analysis(self):
-        pass
+    def display(self, interactive=False):
+	if getattr(self, 'display_results'):
+	    self.append_log('Displaying results')
+	    if interactive:
+		logger.info('Running interactively')
+		import ipdb
+		ipdb.runcall(self.display_results)
+	    else:
+		self.display_results()
+	    self.append_log('Displayed')
+	else:
+	    self.append_log('No results display')
+    
+    def figpath(self, name):
+	figdir = os.path.join(self.results_dir, 'figs')
+	if not os.path.exists(figdir):
+	    os.makedirs(figdir)
+	self.append_log('Saving fig to to figs/{}'.format(self.output_filename + name))
+	return os.path.join(figdir, self.output_filename + name)
 
     @abc.abstractmethod
     def run_analysis(self):
