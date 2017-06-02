@@ -147,6 +147,48 @@ class Syncher(object):
         sp.call(cmd, shell=True)
         os.chdir(cwd)
 
+    def file_info(self, rel_filenames):
+        cwd = os.getcwd()
+        os.chdir(self.suite.suite_dir)
+
+        remote_index_file = self.index_file_fmt.format(self.remote_name)
+        if not os.path.exists(remote_index_file):
+            logger.info('No remote index for "{}", syncing'.format(self.remote_name))
+            self.sync()
+
+        with open(remote_index_file, 'r') as f:
+            remote_index = OrderedDict([(l.strip(), 1) for l in f.readlines()])
+
+        for rel_filename in rel_filenames:
+            if os.path.isdir(rel_filename):
+                continue
+
+            if rel_filename[:2] != './':
+                dot_rel_filename = './' + rel_filename
+            else:
+                dot_rel_filename = rel_filename
+            if dot_rel_filename not in remote_index:
+                logger.debug('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
+                rel_filenames.remove(rel_filename)
+
+        if not rel_filenames:
+            logger.warn('No files to fetch')
+            return
+
+        remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
+        # The '.' is important: it tells rsync what to use as its relative path.
+        remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
+
+        path = os.path.join(self.remote_base_path, self.suite.name)
+        cmd = self.info_cmd_fmt.format(path=path,
+                                       rel_filenames=' :'.join(rel_filenames),
+                                       host=self.remote_host)
+        logger.debug(cmd)
+
+        output = sp.check_output(cmd, shell=True)
+        logger.debug(output)
+        return output.split('\n')[:-1]
+
     def file_cat(self, rel_filename):
         # TODO: rm duplication between this, file_info and fetch
         cwd = os.getcwd()
