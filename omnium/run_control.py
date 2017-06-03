@@ -36,9 +36,11 @@ class RunControl(object):
         self.check_setup()
 
     def _read_env(self):
+	logger.debug('Reading env')
         suite_name = os.getenv('CYLC_SUITE_NAME')
         suite_base_dir = os.getenv('OMNIUM_BASE_SUITE_DIR')
         suite_dir = os.path.join(suite_base_dir, suite_name)
+	logger.debug('ENV suite_dir: {}'.format(suite_dir))
 
         cylc_suite_run_dir = os.getenv('CYLC_SUITE_RUN_DIR')
         if suite_dir != cylc_suite_run_dir:
