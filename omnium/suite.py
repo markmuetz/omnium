@@ -28,7 +28,7 @@ class Suite(object):
     def _is_suite_root_dir(self, path):
 	if os.path.exists(os.path.join(path, '.omnium')):
 	    return True
-	elif os.path.exists(os.path.join(path, 'rose-suite.conf')):
+	elif os.path.exists(os.path.join(path, 'rose-suite.info')):
 	    return True
 	return False
 
