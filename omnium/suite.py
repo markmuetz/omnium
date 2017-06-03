@@ -99,8 +99,7 @@ class Suite(object):
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
 	if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
-	    dotomnium_dir = '.omnium'
-	    os.makedirs(dotomnium_dir)
+	    os.makedirs(os.path.join(self.suite_dir, '.omnium'))
 
 	if not os.path.exists(self.missing_file_path):
 	    with open(self.missing_file_path, 'w') as f:

@@ -41,6 +41,7 @@ def main(argv, import_log_msg=''):
 
     logger = setup_logger(debug, colour, warn_stderr)
 
+    logger.debug('start dir: {}'.format(os.getcwd()))
     suite = Suite()
     suite.load(os.getcwd())
     if not suite.is_in_suite:
