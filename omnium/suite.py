@@ -98,7 +98,7 @@ class Suite(object):
                             self.analysis_classes[k] = v
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
-	if not os.path.exists(os.path.join(path, '.omnium')):
+	if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
 	    dotomnium_dir = '.omnium'
 	    os.makedirs(dotomnium_dir)
 
