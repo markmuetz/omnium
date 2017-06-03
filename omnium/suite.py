@@ -106,7 +106,10 @@ class Suite(object):
 		# Missing files will be symlinked to this.
 		f.write('Missing file, use "omnium fetch" to fetch file')
 
-	localhost =  self.settings.get('localhost', socket.gethostname())
+	if hasattr(self, 'settings'):
+	    localhost = self.settings.get('localhost', socket.gethostname())
+	else:
+	    localhost = socket.gethostname()
 	self.logging_filename = os.path.join(self.suite_dir, 
 					     '.omnium/log/{}.log'.format(localhost))
 
