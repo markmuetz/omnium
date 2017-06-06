@@ -70,10 +70,14 @@ class Syncher(object):
 
         logger.info('Creating symlinks')
         for line in lines:
-            if (os.path.exists(os.path.dirname(line)) and not
-                (os.path.exists(line) or os.path.islink(line))):
+            dirname = os.path.dirname(line)
+            if not os.path.exists(dirname):
+                logger.debug('Adding dir: {}'.format(dirname))
+                os.makedirs(dirname)
+            if not (os.path.exists(line) or os.path.islink(line)):
                 logger.debug('Adding symlink: {}'.format(line))
                 os.symlink(self.suite.missing_file_path, line)
+
 
     def sync(self):
         "Syncs a suite with files from remote host, must be used within a suite"
