@@ -194,7 +194,7 @@ class Analyzer(object):
         self.append_log('Saved')
 
     def display(self, interactive=False):
-	if getattr(self, 'display_results'):
+	if hasattr(self, 'display_results'):
 	    self.append_log('Displaying results')
 	    if interactive:
 		logger.info('Running interactively')
