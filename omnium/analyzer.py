@@ -176,8 +176,8 @@ class Analyzer(object):
                 cube.attributes['omnium_git_hash'] = state.git_hash
                 cube.attributes['omnium_git_status'] = state.git_status
             if suite:
-                cube.attributes['omnium_analyzers_git_hash'] = suite.central_analysis_hash
-                cube.attributes['omnium_analyzers_git_status'] = suite.central_analysis_status
+                cube.attributes['omnium_analyzers_git_hash'] = ':'.join(suite.analysis_hash)
+                cube.attributes['omnium_analyzers_git_status'] = ':'.join(suite.analysis_status)
 
             cube.attributes['omnium_process'] = self.analysis_name
 

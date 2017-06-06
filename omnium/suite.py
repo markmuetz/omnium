@@ -21,9 +21,10 @@ class Suite(object):
         self.is_in_suite = False
         self.is_omnium_app = False
         self.is_init = False
-        self.local_analyzers_dir = None
-        self.central_analyzers_dir = None
+        self.analyzer_dirs = []
         self.analysis_classes = OrderedDict()
+        self.analysis_hash = []
+        self.analysis_status = []
 
     def _is_suite_root_dir(self, path):
         if os.path.exists(os.path.join(path, '.omnium')):
@@ -65,37 +66,31 @@ class Suite(object):
             self.app_config = ConfigParser()
             with open(self.app_config_path, 'r') as f:
                 self.app_config.read_file(f)
-            # I have an app config. See if I can find central_analysis_classes:
-            if 'OMNIUM_ANALYZERS_DIR' in self.app_config['env']:
-                self.central_analyzers_dir = self.app_config['env']['OMNIUM_ANALYZERS_DIR']
+            # I have an app config. See if I can find analysis_classes:
             logger.debug('loaded app config')
 
-        # Check for local analyzers.
-        if os.path.exists(os.path.join(self.suite_dir, 'app/omnium/analysis')):
-            self.local_analyzers_dir = os.path.join(self.suite_dir, 'app/omnium/')
+        omnium_analyzers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
+        if omnium_analyzers_paths:
+            self.analyzer_dirs = omnium_analyzers_paths.split(':')
 
-        if self.local_analyzers_dir or self.central_analyzers_dir:
-            # Load these first, these take precedence over centralized ones.
-            if self.local_analyzers_dir:
-                logger.debug('loading local analyzers')
-                self.analysis_classes = get_analysis_classes(self.local_analyzers_dir)
-
-            if self.central_analyzers_dir:
-                if not os.path.exists(self.central_analyzers_dir):
-                    logger.warn('Analyzers dir does not exists: {}'
-                                .format(self.central_analyzers_dir))
-                    logger.warn('Edit "app/omnium/rose-app.conf" to fix this')
+        if self.analyzer_dirs:
+            # First dir takes precedence over second etc.
+            for analyzer_dir in self.analyzer_dirs:
+                if not os.path.exists(analyzer_dir):
+                    logger.warn('Analyzers dir does not exists: {}'.format(analyzer_dir))
                 else:
-                    logger.debug('loading central analyzers')
-                    git_hash, git_status = get_git_info(self.central_analyzers_dir)
+                    logger.debug('loading analyzer dir: {}'.format(analyzer_dir))
+                    git_hash, git_status = get_git_info(analyzer_dir)
                     logger.debug('analyzers git_hash, status: {}, {}'.format(git_hash, git_status))
-                    central_analysis_classes = get_analysis_classes(self.central_analyzers_dir)
-                    self.central_analysis_hash = git_hash
-                    self.central_analysis_status = git_status
+                    analysis_classes = get_analysis_classes(analyzer_dir)
+                    self.analysis_hash.append(git_hash)
+                    self.analysis_status.append(git_status)
                     # Add any analyzers *not already in classes*.
-                    for k, v in central_analysis_classes.items():
+                    for k, v in analysis_classes.items():
                         if k not in self.analysis_classes:
                             self.analysis_classes[k] = v
+                        else:
+                            logger.warn('Multiple analysis classes named: {}'.format(k))
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
         if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
