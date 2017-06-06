@@ -181,14 +181,14 @@ class RunControl(object):
         settings_sec = 'settings_{}'.format(run_type)
         runcontrol_sec = 'runcontrol_{}'.format(run_type)
 
-        settings = config[settings_sec]
+        self.settings = config[settings_sec]
 
-        convert = settings.getboolean('convert', False)
+        convert = self.settings.getboolean('convert', False)
         if convert:
-            converter_name = settings.get('converter', 'ff2nc')
-            overwrite = settings.getboolean('overwrite', False)
-            delete = settings.getboolean('delete', False)
-            filename_globs = settings['filenames'].split(',')
+            converter_name = self.settings.get('converter', 'ff2nc')
+            overwrite = self.settings.getboolean('overwrite', False)
+            delete = self.settings.getboolean('delete', False)
+            filename_globs = self.settings['filenames'].split(',')
             self.convert_all(converter_name, filename_globs, overwrite, delete)
 
         if runcontrol_sec in config:
@@ -295,7 +295,9 @@ class RunControl(object):
         else:
             results_dir = data_dir[expts[0]]
 
-        analyzer = Analyzer(self.suite, data_type, data_dir, results_dir, filenames, expts)
+        expt_group = self.settings.get('expt_group', None)
+        analyzer = Analyzer(self.suite, data_type, data_dir, results_dir, 
+                            filenames, expts, expt_group)
         analyzer.set_config(analyzer_config)
 
 	if self.display_only:

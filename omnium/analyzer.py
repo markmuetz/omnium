@@ -24,7 +24,7 @@ class Analyzer(object):
         return sorted(glob(os.path.join(data_dir, filename)))
 
     def __init__(self, suite, data_type, data_dir, results_dir,
-                 filenames, expts):
+                 filenames, expts, expt_group=None):
 
         if self.multi_file and self.multi_expt:
             raise OmniumError('Only one of multi_file, multi_expt can be True')
@@ -32,6 +32,7 @@ class Analyzer(object):
         self.data_type = data_type
         self.data_dir = data_dir
         self.results_dir = results_dir
+        self.expt_group = expt_group
         if self.multi_expt:
             self.expt = None
             self.expts = expts
@@ -208,10 +209,15 @@ class Analyzer(object):
     
     def figpath(self, name):
 	figdir = os.path.join(self.results_dir, 'figs')
+        if self.expt_group and self.multi_expt:
+            figdir = os.path.join(figdir, self.expt_group)
+
 	if not os.path.exists(figdir):
 	    os.makedirs(figdir)
-	self.append_log('Saving fig to to figs/{}'.format(self.output_filename + name))
-	return os.path.join(figdir, self.output_filename + name)
+        
+        _figpath = os.path.join(figdir, self.output_filename + name)
+        self.append_log('Saving fig to: {}'.format(_figpath))
+	return _figpath
 
     @abc.abstractmethod
     def run_analysis(self):
