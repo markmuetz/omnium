@@ -28,4 +28,4 @@ def main(suite, args):
         syncher.sync()
     syncher.fetch(rel_filenames)
     for filename in args.filenames:
-        logger.info('Fetched {} from "{}"'.format(remote_path))
+        logger.info('Fetched {} from "{}"'.format(filename, syncher.remote_name))
