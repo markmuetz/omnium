@@ -22,7 +22,7 @@ def main(suite, args):
     rel_filenames = [os.path.join(rel_dir, fn) for fn in sorted(filenames)]
     output_lines = syncher.file_info(rel_filenames)
 
-    print('Output from: {} ({}:{})'.format(syncher.remote_name, 
+    print('Output from: {} ({}:{})'.format(syncher.remote_name,
                                            syncher.remote_host,
                                            os.path.join(syncher.remote_base_path, suite.name)))
     print('')

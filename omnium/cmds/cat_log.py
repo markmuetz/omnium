@@ -23,7 +23,7 @@ def main(suite, args):
                 print(line, end='')
         elif args.level:
             split_line = line.split(':')
-            if len(split_line) >=6 and re.search(args.level, split_line[4]):
+            if len(split_line) >= 6 and re.search(args.level, split_line[4]):
                 print(line, end='')
         else:
             print(line, end='')

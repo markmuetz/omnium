@@ -26,16 +26,16 @@ class Suite(object):
         self.analysis_classes = OrderedDict()
 
     def _is_suite_root_dir(self, path):
-	if os.path.exists(os.path.join(path, '.omnium')):
-	    return True
-	elif os.path.exists(os.path.join(path, 'rose-suite.info')):
-	    return True
-	return False
+        if os.path.exists(os.path.join(path, '.omnium')):
+            return True
+        elif os.path.exists(os.path.join(path, 'rose-suite.info')):
+            return True
+        return False
 
     def load(self, cwd):
-	# TODO: MAJOR: logic of this and init need to be tidied up.
-	# Distinguish between .omnium and rose-suite.conf existing.
-	# Set up accordingly etc.
+        # TODO: MAJOR: logic of this and init need to be tidied up.
+        # Distinguish between .omnium and rose-suite.conf existing.
+        # Set up accordingly etc.
         suite_dir = cwd
         while not self._is_suite_root_dir(suite_dir):
             suite_dir = os.path.dirname(suite_dir)
@@ -98,23 +98,23 @@ class Suite(object):
                             self.analysis_classes[k] = v
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
-	if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
-	    os.makedirs(os.path.join(self.suite_dir, '.omnium'))
+        if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
+            os.makedirs(os.path.join(self.suite_dir, '.omnium'))
 
-	if not os.path.exists(self.missing_file_path):
-	    with open(self.missing_file_path, 'w') as f:
-		# Missing files will be symlinked to this.
-		f.write('Missing file, use "omnium fetch" to fetch file')
+        if not os.path.exists(self.missing_file_path):
+            with open(self.missing_file_path, 'w') as f:
+                # Missing files will be symlinked to this.
+                f.write('Missing file, use "omnium fetch" to fetch file')
 
-	if hasattr(self, 'settings'):
-	    localhost = self.settings.get('localhost', socket.gethostname())
-	else:
-	    localhost = socket.gethostname()
-	self.logging_filename = os.path.join(self.suite_dir, 
-					     '.omnium/log/{}.log'.format(localhost))
+        if hasattr(self, 'settings'):
+            localhost = self.settings.get('localhost', socket.gethostname())
+        else:
+            localhost = socket.gethostname()
+        self.logging_filename = os.path.join(self.suite_dir,
+                                             '.omnium/log/{}.log'.format(localhost))
 
-	if not os.path.exists(os.path.dirname(self.logging_filename)):
-	    os.makedirs(os.path.dirname(self.logging_filename))
+        if not os.path.exists(os.path.dirname(self.logging_filename)):
+            os.makedirs(os.path.dirname(self.logging_filename))
 
     def init(self, suite_name, suite_type, host_name=None, host=None, base_path=None):
         assert suite_type in Suite.suite_types

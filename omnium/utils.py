@@ -32,7 +32,7 @@ def coarse_grain(data, mask, npow=None):
 
     nx = data.shape[0]
     if not npow:
-	npow = int(np.log2(data.shape[0]))
+        npow = int(np.log2(data.shape[0]))
 
     coarse_data = []
     # Don't go to the grid scale (i.e. don't use npow + 1).

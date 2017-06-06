@@ -36,11 +36,11 @@ class RunControl(object):
         self.check_setup()
 
     def _read_env(self):
-	logger.debug('Reading env')
+        logger.debug('Reading env')
         suite_name = os.getenv('CYLC_SUITE_NAME')
         suite_base_dir = os.getenv('OMNIUM_BASE_SUITE_DIR')
         suite_dir = os.path.join(suite_base_dir, suite_name)
-	logger.debug('ENV suite_dir: {}'.format(suite_dir))
+        logger.debug('ENV suite_dir: {}'.format(suite_dir))
 
         cylc_suite_run_dir = os.getenv('CYLC_SUITE_RUN_DIR')
         if suite_dir != cylc_suite_run_dir:
@@ -250,7 +250,7 @@ class RunControl(object):
                 self._setup_run_analyzer(Analyzer, data_type, analyzer_config, filename_glob)
 
     def _setup_run_analyzer(self, Analyzer, data_type, analyzer_config, filename_glob):
-	logger.info('Running {}: {}, {}'.format(Analyzer.analysis_name, self.expts, filename_glob))
+        logger.info('Running {}: {}, {}'.format(Analyzer.analysis_name, self.expts, filename_glob))
 
         multi_file = Analyzer.multi_file
         multi_expt = Analyzer.multi_expt
@@ -265,19 +265,22 @@ class RunControl(object):
 
         if multi_expt:
             # N.B. multi_file == 'False'
-	    logger.info('  Running {}: {}: {}'.format(Analyzer.analysis_name, self.expts, filename_glob))
+            logger.info('  Running {}: {}: {}'.format(Analyzer.analysis_name,
+                                                      self.expts, filename_glob))
             self._run_analyzer(Analyzer, data_type, analyzer_config,
                                [filename_glob], self.expts, multi_file, multi_expt)
         else:
             for expt in self.expts:
                 filenames = Analyzer.get_files(data_dir[expt], filename_glob)
                 if multi_file:
-		    logger.info('  Running {}: {}: {}'.format(Analyzer.analysis_name, expt, filename_glob))
+                    logger.info('  Running {}: {}: {}'.format(Analyzer.analysis_name,
+                                                              expt, filename_glob))
                     self._run_analyzer(Analyzer, data_type, analyzer_config,
                                        filenames, [expt], multi_file, multi_expt)
                 else:
                     for filename in filenames:
-			logger.info('  Running {}: {}: {}'.format(Analyzer.analysis_name, expt, filename))
+                        logger.info('  Running {}: {}: {}'.format(Analyzer.analysis_name,
+                                                                  expt, filename))
 
                         self._run_analyzer(Analyzer, data_type, analyzer_config,
                                            [filename], [expt],
@@ -296,19 +299,19 @@ class RunControl(object):
             results_dir = data_dir[expts[0]]
 
         expt_group = self.settings.get('expt_group', None)
-        analyzer = Analyzer(self.suite, data_type, data_dir, results_dir, 
+        analyzer = Analyzer(self.suite, data_type, data_dir, results_dir,
                             filenames, expts, expt_group)
         analyzer.set_config(analyzer_config)
 
-	if self.display_only:
-	    logger.info('  Display results only')
-	    analyzer.load_results()
-	    analyzer.display(self.interactive)
+        if self.display_only:
+            logger.info('  Display results only')
+            analyzer.load_results()
+            analyzer.display(self.interactive)
         elif not analyzer.already_analyzed() or analyzer.force or self.force:
             analyzer.load()
             analyzer.run(self.interactive)
             analyzer.save(self.state, self.suite)
-	    analyzer.display(self.interactive)
+            analyzer.display(self.interactive)
         else:
             logger.info('  Analysis already run')
         return analyzer

@@ -20,11 +20,12 @@ def main(suite, args):
     rel_filenames = []
     rel_dir = os.path.relpath(os.getcwd(), suite.suite_dir)
     rel_filenames = [os.path.join(rel_dir, fn) for fn in sorted(filenames)]
-    logger.debug('fetch from: {} ({}:{})'.format(syncher.remote_name, 
+    remote_path = os.path.join(syncher.remote_base_path, suite.name)
+    logger.debug('fetch from: {} ({}:{})'.format(syncher.remote_name,
                                                  syncher.remote_host,
-                                                 os.path.join(syncher.remote_base_path, suite.name)))
+                                                 remote_path))
     if args.sync:
         syncher.sync()
     syncher.fetch(rel_filenames)
     for filename in args.filenames:
-        logger.info('Fetched {} from "{}"'.format(filename, syncher.remote_name))
+        logger.info('Fetched {} from "{}"'.format(remote_path))

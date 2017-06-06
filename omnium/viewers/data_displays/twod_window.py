@@ -202,9 +202,9 @@ class TwodWindow(DataDisplayWindow):
             self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
         elif self.cube.ndim == 4:
             if self.orientation == 'xy':
-                #height = self.cube.coord('level_height').points[self.level_index]
+                # height = self.cube.coord('level_height').points[self.level_index]
                 data = self.cube[self.time_index, self.level_index].data
-                #self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(),
+                # self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(),
                 #                                                        self.time_days,
                 #                                                        height))
                 self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
@@ -224,7 +224,8 @@ class TwodWindow(DataDisplayWindow):
             data = self.cube[self.time_index, self.level_index, self.level_index2].data
             self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
         elif self.cube.ndim == 6:
-            data = self.cube[self.time_index, self.level_index, self.level_index2, self.level_index3].data
+            data = self.cube[self.time_index,
+                             self.level_index, self.level_index2, self.level_index3].data
             self.setWindowTitle('{0}: {1:.2f}d'.format(self.cube.name(), self.time_days))
 
         kwargs = {}

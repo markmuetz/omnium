@@ -129,7 +129,7 @@ class Analyzer(object):
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
                 for expt in self.expts:
-		    logger.debug('loading expt:{} fn:{}'.format(expt, self.expt_filename[expt]))
+                    logger.debug('loading expt:{} fn:{}'.format(expt, self.expt_filename[expt]))
                     self.suite.abort_if_missing(self.expt_filename[expt])
                     self.expt_cubes[expt] = iris.load(self.expt_filename[expt])
             else:
@@ -141,14 +141,14 @@ class Analyzer(object):
 
     def load_results(self):
         cubelist_filename = os.path.join(self.results_dir, self.output_filename)
-	if not os.path.exists(cubelist_filename):
-	    raise OmniumError('Results file does not exist')
-	self.append_log('Loading results: {}'.format(cubelist_filename))
-	cubes = iris.load(cubelist_filename)
-	for cube in cubes:
-	    omnium_cube_id = cube.attributes['omnium_cube_id']
-	    self.results[omnium_cube_id] = cube
-	self.append_log('Loaded results')
+        if not os.path.exists(cubelist_filename):
+            raise OmniumError('Results file does not exist')
+        self.append_log('Loading results: {}'.format(cubelist_filename))
+        cubes = iris.load(cubelist_filename)
+        for cube in cubes:
+            omnium_cube_id = cube.attributes['omnium_cube_id']
+            self.results[omnium_cube_id] = cube
+        self.append_log('Loaded results')
 
     def run(self, interactive=False):
         self.append_log('Analyzing')
@@ -195,29 +195,29 @@ class Analyzer(object):
         self.append_log('Saved')
 
     def display(self, interactive=False):
-	if hasattr(self, 'display_results'):
-	    self.append_log('Displaying results')
-	    if interactive:
-		logger.info('Running interactively')
-		import ipdb
-		ipdb.runcall(self.display_results)
-	    else:
-		self.display_results()
-	    self.append_log('Displayed')
-	else:
-	    self.append_log('No results display')
-    
+        if hasattr(self, 'display_results'):
+            self.append_log('Displaying results')
+            if interactive:
+                logger.info('Running interactively')
+                import ipdb
+                ipdb.runcall(self.display_results)
+            else:
+                self.display_results()
+            self.append_log('Displayed')
+        else:
+            self.append_log('No results display')
+
     def figpath(self, name):
-	figdir = os.path.join(self.results_dir, 'figs')
+        figdir = os.path.join(self.results_dir, 'figs')
         if self.expt_group and self.multi_expt:
             figdir = os.path.join(figdir, self.expt_group)
 
-	if not os.path.exists(figdir):
-	    os.makedirs(figdir)
-        
+        if not os.path.exists(figdir):
+            os.makedirs(figdir)
+
         _figpath = os.path.join(figdir, self.output_filename + name)
         self.append_log('Saving fig to: {}'.format(_figpath))
-	return _figpath
+        return _figpath
 
     @abc.abstractmethod
     def run_analysis(self):

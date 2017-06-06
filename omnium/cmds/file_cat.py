@@ -20,7 +20,7 @@ def main(suite, args):
     rel_filename = os.path.join(rel_dir, filename)
     output = syncher.file_cat(rel_filename)
 
-    print('Output from: {} ({}:{})'.format(syncher.remote_name, 
+    print('Output from: {} ({}:{})'.format(syncher.remote_name,
                                            syncher.remote_host,
                                            os.path.join(syncher.remote_base_path, suite.name)))
     print('')

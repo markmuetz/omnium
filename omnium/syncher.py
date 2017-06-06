@@ -23,7 +23,6 @@ class Syncher(object):
     clone_cmd_fmt = ("rsync -zuar{verbose} --exclude '.omnium/' {progress} {include} "
                      "--exclude '*' {host}:{path}/ {dst_suite}")
 
-
     def __init__(self, suite, remote_name=None, verbose=False):
         self.suite = suite
         self.verbose = 'v' if verbose else ''
@@ -42,9 +41,9 @@ class Syncher(object):
 
     def clone(self):
         includes = ['*/', '*.conf', '*.py', '*.sh', '*.info', 'suite*rc*', 'log*Z', 'log*.tar.gz']
-	include = ' '.join(["--include '{}'".format(inc) for inc in includes])
+        include = ' '.join(["--include '{}'".format(inc) for inc in includes])
 
-	path = os.path.join(self.remote_base_path, self.suite.name)
+        path = os.path.join(self.remote_base_path, self.suite.name)
         cmd = self.clone_cmd_fmt.format(verbose=self.verbose,
                                         progress=self.progress,
                                         include=include,
@@ -53,7 +52,6 @@ class Syncher(object):
                                         dst_suite=self.suite.name)
         logger.debug(cmd)
         sp.call(cmd, shell=True)
-
 
     def _sync(self):
         path = os.path.join(self.remote_base_path, self.suite.name)
@@ -77,7 +75,6 @@ class Syncher(object):
             if not (os.path.exists(line) or os.path.islink(line)):
                 logger.debug('Adding symlink: {}'.format(line))
                 os.symlink(self.suite.missing_file_path, line)
-
 
     def sync(self):
         "Syncs a suite with files from remote host, must be used within a suite"
@@ -219,11 +216,11 @@ class Syncher(object):
 
         remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
         # The '.' is important: it tells rsync what to use as its relative path.
-        #remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
+        # remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
         path = os.path.join(self.remote_base_path, self.suite.name)
         cmd = self.cat_cmd_fmt.format(path=path,
-                                       rel_filename=rel_filename,
-                                       host=self.remote_host)
+                                      rel_filename=rel_filename,
+                                      host=self.remote_host)
         logger.debug(cmd)
 
         output = sp.check_output(cmd, shell=True)
