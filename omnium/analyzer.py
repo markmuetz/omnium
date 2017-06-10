@@ -62,7 +62,8 @@ class Analyzer(object):
         logger.debug('multi_expt: {}'.format(self.multi_expt))
 
         split_filename = filename.split('.')
-        runid = split_filename[0]
+        atmos = split_filename[0]
+        runid = split_filename[1]
 
         logger.debug('filename: {}'.format(filename))
         logger.debug('split_filename: {}'.format(split_filename))
@@ -73,9 +74,9 @@ class Analyzer(object):
                 if self.multi_file:
                     # TODO: v hacky nipping off last 3 chars.
                     # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
-                    self.output_filename = '{}.{}.nc'.format(runid, self.analysis_name)
+                    self.output_filename = '{}.{}.nc'.format(atmos, self.analysis_name)
                 else:
-                    self.output_filename = '{}.{}.{}.nc'.format(runid,
+                    self.output_filename = '{}.{}.{}.nc'.format(atmos,
                                                                 time_hours,
                                                                 self.analysis_name)
             elif len(split_filename) <= 2:
@@ -90,8 +91,9 @@ class Analyzer(object):
                     self.output_filename = '{}.{}.nc'.format(split_filename[0], self.analysis_name)
         elif data_type == 'dataw':
             instream = split_filename[1]
-            self.output_filename = '{}.{}.nc'.format(runid, self.analysis_name)
+            self.output_filename = '{}.{}.nc'.format(atmos, self.analysis_name)
 
+	self.runid = runid
         logger.debug('output_filename: {}'.format(self.output_filename))
         self.results = OrderedDict()
         self.force = False
@@ -215,7 +217,11 @@ class Analyzer(object):
         if not os.path.exists(figdir):
             os.makedirs(figdir)
 
-        _figpath = os.path.join(figdir, self.analysis_name + '.' + name)
+	if self.multi_expt:
+	    filename = 'atmos.{}.{}'.format(self.analysis_name, name)
+	else:
+	    filename = 'atmos.{}.{}.{}'.format(self.runid, self.analysis_name, name)
+	_figpath = os.path.join(figdir, filename)
         self.append_log('Saving fig to: {}'.format(_figpath))
         return _figpath
 
