@@ -1,7 +1,7 @@
 """Entry point into running omnium from command line
 
 all commands are run as:
-    omnium <cmd> <cmd_opts>
+    omnium [omnium_opts] <cmd> [cmd_opts] [cmd_args]
 """
 import os
 import sys
@@ -16,11 +16,12 @@ import cmds
 # Top level args, e.g. omnium -D ...
 ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False}),
         (['--DEBUG', '-D'], {'action': 'store_true', 'default': False}),
+        (['--suite-dir', '-s'], {'help': 'Suite directory'}),
         (['--bw-logs', '-b'], {'action': 'store_true', 'default': False})]
 
 
 def main(argv, import_log_msg=''):
-    "Parse commands/env, setup logging, dispatch to cmd/<cmd>.py"
+    "Parse commands/env, setup logging, dispatch to cmds/<cmd>.py"
     omnium_cmds, args = parse_commands('omnium', ARGS, cmds, argv[1:])
 
     env_debug = os.getenv('OMNIUM_DEBUG') == 'True'
@@ -41,13 +42,22 @@ def main(argv, import_log_msg=''):
 
     logger = setup_logger(debug, colour, warn_stderr)
 
-    logger.debug('start dir: {}'.format(os.getcwd()))
-    suite = Suite()
-    suite.load(os.getcwd())
-    if not suite.is_in_suite:
-        logger.debug('Not in a rose suite')
+    if args.suite_dir:
+        logger.debug('orig dir: {}'.format(os.getcwd()))
+        os.chdir(args.suite_dir)
+    elif cylc_control:
+        suite_base_dir = os.getenv('OMNIUM_BASE_SUITE_DIR')
+        cylc_suite_name = os.getenv('CYLC_SUITE_NAME')
 
-    if suite.is_in_suite:
+        logger.debug('orig dir: {}'.format(os.getcwd()))
+        suite_dir = os.path.join(suite_base_dir, cylc_suite_name)
+        os.chdir(suite_dir)
+
+    logger.debug('start dir: {}'.format(os.getcwd()))
+    suite = Suite(os.getcwd(), cylc_control)
+    if not suite.is_in_suite:
+        logger.warn('Not in a rose suite')
+    else:
         add_file_logging(suite.logging_filename)
 
     if omnium_dev:

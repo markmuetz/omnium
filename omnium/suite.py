@@ -1,5 +1,6 @@
 import os
 import io
+import shutil
 from collections import OrderedDict
 from logging import getLogger
 from configparser import ConfigParser
@@ -15,16 +16,32 @@ logger = getLogger('om.suite')
 class Suite(object):
     suite_types = ['runcontrol', 'run', 'archive', 'mirror']
 
-    def __init__(self):
+    def __init__(self, cwd, cylc_control=False):
+        self.cwd = cwd
+        self.cylc_control = cylc_control
         self.name = None
         self.suite_dir = None
         self.is_in_suite = False
         self.is_omnium_app = False
         self.is_init = False
+        self.suite_config = None
         self.analyzer_dirs = []
         self.analysis_classes = OrderedDict()
         self.analysis_hash = []
         self.analysis_status = []
+
+        self.load(cwd)
+
+    def __repr__(self):
+        return 'Suite("{}")'.format(self.suite_dir)
+
+    def __str__(self):
+        lines = [repr(self), '', 'Suite info:']
+        lines.extend(['  ' + l for l in self.info_lines()])
+        if self.suite_config:
+            lines.extend(['', 'Suite config:'])
+            lines.extend(['  ' + l for l in self.suite_config_lines()])
+        return '\n'.join(lines)
 
     def _is_suite_root_dir(self, path):
         if os.path.exists(os.path.join(path, '.omnium')):
@@ -58,6 +75,18 @@ class Suite(object):
                 self.suite_config.read_file(f)
             logger.debug('loaded suite config')
             self.settings = self.suite_config['settings']
+
+        if self.cylc_control:
+            cylc_suite_run_dir = os.getenv('CYLC_SUITE_RUN_DIR')
+            if suite_dir != cylc_suite_run_dir:
+                # Being run through cylc, but *not in* the 
+                # TODO: HACKY!
+                omnium_app_conf_path = 'app/omnium/rose-app.conf'
+                src = os.path.join(cylc_suite_run_dir, omnium_app_conf_path)
+                dst = os.path.join(suite_dir, omnium_app_conf_path)
+                logger.debug('Copying omnium conf from {}'.format(src))
+                logger.debug('                      to {}'.format(dst))
+                shutil.copyfile(src, dst)
 
         # Check for omnium app.
         if os.path.exists(os.path.join(self.suite_dir, 'app/omnium/rose-app.conf')):

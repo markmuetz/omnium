@@ -14,6 +14,9 @@ class State(object):
         self.git_hash, self.git_status = get_git_info(self.location)
         self.conda_env = self._get_conda_env()
 
+    def __repr__(self):
+        return 'State <{}>, <{}>'.format(self.git_hash, self.git_status)
+
     def _get_location(self):
         return os.path.dirname(os.path.realpath(__file__))
 

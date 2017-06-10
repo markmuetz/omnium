@@ -1,23 +1,21 @@
 import os
 import sys
-import shutil
 from glob import glob
 from collections import OrderedDict
 from logging import getLogger
 
-from configparser import ConfigParser
-
 from omnium.converters import CONVERTERS
 from omnium.omnium_errors import OmniumError
-from omnium.suite import Suite
-from omnium.state import State
 
-logger = getLogger('om.run_con')
+logger = getLogger('om.run_ctrl')
 
 
 class RunControl(object):
-    def __init__(self, run_type, expts, force=False, display_only=False, interactive=False):
-        self.cylc_control = os.getenv('CYLC_CONTROL') == 'True'
+    def __init__(self, suite, run_type, expts, production=False,
+                 force=False, display_only=False, interactive=False):
+        self.suite = suite
+        self.production = production
+
         self.run_type = run_type
         if self.run_type == 'suite':
             self.expts = expts
@@ -32,55 +30,18 @@ class RunControl(object):
         logger.warn('Disabling Python warnings')
         import warnings
         warnings.filterwarnings("ignore")
+
         self.setup()
         self.check_setup()
 
-    def _read_env(self):
-        logger.debug('Reading env')
-        suite_name = os.getenv('CYLC_SUITE_NAME')
-        suite_base_dir = os.getenv('OMNIUM_BASE_SUITE_DIR')
-        suite_dir = os.path.join(suite_base_dir, suite_name)
-        logger.debug('ENV suite_dir: {}'.format(suite_dir))
-
-        cylc_suite_run_dir = os.getenv('CYLC_SUITE_RUN_DIR')
-        if suite_dir != cylc_suite_run_dir:
-            # TODO: HACKY!
-            omnium_app_conf_path = 'app/omnium/rose-app.conf'
-            src = os.path.join(cylc_suite_run_dir, omnium_app_conf_path)
-            dst = os.path.join(suite_dir, omnium_app_conf_path)
-            shutil.copyfile(src, dst)
-            logger.debug('Copying omnium conf from {}'.format(src))
-            logger.debug('                      to {}'.format(dst))
-
-        initial_cycle_point = os.getenv('CYLC_SUITE_INITIAL_CYCLE_POINT')
-        production = os.getenv('PRODUCTION') == 'True'
-
-        return suite_name, initial_cycle_point, suite_dir, production
+    def __repr__(self):
+        return 'RunControl({}, "{}", "{}")'.format(repr(self.suite), self.run_type, self.expts)
 
     def setup(self):
-        suite = Suite()
-        if self.cylc_control:
-            # Running through cylc.
-            (suite_name, initial_cycle_point, suite_dir, production) = self._read_env()
-            try:
-                suite.load(suite_dir)
-            except OmniumError:
-                logger.warn('Not a suite dir: {}'.format(suite_dir))
-                return
-        else:
-            suite = Suite()
-            production = False
-            try:
-                suite.load(os.getcwd())
-            except OmniumError:
-                logger.warn('Not in suite')
-                return
-
-        self.suite = suite
+        suite = self.suite
         suite_name = suite.name
-        self.state = State()
 
-        if production:
+        if self.production:
             logger.debug('running in production mode')
             if self.state.git_status != 'clean':
                 raise OmniumError('omnium is not clean, not running')
@@ -113,7 +74,7 @@ class RunControl(object):
                 logger.warn('Dir does not exist: {}'.format(data_dir))
 
     def print_setup(self):
-        for attr in ['cylc_control', 'run_type', 'expts', 'suite_name',
+        for attr in ['run_type', 'expts', 'suite_name',
                      'atmos_datam_dir', 'atmos_dataw_dir']:
             print('{}: {}'.format(attr, getattr(self, attr)))
 
