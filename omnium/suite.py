@@ -76,8 +76,11 @@ class Suite(object):
             logger.debug('loaded suite config')
             self.settings = self.suite_config['settings']
 
-        if self.cylc_control:
+        # TODO: Delete or reinstate.
+        if False and self.cylc_control:
             cylc_suite_run_dir = os.getenv('CYLC_SUITE_RUN_DIR')
+            # Problem can arise if different name used for same path.
+            # e.g. /fs2 or /work ...
             if suite_dir != cylc_suite_run_dir:
                 # Being run through cylc, but *not in* the 
                 # TODO: HACKY!
