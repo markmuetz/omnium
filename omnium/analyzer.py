@@ -215,7 +215,7 @@ class Analyzer(object):
         if not os.path.exists(figdir):
             os.makedirs(figdir)
 
-        _figpath = os.path.join(figdir, self.output_filename + name)
+        _figpath = os.path.join(figdir, self.analysis_name + '.' + name)
         self.append_log('Saving fig to: {}'.format(_figpath))
         return _figpath
 

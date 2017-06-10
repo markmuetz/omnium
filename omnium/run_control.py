@@ -92,8 +92,6 @@ class RunControl(object):
         initial_cycle_point_dir = sorted(glob(os.path.join(work_dir, '*')))[0]
         initial_cycle_point = os.path.basename(initial_cycle_point_dir)
         suite_dir = suite.suite_dir
-        self.analyzers_dir = self.suite.local_analyzers_dir
-
         self.suite_name = suite_name
         self.suite_dir = suite_dir
 
@@ -106,8 +104,6 @@ class RunControl(object):
                                                       initial_cycle_point, expt + '_atmos')
 
     def check_setup(self):
-        if self.analyzers_dir and not os.path.exists(self.analyzers_dir):
-            logger.warn('Dir does not exist: {}'.format(self.analyzers_dir))
         for expt in self.expts:
             data_dir = self.atmos_datam_dir[expt]
             if not os.path.exists(data_dir):
@@ -117,7 +113,7 @@ class RunControl(object):
                 logger.warn('Dir does not exist: {}'.format(data_dir))
 
     def print_setup(self):
-        for attr in ['cylc_control', 'run_type', 'expts', 'suite_name', 'analyzers_dir',
+        for attr in ['cylc_control', 'run_type', 'expts', 'suite_name',
                      'atmos_datam_dir', 'atmos_dataw_dir']:
             print('{}: {}'.format(attr, getattr(self, attr)))
 
