@@ -6,6 +6,7 @@ from logging import getLogger
 
 from omnium.converters import CONVERTERS
 from omnium.omnium_errors import OmniumError
+from omnium.state import State
 
 logger = getLogger('om.run_ctrl')
 
@@ -30,16 +31,16 @@ class RunControl(object):
         logger.warn('Disabling Python warnings')
         import warnings
         warnings.filterwarnings("ignore")
+        self.state = State()
 
         self.setup()
         self.check_setup()
 
     def __repr__(self):
-        return 'RunControl({}, "{}", "{}")'.format(repr(self.suite), self.run_type, self.expts)
+        return 'RunControl({}, "{}", {})'.format(repr(self.suite), self.run_type, self.expts)
 
     def setup(self):
         suite = self.suite
-        suite_name = suite.name
 
         if self.production:
             logger.debug('running in production mode')
@@ -53,8 +54,6 @@ class RunControl(object):
         initial_cycle_point_dir = sorted(glob(os.path.join(work_dir, '*')))[0]
         initial_cycle_point = os.path.basename(initial_cycle_point_dir)
         suite_dir = suite.suite_dir
-        self.suite_name = suite_name
-        self.suite_dir = suite_dir
 
         self.atmos_datam_dir = {}
         self.atmos_dataw_dir = {}
@@ -74,8 +73,7 @@ class RunControl(object):
                 logger.warn('Dir does not exist: {}'.format(data_dir))
 
     def print_setup(self):
-        for attr in ['run_type', 'expts', 'suite_name',
-                     'atmos_datam_dir', 'atmos_dataw_dir']:
+        for attr in ['run_type', 'expts', 'atmos_datam_dir', 'atmos_dataw_dir']:
             print('{}: {}'.format(attr, getattr(self, attr)))
 
     def run(self):
@@ -132,7 +130,6 @@ class RunControl(object):
         self.analysis_workflow = OrderedDict()
 
         config = self.suite.app_config
-        suite_name = self.suite_name
         run_type = self.run_type
         expts = self.expts
 
