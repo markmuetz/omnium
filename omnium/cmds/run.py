@@ -1,3 +1,5 @@
+import os
+
 ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
         (['--run-type', '-t'], {'help': 'cycle/expt/[suite]', 'default': 'suite'}),
         (['expts'], {'nargs': '+', 'help': 'Experiment to analyze'}),
