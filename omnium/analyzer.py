@@ -93,7 +93,7 @@ class Analyzer(object):
             instream = split_filename[1]
             self.output_filename = '{}.{}.nc'.format(atmos, self.analysis_name)
 
-	self.runid = runid
+        self.runid = runid
         logger.debug('output_filename: {}'.format(self.output_filename))
         self.results = OrderedDict()
         self.force = False
@@ -217,11 +217,11 @@ class Analyzer(object):
         if not os.path.exists(figdir):
             os.makedirs(figdir)
 
-	if self.multi_expt:
-	    filename = 'atmos.{}.{}'.format(self.analysis_name, name)
-	else:
-	    filename = 'atmos.{}.{}.{}'.format(self.runid, self.analysis_name, name)
-	_figpath = os.path.join(figdir, filename)
+        if self.multi_expt:
+            filename = 'atmos.{}.{}'.format(self.analysis_name, name)
+        else:
+            filename = 'atmos.{}.{}.{}'.format(self.runid, self.analysis_name, name)
+        _figpath = os.path.join(figdir, filename)
         self.append_log('Saving fig to: {}'.format(_figpath))
         return _figpath
 
