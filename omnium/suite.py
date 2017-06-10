@@ -82,7 +82,7 @@ class Suite(object):
             # Problem can arise if different name used for same path.
             # e.g. /fs2 or /work ...
             if suite_dir != cylc_suite_run_dir:
-                # Being run through cylc, but *not in* the 
+                # Being run through cylc, but *not in* the
                 # TODO: HACKY!
                 omnium_app_conf_path = 'app/omnium/rose-app.conf'
                 src = os.path.join(cylc_suite_run_dir, omnium_app_conf_path)
