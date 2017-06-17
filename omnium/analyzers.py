@@ -28,6 +28,8 @@ def get_analysis_classes(cwd=None):
     # Load the modules.
     if os.path.exists(local_python_path):
         for filename in sorted(glob(os.path.join(local_python_path, '*.py'))):
+            if os.path.basename(filename) in ['__init__.py']:
+                continue
             module_name = os.path.splitext(os.path.basename(filename))[0]
             module = imp.load_source(module_name, filename)
             modules.append(module)

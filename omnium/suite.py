@@ -1,4 +1,5 @@
 import os
+import sys
 import io
 import shutil
 from collections import OrderedDict
@@ -112,6 +113,8 @@ class Suite(object):
                     logger.warn('Analyzers dir does not exists: {}'.format(analyzer_dir))
                 else:
                     logger.debug('loading analyzer dir: {}'.format(analyzer_dir))
+                    sys.path.append(analyzer_dir)
+
                     git_hash, git_status = get_git_info(analyzer_dir)
                     logger.debug('analyzers git_hash, status: {}, {}'.format(git_hash, git_status))
                     analysis_classes = get_analysis_classes(analyzer_dir)
