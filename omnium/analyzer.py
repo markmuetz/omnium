@@ -209,6 +209,16 @@ class Analyzer(object):
         else:
             self.append_log('No results display')
 
+    def save_text(self, name, text):
+        filepath = self.figpath(name)
+        logger.debug('Saving text to: {}'.format(filepath))
+        for line in text.split('\n'):
+            logger.debug(line)
+
+        filepath = self.figpath(name)
+        with open(filepath, 'w') as f:
+            f.write(text)
+
     def figpath(self, name):
         figdir = os.path.join(self.results_dir, 'figs')
         if self.expt_group and self.multi_expt:
