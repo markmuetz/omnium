@@ -3,6 +3,8 @@ import subprocess as sp
 
 import numpy as np
 
+import iris
+
 from omnium.omnium_errors import OmniumError
 
 
@@ -110,3 +112,15 @@ def get_cube(cubes, section, item):
         if stash.section == section and stash.item == item:
             return cube
     raise OmniumError('Cube ({}, {}) not found'.format(section, item))
+
+
+def get_cubes(cubes, section, item):
+    ret_cubes = []
+    for cube in cubes:
+        stash = cube.attributes['STASH']
+        if stash.section == section and stash.item == item:
+            ret_cubes.append(cube)
+    if ret_cubes:
+        return iris.cube.CubeList(ret_cubes)
+    else:
+        raise OmniumError('No cubes found ({}, {})'.format(section, item))

@@ -7,6 +7,7 @@ from .version import __version__
 
 from .omnium_cmd import main as omnium_main
 from .stash import Stash
+from .omnium_errors import OmniumError
 
 
 def init():
