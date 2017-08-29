@@ -66,17 +66,19 @@ def test_indices(i, j, diagonal=False, extended=False):
     return indices
 
 
-def count_blobs_mask(mask, diagonal=False, wrap=True):
+def count_blobs_mask(mask, diagonal=False, wrap=True, min_cells=0):
     blobs = np.zeros_like(mask, dtype=np.int32)
-    blob_index = 0
+    num_blobs = 0
+    acceptable_blobs = []
     for j in range(mask.shape[1]):
         for i in range(mask.shape[0]):
             if blobs[i, j]:
                 continue
 
             if mask[i, j]:
-                blob_index += 1
-                blobs[i, j] = blob_index
+                blob_count = 1
+                num_blobs += 1
+                blobs[i, j] = num_blobs
                 outers = [(i, j)]
                 while outers:
                     new_outers = []
@@ -91,11 +93,24 @@ def count_blobs_mask(mask, diagonal=False, wrap=True):
                                 jt %= mask.shape[1]
 
                             if not blobs[it, jt] and mask[it, jt]:
+                                blob_count += 1
                                 new_outers.append((it, jt))
-                                blobs[it, jt] = blob_index
+                                blobs[it, jt] = num_blobs
                     outers = new_outers
 
-    return blob_index, blobs
+                if blob_count >= min_cells:
+                    acceptable_blobs.append(num_blobs)
+
+    if min_cells > 0:
+        out_blobs = np.zeros_like(blobs)
+        num_acceptable_blobs = 1
+        for blob_index in acceptable_blobs:
+            out_blobs[blobs == blob_index] = num_acceptable_blobs
+            num_acceptable_blobs += 1
+
+        return num_acceptable_blobs, out_blobs
+    else:
+        return num_blobs, blobs
 
 
 def get_cube_from_attr(cubes, key, value):
