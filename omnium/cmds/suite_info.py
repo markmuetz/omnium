@@ -9,7 +9,7 @@ logger = getLogger('om.suite_info')
 ARGS = []
 
 
-def main(args):
+def main(suite, args):
     logger.info('Suite: {}'.format(suite.name))
     logger.info('')
     logger.info('Suite info:')
