@@ -99,6 +99,8 @@ class Analyzer(object):
         self.force = False
         # N.B. there is only one results_dir, even for multi_expt
         self.logname = os.path.join(self.results_dir, self.output_filename + '.analyzed')
+        if self.suite.check_filename_missing(self.logname):
+            os.remove(self.logname)
 
         # Need to make sure results dir exists before first call to self.append_log.
         if not os.path.exists(self.results_dir):
@@ -191,6 +193,9 @@ class Analyzer(object):
             # logger.debug('Not using zlib')
             # TODO: Make this a setting somewhere.
             # Use default compression: complevel 4.
+            if os.path.exists(cubelist_filename) and os.path.islink(cubelist_filename):
+                logger.debug('Removing symlink')
+                os.remove(cubelist_filename)
             iris.save(cubelist, cubelist_filename, zlib=True)
             # iris.save(cubelist, cubelist_filename)
 
