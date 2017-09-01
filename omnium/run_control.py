@@ -262,7 +262,7 @@ class RunControl(object):
             logger.info('  Display results only')
             analyser.load_results()
             analyser.display(self.interactive)
-        elif not analyser.already_analyzed() or analyser.force or self.force:
+        elif not analyser.already_analysed() or analyser.force or self.force:
             analyser.load()
             analyser.run(self.interactive)
             analyser.save(self.state, self.suite)

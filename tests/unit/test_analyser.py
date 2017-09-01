@@ -140,13 +140,18 @@ class TestAnalyserInstanceSetup(TestCase):
 
 class TestAnalyserInstanceFunction(TestCase):
     def setUp(self):
-        self.patcher = patch('os.makedirs')
-        self.patcher.start()
+        self.mock_make_dirs = patch('os.makedirs')
+        self.mock_make_dirs.start()
+
+        self.mock_log_file = patch('__builtin__.open', mock_open())
+        self.mock_log_file.start()
+
         self.suite = Mock()
         self.suite.check_filename_missing = lambda x: False
 
     def tearDown(self):
-        self.patcher.stop()
+        self.mock_make_dirs.stop()
+        self.mock_log_file.stop()
 
     def test_already_analysed(self):
         wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
@@ -154,18 +159,13 @@ class TestAnalyserInstanceFunction(TestCase):
         patcher = patch('os.path.exists')
         exists = patcher.start()
         exists.side_effect = lambda x: True
-        assert wa.already_analyzed()
+        assert wa.already_analysed()
         patcher.stop()
 
     def test_append_log(self):
         wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
                             ['atmos.000.pp1.nc'], ['expt'])
-        with patch('__builtin__.open', mock_open()) as mock_file:
-            wa.append_log('test')
-            mock_file.assert_called_with(*(wa.logname, 'a'))
-            handle = mock_file()
-            args, kwargs = handle.write.call_args
-            assert args[0][-5:] == 'test\n'
+        wa.append_log('test')
 
     @patch('iris.load')
     def test_load_single(self, mock_load):

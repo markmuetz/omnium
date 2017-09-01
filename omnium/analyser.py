@@ -80,7 +80,7 @@ class Analyser(object):
                                                                 time_hours,
                                                                 self.analysis_name)
             elif len(split_filename) <= 2:
-                logger.debug('analyzing dump')
+                logger.debug('analysing dump')
                 # It's a dump. Should have a better way of telling though.
                 if self.multi_file:
                     # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
@@ -98,7 +98,7 @@ class Analyser(object):
         self.results = OrderedDict()
         self.force = False
         # N.B. there is only one results_dir, even for multi_expt
-        self.logname = os.path.join(self.results_dir, self.output_filename + '.analyzed')
+        self.logname = os.path.join(self.results_dir, self.output_filename + '.analysed')
         if self.suite.check_filename_missing(self.logname):
             os.remove(self.logname)
 
@@ -114,7 +114,7 @@ class Analyser(object):
         self._config = config
         self.force = self._config.getboolean('force', False)
 
-    def already_analyzed(self):
+    def already_analysed(self):
         return os.path.exists(self.logname) and not self.suite.check_filename_missing(self.logname)
 
     def append_log(self, message):
@@ -155,14 +155,14 @@ class Analyser(object):
         self.append_log('Loaded results')
 
     def run(self, interactive=False):
-        self.append_log('Analyzing')
+        self.append_log('Analysing')
         if interactive:
             logger.info('Running interactively')
             import ipdb
             ipdb.runcall(self.run_analysis)
         else:
             self.run_analysis()
-        self.append_log('Analyzed')
+        self.append_log('Analysed')
 
     def save(self, state=None, suite=None):
         self.append_log('Saving')
