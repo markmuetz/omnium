@@ -1,4 +1,4 @@
-"""Provide an easy way of getting analyzer classes by name"""
+"""Provide an easy way of getting analyser classes by name"""
 import os
 import sys
 from glob import glob
@@ -8,18 +8,18 @@ import imp
 from logging import getLogger
 
 import omnium
-from omnium.analyzer import Analyzer
+from omnium.analyser import Analyser
 from omnium.omnium_errors import OmniumError
 
-logger = getLogger('om.analyzers')
+logger = getLogger('om.analysers')
 
 
 def get_analysis_classes(cwd=None):
     """Discovery of analysis classes in a given directory
 
     Searches in dir cwd/analysis for python files.
-    Loads all python files and any subclasses of Analyzer are returned in a dict."""
-    logger.debug('loading analyzers from: {}'.format(cwd))
+    Loads all python files and any subclasses of Analyser are returned in a dict."""
+    logger.debug('loading analysers from: {}'.format(cwd))
     if not cwd:
         cwd = os.getcwd()
     modules = []
@@ -37,11 +37,11 @@ def get_analysis_classes(cwd=None):
     current_module = sys.modules[__name__]
     modules.append(current_module)
 
-    # Find subclasses of Analyzer
+    # Find subclasses of Analyser
     analysis_classes = OrderedDict()
     for module in modules:
         for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, Analyzer) and not obj == Analyzer:
+            if inspect.isclass(obj) and issubclass(obj, Analyser) and not obj == Analyser:
                 if obj.analysis_name:
                     logger.debug('loading from: {}, {}'.format(cwd, obj.analysis_name))
                     if obj.analysis_name in analysis_classes:

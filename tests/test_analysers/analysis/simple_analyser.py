@@ -1,7 +1,7 @@
-from omnium.analyzer import Analyzer
+from omnium.analyser import Analyser
 
 
-class SimpleAnalyser(Analyzer):
+class SimpleAnalyser(Analyser):
     analysis_name = 'simple_analyser'
 
     def run_analysis(self):

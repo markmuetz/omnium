@@ -7,7 +7,7 @@ from logging import getLogger
 from configparser import ConfigParser
 import socket
 
-from omnium.analyzers import get_analysis_classes
+from omnium.analysers import get_analysis_classes
 from omnium_errors import OmniumError
 from utils import get_git_info
 
@@ -26,7 +26,7 @@ class Suite(object):
         self.is_omnium_app = False
         self.is_init = False
         self.suite_config = None
-        self.analyzer_dirs = []
+        self.analyser_dirs = []
         self.analysis_classes = OrderedDict()
         self.analysis_hash = []
         self.analysis_status = []
@@ -102,25 +102,25 @@ class Suite(object):
             # I have an app config. See if I can find analysis_classes:
             logger.debug('loaded app config')
 
-        omnium_analyzers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
-        if omnium_analyzers_paths:
-            self.analyzer_dirs = omnium_analyzers_paths.split(':')
+        omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
+        if omnium_analysers_paths:
+            self.analyser_dirs = omnium_analysers_paths.split(':')
 
-        if self.analyzer_dirs:
+        if self.analyser_dirs:
             # First dir takes precedence over second etc.
-            for analyzer_dir in self.analyzer_dirs:
-                if not os.path.exists(analyzer_dir):
-                    logger.warn('Analyzers dir does not exists: {}'.format(analyzer_dir))
+            for analyser_dir in self.analyser_dirs:
+                if not os.path.exists(analyser_dir):
+                    logger.warn('Analysers dir does not exists: {}'.format(analyser_dir))
                 else:
-                    logger.debug('loading analyzer dir: {}'.format(analyzer_dir))
-                    sys.path.append(analyzer_dir)
+                    logger.debug('loading analyser dir: {}'.format(analyser_dir))
+                    sys.path.append(analyser_dir)
 
-                    git_hash, git_status = get_git_info(analyzer_dir)
-                    logger.debug('analyzers git_hash, status: {}, {}'.format(git_hash, git_status))
-                    analysis_classes = get_analysis_classes(analyzer_dir)
+                    git_hash, git_status = get_git_info(analyser_dir)
+                    logger.debug('analysers git_hash, status: {}, {}'.format(git_hash, git_status))
+                    analysis_classes = get_analysis_classes(analyser_dir)
                     self.analysis_hash.append(git_hash)
                     self.analysis_status.append(git_status)
-                    # Add any analyzers *not already in classes*.
+                    # Add any analysers *not already in classes*.
                     for k, v in analysis_classes.items():
                         if k not in self.analysis_classes:
                             self.analysis_classes[k] = v

@@ -2,17 +2,17 @@ from unittest import TestCase
 from mock import Mock, patch, mock_open
 from configparser import ConfigParser
 
-from omnium.analyzer import Analyzer
+from omnium.analyser import Analyser
 from omnium import OmniumError
 
 
-class TestAnalyzerInstanceCreation(TestCase):
+class TestAnalyserInstanceCreation(TestCase):
     def test_abstract(self):
         with self.assertRaises(TypeError):
-            Analyzer()
+            Analyser()
 
     def test_not_fully_implemented(self):
-        class BrokenAnalyser(Analyzer):
+        class BrokenAnalyser(Analyser):
             # Haven't overridden run_analysis.
             pass
 
@@ -20,7 +20,7 @@ class TestAnalyzerInstanceCreation(TestCase):
             BrokenAnalyser()
 
     def test_no_name(self):
-        class BrokenAnalyser2(Analyzer):
+        class BrokenAnalyser2(Analyser):
             # Haven't analysis_name
             def run_analysis(self):
                 pass
@@ -30,7 +30,7 @@ class TestAnalyzerInstanceCreation(TestCase):
                             ['atmos.000.pp1.nc'], ['expt'])
 
     def test_both_multi(self):
-        class BrokenAnalyser2(Analyzer):
+        class BrokenAnalyser2(Analyser):
             analysis_name = 'working_analyser'
             multi_expt = True
             multi_file = True
@@ -44,7 +44,7 @@ class TestAnalyzerInstanceCreation(TestCase):
                             ['atmos.000.pp1.nc'], ['expt'])
 
     def test_ctor(self):
-        class WorkingAnalyser(Analyzer):
+        class WorkingAnalyser(Analyser):
             analysis_name = 'working_analyser'
 
             def run_analysis(self):
@@ -61,14 +61,14 @@ class TestAnalyzerInstanceCreation(TestCase):
         patcher.stop()
 
 
-class SingleAnalyser(Analyzer):
+class SingleAnalyser(Analyser):
     analysis_name = 'working_analyser'
 
     def run_analysis(self):
         pass
 
 
-class MultiExptAnalyser(Analyzer):
+class MultiExptAnalyser(Analyser):
     analysis_name = 'working_analyser'
     multi_expt = True
 
@@ -76,7 +76,7 @@ class MultiExptAnalyser(Analyzer):
         pass
 
 
-class MultiFileAnalyser(Analyzer):
+class MultiFileAnalyser(Analyser):
     analysis_name = 'working_analyser'
     multi_file = True
 
@@ -84,7 +84,7 @@ class MultiFileAnalyser(Analyzer):
         pass
 
 
-class TestAnalyzerInstanceSetup(TestCase):
+class TestAnalyserInstanceSetup(TestCase):
     def setUp(self):
         self.patcher = patch('os.makedirs')
         self.patcher.start()
@@ -138,7 +138,7 @@ class TestAnalyzerInstanceSetup(TestCase):
         assert wa.force
 
 
-class TestAnalyzerInstanceFunction(TestCase):
+class TestAnalyserInstanceFunction(TestCase):
     def setUp(self):
         self.patcher = patch('os.makedirs')
         self.patcher.start()
@@ -301,7 +301,7 @@ class TestAnalyzerInstanceFunction(TestCase):
         wa.display(interactive=True)
         mock_runcall.assert_called_with(wa.display_results)
 
-    @patch.object(Analyzer, 'figpath')
+    @patch.object(Analyser, 'figpath')
     def test_save_text(self, mock_figpath):
         wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
                             ['atmos.000.pp1.nc'], ['expt'])

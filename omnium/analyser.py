@@ -10,10 +10,10 @@ import iris
 from omnium.omnium_errors import OmniumError
 from omnium.version import get_version
 
-logger = getLogger('om.analyzer')
+logger = getLogger('om.analyser')
 
 
-class Analyzer(object):
+class Analyser(object):
     __metaclass__ = abc.ABCMeta
 
     multi_file = False
@@ -180,8 +180,8 @@ class Analyzer(object):
                 cube.attributes['omnium_git_hash'] = state.git_hash
                 cube.attributes['omnium_git_status'] = state.git_status
             if suite:
-                cube.attributes['omnium_analyzers_git_hash'] = ':'.join(suite.analysis_hash)
-                cube.attributes['omnium_analyzers_git_status'] = ':'.join(suite.analysis_status)
+                cube.attributes['omnium_analysers_git_hash'] = ':'.join(suite.analysis_hash)
+                cube.attributes['omnium_analysers_git_status'] = ':'.join(suite.analysis_status)
 
             cube.attributes['omnium_process'] = self.analysis_name
 

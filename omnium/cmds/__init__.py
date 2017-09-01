@@ -10,7 +10,7 @@ commands = [
     'convert',
     'file-info',
     'file-cat',
-    'ls-analyzers',
+    'ls-analysers',
     'run',
     'shell',
     'stash',
