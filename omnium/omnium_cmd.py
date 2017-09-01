@@ -4,7 +4,6 @@ all commands are run as:
     omnium [omnium_opts] <cmd> [cmd_opts] [cmd_args]
 """
 import os
-import sys
 
 from command_parser import parse_commands
 from setup_logging import setup_logger, add_file_logging
