@@ -1,0 +1,238 @@
+[cylc]
+    UTC mode = True
+    # Timeout handlers
+    [[events]]
+        #timeout handler  = "rose suite-hook --mail --shutdown"
+        timeout          = PT3H # 3 hours
+        #shutdown handler = "rose suite-hook --mail"
+[scheduling]
+    cycling mode        = 360day
+    initial cycle point = 20000101T0000
+	final cycle point   = +P10D-P10D
+    runahead limit = P100D
+    [[dependencies]]
+        [[[ R1 ]]]  # Initial cycle point
+            graph = """
+log_suite_state
+		log_suite_state => fcm_make => fcm_make2 => S0_recon
+		log_suite_state => fcm_make => fcm_make2 => S4_recon
+		    log_suite_state => S0_recon => S0_atmos
+		    log_suite_state => S4_recon => S4_atmos
+            """
+        [[[ P10D ]]] # Following cycle points
+            graph = """
+	    S0_atmos[-P10D] => S0_atmos
+	    S4_atmos[-P10D] => S4_atmos
+            """
+	[[[ R1/P0Y ]]]
+	    graph = """
+		    S0_atmos => archive
+		    S4_atmos => archive
+            """
+[runtime]
+# Root, inherited by everything
+    [[root]]
+        initial scripting = """
+export CYLC_VERSION=6.11.4
+export ROSE_VERSION=2016.11.1
+"""
+        command scripting = "rose task-run --verbose"
+        environment scripting = "eval $(rose task-env)"
+        [[[events]]]
+	    mail events = submission failed, submission retry, failed, retry, succeeded
+	    mail to = m.muetzelfeldt@pgr.reading.ac.uk
+            #succeeded handler = "rose suite-hook"
+            #failed handler = "rose suite-hook --mail"
+            #retry handler = "rose suite-hook --mail"
+            #submission failed handler = "rose suite-hook --mail"
+            submission timeout = PT12H # 12 hours
+            #submission timeout handler = "rose suite-hook --mail"
+            execution timeout  =  PT3H # 3 hours
+            #execution timeout handler = "rose suite-hook --mail"
+        [[[environment]]]
+            MODELBASIS = '2000,1,1,0,0,0'
+            lcal360    = .true.
+            CUMFDIR=$CYLC_TASK_WORK_PATH
+            DATAW=$CYLC_TASK_WORK_DIR
+            CYLC_TASK_CYCLE_POINT=$CYLC_TASK_CYCLE_POINT
+            ROSE_ORIG_HOST=puma
+	    INPUT_DATA=$UMDIR/standard_jobs/inputs/vn10.7
+            VN = 10.7
+     [[XC30]]
+        initial scripting = "export HOME=$DATADIR"
+        pre-command scripting = """
+module load cray-netcdf/4.4.0
+module load cray-hdf5/1.8.16
+module list 2>&1
+                                """
+	[[[environment]]]
+	    PRODUCTION = False
+	[[[directives]]]
+	   -W umask = 0022
+	   -A = n02-REVCON
+        [[[job]]]
+           batch system = pbs
+        [[[remote]]]
+           host = login.archer.ac.uk
+           owner = mmuetz
+    [[LINUX]]
+        [[[remote]]]
+            host = puma
+        [[[job]]]
+            batch system = at
+    [[log_suite_state]]
+        inherit = LINUX
+	script = log_suite_state.sh
+        [[[environment]]]
+	    SUITE = $CYLC_SUITE_NAME
+	    PRODUCTION = False
+# UM high OpenMP
+    # Extract, Mirror
+    [[fcm_make]]
+        inherit = LINUX
+        [[[environment]]]
+            PREBUILD = ''
+    # Pre-process, Build
+    [[fcm_make2]]
+        inherit = XC30
+        [[[directives]]]
+            -l walltime=10:00:00
+	    -l select=serial=true:ncpus=1
+        [[[environment]]]
+            UM_INSTALL_DIR  = /work/y07/y07/umshared
+            PREBUILD = ''
+            ROSE_TASK_N_JOBS     = 6
+            ROSE_TASK_OPTIONS=--ignore-lock
+# General UM job with settings common to atmosphere and reconfiguration
+[[S0_UM]]
+    inherit = XC30
+    [[[environment]]]
+        IOP_RANGE = 25920,25930,25940,25950,25960,25970,25980,25990,26000,26010,26020,26030,26040,26050,26060,26070,26080,26090,26100,26110,26120,26130,26140,26150,26160,26170,26180,26190,26200,26210,26220,26230,26240,26250,26260,26270,26280,26290,26300,26310,26320,26330,26340,26350,26360,26370,26380,26390,26400,26410,26420,26430,26440,26450,26460,26470,26480,26490,26500,26510,26520
+        IOP_RANGE_LENGTH = 61
+	UM_INSTALL_DIR  = /work/y07/y07/umshared
+	ROSE_TASK_APP    = um
+	ASTART=../recon/atmos_S0.astart
+        DATAM                  = $CYLC_SUITE_SHARE_DIR/data/history/S0
+        ROSE_APP_OPT_CONF_KEYS = "S0 2Kpdy_cooling MC_on_ocf"
+[[S4_UM]]
+    inherit = XC30
+    [[[environment]]]
+        IOP_RANGE = 25920,25930,25940,25950,25960,25970,25980,25990,26000,26010,26020,26030,26040,26050,26060,26070,26080,26090,26100,26110,26120,26130,26140,26150,26160,26170,26180,26190,26200,26210,26220,26230,26240,26250,26260,26270,26280,26290,26300,26310,26320,26330,26340,26350,26360,26370,26380,26390,26400,26410,26420,26430,26440,26450,26460,26470,26480,26490,26500,26510,26520
+        IOP_RANGE_LENGTH = 61
+	UM_INSTALL_DIR  = /work/y07/y07/umshared
+	ROSE_TASK_APP    = um
+	ASTART=../recon/atmos_S4.astart
+        DATAM                  = $CYLC_SUITE_SHARE_DIR/data/history/S4
+        ROSE_APP_OPT_CONF_KEYS = "S4 2Kpdy_cooling MC_on_ocf"
+# Reconfiguration 1x2 for multi-domains - using shared node with mpiexec
+# launcher
+# NOTE - If the number of tasks is changed to be 32 or greater then
+# the job launcher should be changed to aprun, see atmos example below
+[[S0_recon]]
+    # Set up task so that it uses app/um, and the recon command.
+    inherit = S0_UM
+    # TODO: Try changing according to:
+    # http://metomi.github.io/rose/doc/rose-rug-task-run.html#rose-task-run.command
+    # Using ROSE_APP_COMMAND_KEY
+    command scripting = rose task-run --verbose --command-key=recon
+    [[[directives]]]
+	-l select=1
+	-l walltime=00:20:00
+	# -l ncpus    = 2
+        # -l walltime = 00:46:00
+        # -l mem      = 1200MB
+        # -q          = shared
+        [[[environment]]]
+            # ASTART=../recon/atmos.astart
+            RCF_NPROCX = 4
+            RCF_NPROCY = 6
+            OMP_NUM_THREADS        = 1
+	    MPI_TASKS_PER_NODE = 24
+	    TASKS_PER_NUMA = 12
+	    TOTAL_MPI_TASKS = 24
+	    ROSE_LAUNCHER_PREOPTS="""-ss -n $TOTAL_MPI_TASKS
+	    		       -N $MPI_TASKS_PER_NODE
+	    		       -S $TASKS_PER_NUMA
+	    		       -d $OMP_NUM_THREADS"""
+	    TASKSTART = $MODELBASIS
+	    TASKEND   = $MODELBASIS
+[[S4_recon]]
+    # Set up task so that it uses app/um, and the recon command.
+    inherit = S4_UM
+    # TODO: Try changing according to:
+    # http://metomi.github.io/rose/doc/rose-rug-task-run.html#rose-task-run.command
+    # Using ROSE_APP_COMMAND_KEY
+    command scripting = rose task-run --verbose --command-key=recon
+    [[[directives]]]
+	-l select=1
+	-l walltime=00:20:00
+	# -l ncpus    = 2
+        # -l walltime = 00:46:00
+        # -l mem      = 1200MB
+        # -q          = shared
+        [[[environment]]]
+            # ASTART=../recon/atmos.astart
+            RCF_NPROCX = 4
+            RCF_NPROCY = 6
+            OMP_NUM_THREADS        = 1
+	    MPI_TASKS_PER_NODE = 24
+	    TASKS_PER_NUMA = 12
+	    TOTAL_MPI_TASKS = 24
+	    ROSE_LAUNCHER_PREOPTS="""-ss -n $TOTAL_MPI_TASKS
+	    		       -N $MPI_TASKS_PER_NODE
+	    		       -S $TASKS_PER_NUMA
+	    		       -d $OMP_NUM_THREADS"""
+	    TASKSTART = $MODELBASIS
+	    TASKEND   = $MODELBASIS
+# Atmos Job for multi-domains
+[[S0_atmos]]
+    inherit = S0_UM
+    [[[directives]]]
+       -l select   = 8
+       -l walltime = 04:00:00
+    [[[environment]]]
+       CONTINUE = $(if [[ $CYLC_TASK_CYCLE_POINT == $CYLC_SUITE_INITIAL_CYCLE_POINT ]] && [[ $CYLC_TASK_TRY_NUMBER -eq 1 ]]; then echo ""; else echo "true"; fi)
+       HYPERTHREADS       = 1
+       MPI_TASKS_PER_NODE = 24
+       TOTAL_MPI_TASKS    = 192
+       TASKS_PER_NUMA     = 12
+       TASKSTART          = $( rose date $CYLC_TASK_CYCLE_POINT --print-format %Y,%m,%d,%H,%M )
+       TASKLENGTH         = $( rose date 0000 0000 --calendar 360day -s -P10D -f y,m,d,h,M,s )
+       TASKEND            = $( rose date $CYLC_SUITE_INITIAL_CYCLE_POINT $CYLC_TASK_CYCLE_POINT                               --calendar 360day --offset -P10D --print-format y,m,d,h,M,s )
+       OMP_NUM_THREADS       = 1
+       ROSE_LAUNCHER_PREOPTS="""-ss -n $TOTAL_MPI_TASKS
+			        -N $MPI_TASKS_PER_NODE
+			        -S $TASKS_PER_NUMA
+			        -d $OMP_NUM_THREADS"""
+       UM_ATM_NPROCX   = 12
+       UM_ATM_NPROCY   = 16
+[[S4_atmos]]
+    inherit = S4_UM
+    [[[directives]]]
+       -l select   = 8
+       -l walltime = 04:00:00
+    [[[environment]]]
+       CONTINUE = $(if [[ $CYLC_TASK_CYCLE_POINT == $CYLC_SUITE_INITIAL_CYCLE_POINT ]] && [[ $CYLC_TASK_TRY_NUMBER -eq 1 ]]; then echo ""; else echo "true"; fi)
+       HYPERTHREADS       = 1
+       MPI_TASKS_PER_NODE = 24
+       TOTAL_MPI_TASKS    = 192
+       TASKS_PER_NUMA     = 12
+       TASKSTART          = $( rose date $CYLC_TASK_CYCLE_POINT --print-format %Y,%m,%d,%H,%M )
+       TASKLENGTH         = $( rose date 0000 0000 --calendar 360day -s -P10D -f y,m,d,h,M,s )
+       TASKEND            = $( rose date $CYLC_SUITE_INITIAL_CYCLE_POINT $CYLC_TASK_CYCLE_POINT                               --calendar 360day --offset -P10D --print-format y,m,d,h,M,s )
+       OMP_NUM_THREADS       = 1
+       ROSE_LAUNCHER_PREOPTS="""-ss -n $TOTAL_MPI_TASKS
+			        -N $MPI_TASKS_PER_NODE
+			        -S $TASKS_PER_NUMA
+			        -d $OMP_NUM_THREADS"""
+       UM_ATM_NPROCX   = 12
+       UM_ATM_NPROCY   = 16
+# N.B. Archive *the whole suite*.
+[[archive]]
+    inherit = XC30
+    script = archive.sh
+    [[[directives]]]
+	-l walltime=24:00:00
+	-l select=serial=true:ncpus=1
+    [[[environment]]]
+       ARCHIVE_DIR = /nerc/n02/n02/mmuetz/um10.7_runs/postproc/

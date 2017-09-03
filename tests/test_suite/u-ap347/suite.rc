@@ -1,0 +1,529 @@
+#!jinja2
+{# Rose Configuration Insertion: Init #}
+{% set ARCHIVE=true %}
+{% set ARCHIVE_DIR="/nerc/n02/n02/mmuetz/um10.7_runs/postproc/" %}
+{% set ATMOS_QUEUE_TYPE='parallel' %}
+{% set BASIS=2000,1,1,0,0,0 %}
+{% set BUILD_UM=true %}
+{% set CALENDAR='360day' %}
+{% set CYCLE_PERIOD='D' %}
+{% set CYCLE_RESUB=10 %}
+{% set CYLC_VERSION="6.11.4" %}
+{% set DATAM='history' %}
+{% set DELETE_WORK=false %}
+{% set EMAIL_ADDRESS="m.muetzelfeldt@pgr.reading.ac.uk" %}
+{% set HPC_ACCOUNT="n02-REVCON" %}
+{% set HPC_HOST="login.archer.ac.uk" %}
+{% set HPC_USER="mmuetz" %}
+{% set IOP_RANGE="25920:26521:10" %}
+{% set NCPU_PER_NODE=24 %}
+{% set NUM_EXPTS=5 %}
+{% set OMNIUM_DIR="/work/n02/n02/mmuetz/omnium" %}
+{% set POSTPROC_CYCLE=false %}
+{% set POSTPROC_EXPT=false %}
+{% set POSTPROC_SUITE=false %}
+{% set PRODUCTION=false %}
+{% set RCF_PROC_X=1 %}
+{% set RCF_PROC_Y=4 %}
+{% set RECON=true %}
+{% set RETRIES=0 %}
+{% set ROSE_ORIG_HOST="puma" %}
+{% set ROSE_VERSION="2016.11.1" %}
+{% set RUN=true %}
+{% set RUNLEN=0,0,10,0,0,0 %}
+{% set VN='10.7' %}
+{% set expt01_ewproc=12 %}
+{% set expt01_l_actrun=true %}
+{% set expt01_name='S0' %}
+{% set expt01_nsproc=16 %}
+{% set expt01_opts='S0 2Kpdy_cooling MC_on_ocf' %}
+{% set expt01_wallclock='04:00:00' %}
+{% set expt02_ewproc=12 %}
+{% set expt02_l_actrun=false %}
+{% set expt02_name='S1' %}
+{% set expt02_nsproc=16 %}
+{% set expt02_opts='S1 2Kpdy_cooling MC_on_ocf' %}
+{% set expt02_wallclock='04:00:00' %}
+{% set expt03_ewproc=12 %}
+{% set expt03_l_actrun=false %}
+{% set expt03_name='S2' %}
+{% set expt03_nsproc=16 %}
+{% set expt03_opts='S2 2Kpdy_cooling MC_on_ocf' %}
+{% set expt03_wallclock='04:00:00' %}
+{% set expt04_ewproc=12 %}
+{% set expt04_l_actrun=false %}
+{% set expt04_name='S3' %}
+{% set expt04_nsproc=16 %}
+{% set expt04_opts='S3 2Kpdy_cooling MC_on_ocf' %}
+{% set expt04_wallclock='04:00:00' %}
+{% set expt05_ewproc=12 %}
+{% set expt05_l_actrun=true %}
+{% set expt05_name='S4' %}
+{% set expt05_nsproc=16 %}
+{% set expt05_opts='S4 2Kpdy_cooling MC_on_ocf' %}
+{% set expt05_wallclock='04:00:00' %}
+{% set expt06_ewproc=12 %}
+{% set expt06_l_actrun=false %}
+{% set expt06_name='S5' %}
+{% set expt06_nsproc=16 %}
+{% set expt06_opts='S5 2Kpdy_cooling MC_on_ocf' %}
+{% set expt06_wallclock='04:00:00' %}
+{# Rose Configuration Insertion: Done #}
+
+{# ############################################## INITIAL SET UP ##################################################### #}
+
+{% macro format_final(run_periods, fmt='PT1S') -%}
+    {%- set ENDYR = '+P%dY'%(run_periods[0]) if run_periods[0] > 0 else '' -%}
+    {%- set ENDMO = '+P%dM'%(run_periods[1]) if run_periods[1] > 0 else '' -%}
+    {%- set ENDDA = '+P%dD'%(run_periods[2]) if run_periods[2] > 0 else '' -%}
+    {%- set ENDHR = '+PT%dH'%(run_periods[3]) if run_periods[3] > 0 else '' -%}
+    {%- set ENDMI = '+PT%dM'%(run_periods[4]) if run_periods[4] > 0 else '' -%}
+    {{ENDYR}}{{ENDMO}}{{ENDDA}}{{ENDHR}}{{ENDMI}}-{{fmt}}
+{%- endmacro %}
+
+{# Maximum number of cycles that can be active at any one time #}
+{% set MAX_ACTIVE_CYCLES = 5 %}
+
+{# Maximum number of tasks that can be active at any one time #}
+{% set MAX_ACTIVE_TASKS = 20 %}
+
+{% if BASIS[0] == 0 %}
+  {% set CYCLE_INIT = '00000101' %}
+{% else %}
+  {% set CYCLE_INIT = '%04d%02d%02dT%02d%02d' % (BASIS[0],BASIS[1],BASIS[2],BASIS[3],BASIS[4]) %}
+{% endif %}
+{% set FMT = 'P' + ('T' if CYCLE_PERIOD == 'm' or CYCLE_PERIOD == 'H' else '') + CYCLE_RESUB|string + CYCLE_PERIOD|upper %}
+
+%include "suite-setup.rc"
+
+{# ###################################################### CYLC ####################################################### #}
+
+[cylc]
+    UTC mode = True 
+    # Timeout handlers
+    [[events]]
+        #timeout handler  = "rose suite-hook --mail --shutdown"
+        timeout          = PT3H # 3 hours
+        #shutdown handler = "rose suite-hook --mail"
+
+{# ################################################## SCHEDULING ##################################################### #}
+
+[scheduling]
+    cycling mode        = {{CALENDAR}}
+    initial cycle point = {{CYCLE_INIT}}
+    {% if RUN or POSTPROC_CYCLE %}
+	final cycle point   = {{ format_final(RUNLEN, FMT) }}
+    {% else %}
+	final cycle point   = {{ CYCLE_INIT }}
+    {% endif %}
+    runahead limit = P100D
+    [[dependencies]]
+        [[[ R1 ]]]  # Initial cycle point
+            graph = """
+log_suite_state
+
+{# Build UM executables, if required #}
+{% if BUILD_UM %}
+    {% if RECON %}
+	{% for expt in EXPTS %}
+	    {% if expt["l_actrun"] %}
+		log_suite_state => fcm_make => fcm_make2 => {{expt["name"]}}_recon
+	    {% endif %}
+	{% endfor %}
+	{% if RUN %}
+	    {% for expt in EXPTS %}
+		{% if expt["l_actrun"] %}
+		    log_suite_state => {{expt["name"]}}_recon => {{expt["name"]}}_atmos
+		    {% if POSTPROC_CYCLE %}
+			{{expt["name"]}}_atmos => {{expt["name"]}}_cycle_postproc
+		    {% endif %}
+		{% endif %}
+	    {% endfor %}
+	{% endif %} {# RUN #}
+    {% else %}  {# RECON NOT ON #}
+	{% for expt in EXPTS %}
+	    {% if expt["l_actrun"] %}
+		log_suite_state => fcm_make => fcm_make2 => {{expt["name"]}}_atmos
+	    {% endif %}
+	{% endfor %}                  
+    {% endif %} {# test on recon #}
+{% else %} {# Not building execs #}
+    {% if RECON %}
+	{% if RUN %}
+	    {% for expt in EXPTS %}
+		{% if expt["l_actrun"] %}
+		    log_suite_state => {{expt["name"]}}_recon => {{expt["name"]}}_atmos
+		    {% if POSTPROC_CYCLE %}
+			{{expt["name"]}}_atmos => {{expt["name"]}}_cycle_postproc
+		    {% endif %}
+		{% endif %}
+	    {% endfor %}
+	{% else %} {# No model run #}
+	    {% for expt in EXPTS %}
+		{% if expt["l_actrun"] %}
+		    log_suite_state => {{expt["name"]}}_recon
+		{% endif %}
+	    {% endfor %}
+	{% endif %} {# Test on model run #}
+    {% endif %} {# Test on recon #}
+{% endif %} {# Test on build #}
+
+            """
+
+        [[[ {{FMT}} ]]] # Following cycle points
+            graph = """
+{% if RUN %}
+    {% for expt in EXPTS %}
+	{% if expt["l_actrun"] %}
+	    {{expt["name"]}}_atmos[-{{FMT}}] => {{expt["name"]}}_atmos
+	    {% if POSTPROC_CYCLE %}
+		{{expt["name"]}}_cycle_postproc[-{{FMT}}] => {{expt["name"]}}_cycle_postproc
+		{{expt["name"]}}_atmos => {{expt["name"]}}_cycle_postproc
+	    {% endif %}
+	{% endif %}
+    {% endfor %}
+{% else %} {# No model run #}
+    {% if POSTPROC_CYCLE %}
+	{% for expt in EXPTS %}
+	    {% if expt["l_actrun"] %}
+		{{expt["name"]}}_cycle_postproc[-{{FMT}}] => {{expt["name"]}}_cycle_postproc
+	    {% endif %}
+	{% endfor %}
+    {% endif %}
+{% endif %}
+            """
+
+	[[[ R1/P0Y ]]]
+	    graph = """
+{% if POSTPROC_EXPT %}
+    {% for expt in EXPTS %}
+	{% if expt["l_actrun"] %}
+	    {% if POSTPROC_CYCLE %}
+		{{expt["name"]}}_cycle_postproc => {{expt["name"]}}_expt_postproc
+	    {% elif RUN %}
+		{{expt["name"]}}_atmos => {{expt["name"]}}_expt_postproc
+	    {% else %}
+		{{expt["name"]}}_expt_postproc
+	    {% endif %}
+	{% endif %}
+    {% endfor %}
+{% endif %}
+
+{% if POSTPROC_SUITE %}
+    {% for expt in EXPTS %}
+	{% if expt["l_actrun"] %}
+	    {% if POSTPROC_EXPT %}
+		{{expt["name"]}}_expt_postproc => suite_postproc
+	    {% elif POSTPROC_CYCLE %}
+		{{expt["name"]}}_cycle_postproc => suite_postproc
+	    {% elif RUN %}
+		{{expt["name"]}}_atmos => suite_postproc
+	    {% else %}
+		suite_postproc
+	    {% endif %}
+	{% endif %}
+    {% endfor %}
+
+    {% if ARCHIVE %}
+	suite_postproc => archive
+	{% if DELETE_WORK %}
+	    archive => delete_work
+	{% endif %}
+    {% endif %}
+{% else %}
+    {% if ARCHIVE %}
+	{% for expt in EXPTS %}
+	    {% if expt["l_actrun"] %}
+		{% if POSTPROC_EXPT %}
+		    {{expt["name"]}}_expt_postproc => archive
+		{% elif POSTPROC_CYCLE %}
+		    {{expt["name"]}}_cycle_postproc => archive
+		{% elif RUN %}
+		    {{expt["name"]}}_atmos => archive
+		{% else %}
+		    archive
+		{% endif %}
+	    {% endif %}
+	{% endfor %}
+
+	{% if DELETE_WORK %}
+	    archive => delete_work
+	{% endif %}
+
+    {% endif %}
+{% endif %}
+
+
+            """
+
+{# ################################################### RUNTIME ###################################################### #}
+
+[runtime]
+# Root, inherited by everything
+    [[root]]
+        initial scripting = """
+export CYLC_VERSION={{CYLC_VERSION}}
+export ROSE_VERSION={{ROSE_VERSION}}
+"""
+        command scripting = "rose task-run --verbose"
+        environment scripting = "eval $(rose task-env)"
+        [[[events]]]
+	    mail events = submission failed, submission retry, failed, retry, succeeded
+	    mail to = {{ EMAIL_ADDRESS }}
+            #succeeded handler = "rose suite-hook"
+            #failed handler = "rose suite-hook --mail"
+            #retry handler = "rose suite-hook --mail"
+            #submission failed handler = "rose suite-hook --mail"
+            submission timeout = PT12H # 12 hours
+            #submission timeout handler = "rose suite-hook --mail"
+            execution timeout  =  PT3H # 3 hours
+            #execution timeout handler = "rose suite-hook --mail"
+        [[[environment]]]
+            MODELBASIS = '{{ BASIS | join(',') }}'
+            lcal360    = {{'.true.' if CALENDAR == '360day' else '.false.'}}
+            CUMFDIR=$CYLC_TASK_WORK_PATH
+            DATAW=$CYLC_TASK_WORK_DIR
+            CYLC_TASK_CYCLE_POINT=$CYLC_TASK_CYCLE_POINT
+            ROSE_ORIG_HOST={{ ROSE_ORIG_HOST }}
+	    INPUT_DATA=$UMDIR/standard_jobs/inputs/vn{{VN}}
+            VN = {{ VN }}
+
+     [[XC30]]
+        initial scripting = "export HOME=$DATADIR"
+        pre-command scripting = """
+module load cray-netcdf/4.4.1.1
+module load cray-hdf5/1.10.0.1
+module list 2>&1 
+                                """
+	[[[environment]]]
+	    PRODUCTION = {{PRODUCTION}}
+	[[[directives]]]
+	   -W umask = 0022
+	   -A = {{ HPC_ACCOUNT }}
+        [[[job]]]
+           batch system = pbs
+        [[[remote]]]
+           host = {{HPC_HOST}}
+{% if HPC_USER is defined %} 
+           owner = {{ HPC_USER }}
+{% endif %}         
+
+{# Linux tasks are only currently inherited by the build #}
+{# So keep this within build_um for now #}
+    [[LINUX]]
+        [[[remote]]]
+            host = {{ ROSE_ORIG_HOST }}
+        [[[job]]]
+            batch system = at
+
+    [[log_suite_state]]
+        inherit = LINUX
+	script = log_suite_state.sh
+        [[[environment]]]
+	    SUITE = $CYLC_SUITE_NAME
+	    PRODUCTION = {{PRODUCTION}}
+
+{% if BUILD_UM %}
+
+# UM high OpenMP
+    # Extract, Mirror
+    [[fcm_make]]
+        inherit = LINUX
+        [[[environment]]]
+            PREBUILD = ''
+    # Pre-process, Build
+    [[fcm_make2]]
+        inherit = XC30
+        [[[directives]]]
+            -l walltime=10:00:00
+	    -l select=serial=true:ncpus=1
+        [[[environment]]]
+            UM_INSTALL_DIR  = /work/y07/y07/umshared
+            PREBUILD = ''
+            ROSE_TASK_N_JOBS     = 6
+            ROSE_TASK_OPTIONS=--ignore-lock
+
+{% endif %} {# BUILD_UM #}
+
+# General UM job with settings common to atmosphere and reconfiguration
+{% for expt in EXPTS %}
+{% if expt["l_actrun"] %}
+[[{{expt["name"]}}_UM]]
+    inherit = XC30
+    [[[environment]]]
+        IOP_RANGE = {{ IOP_RANGE|get_range }}
+        IOP_RANGE_LENGTH = {{ IOP_RANGE|get_range_length }}
+	UM_INSTALL_DIR  = /work/y07/y07/umshared
+	ROSE_TASK_APP    = um
+	ASTART=../recon/atmos_{{expt["name"]}}.astart
+        DATAM                  = $CYLC_SUITE_SHARE_DIR/data/{{DATAM}}/{{expt["name"]}}
+        ROSE_APP_OPT_CONF_KEYS = "{{expt['opts']}}"
+{% endif %}
+{% endfor %}
+
+# Reconfiguration 1x2 for multi-domains - using shared node with mpiexec 
+# launcher
+# NOTE - If the number of tasks is changed to be 32 or greater then
+# the job launcher should be changed to aprun, see atmos example below
+{% if RECON %}
+{% for expt in EXPTS %}
+{% if expt["l_actrun"] %}
+[[{{expt["name"]}}_recon]]
+    # Set up task so that it uses app/um, and the recon command.
+    inherit = {{expt["name"]}}_UM
+    # TODO: Try changing according to:
+    # http://metomi.github.io/rose/doc/rose-rug-task-run.html#rose-task-run.command
+    # Using ROSE_APP_COMMAND_KEY
+    command scripting = rose task-run --verbose --command-key=recon 
+    [[[directives]]]
+	-l select=1
+	-l walltime=00:20:00
+{% if HPC_QUEUE is defined %} 
+	-q = {{ HPC_QUEUE }} 
+{% endif %}
+	# -l ncpus    = 2
+        # -l walltime = 00:46:00
+        # -l mem      = 1200MB
+        # -q          = shared
+        [[[environment]]]
+            # ASTART=../recon/atmos.astart
+            RCF_NPROCX = 4
+            RCF_NPROCY = 6
+            OMP_NUM_THREADS        = 1
+	    MPI_TASKS_PER_NODE = 24
+	    TASKS_PER_NUMA = 12
+	    TOTAL_MPI_TASKS = 24
+	    ROSE_LAUNCHER_PREOPTS="""-ss -n $TOTAL_MPI_TASKS
+	    		       -N $MPI_TASKS_PER_NODE 
+	    		       -S $TASKS_PER_NUMA 
+	    		       -d $OMP_NUM_THREADS"""
+	    TASKSTART = $MODELBASIS
+	    TASKEND   = $MODELBASIS
+
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if RUN %}
+
+# Atmos Job for multi-domains
+{% set NCPU_PER_NODE = 24 %}
+{% set HYPERTHREADS = 1 %}
+{% set OMP_NUM_THREADS = 1 %}
+{% set MPI_TASKS_PER_NODE = 24 %}
+{% set TASKS_PER_NUMA = 12 %}
+
+{% for expt in EXPTS %}
+{% if expt["l_actrun"] %}
+{% set UM_ATM_NPROCX = expt["ewproc"] %}
+{% set UM_ATM_NPROCY = expt["nsproc"] %}
+{% set TOTAL_MPI_TASKS = (UM_ATM_NPROCX * UM_ATM_NPROCY)|int %}
+[[{{expt["name"]}}_atmos]]
+    inherit = {{expt["name"]}}_UM
+
+    [[[directives]]]
+       -l select   = {{(TOTAL_MPI_TASKS / MPI_TASKS_PER_NODE)|round(0, "ceil")|int}}
+       -l walltime = {{expt["wallclock"]}}
+{% if HPC_QUEUE is defined %} 
+       -q = {{ HPC_QUEUE }} 
+{% endif %}
+
+    [[[environment]]]
+       CONTINUE = $(if [[ $CYLC_TASK_CYCLE_POINT == $CYLC_SUITE_INITIAL_CYCLE_POINT ]] && [[ $CYLC_TASK_TRY_NUMBER -eq 1 ]]; then echo ""; else echo "true"; fi)
+       HYPERTHREADS       = 1
+       MPI_TASKS_PER_NODE = {{ MPI_TASKS_PER_NODE }}
+       TOTAL_MPI_TASKS    = {{ TOTAL_MPI_TASKS }}
+       TASKS_PER_NUMA     = {{ TASKS_PER_NUMA }}
+       TASKSTART          = $( rose date $CYLC_TASK_CYCLE_POINT --print-format %Y,%m,%d,%H,%M )
+       TASKLENGTH         = $( rose date 0000 0000 --calendar {{CALENDAR}} -s -{{FMT}} -f y,m,d,h,M,s )
+       TASKEND            = $( rose date $CYLC_SUITE_INITIAL_CYCLE_POINT $CYLC_TASK_CYCLE_POINT \
+                              --calendar {{CALENDAR}} --offset -{{FMT}} --print-format y,m,d,h,M,s )
+       OMP_NUM_THREADS       = {{OMP_NUM_THREADS}}
+       ROSE_LAUNCHER_PREOPTS="""-ss -n $TOTAL_MPI_TASKS 
+			        -N $MPI_TASKS_PER_NODE 
+			        -S $TASKS_PER_NUMA 
+			        -d $OMP_NUM_THREADS"""
+       UM_ATM_NPROCX   = {{UM_ATM_NPROCX}}
+       UM_ATM_NPROCY   = {{UM_ATM_NPROCY}}
+
+{% endif %}  {# expt["l_actrun"] #}
+{% endfor %} {# EXPTS #}
+
+{% endif %} {# RUN (ATMOS) #}
+
+{% if POSTPROC_CYCLE or POSTPROC_EXPT %}
+    {% for expt in EXPTS %}
+	{% if expt["l_actrun"] %}
+
+	[[{{expt["name"]}}_postproc]]
+	    # TODO: Should this inherit?
+	    inherit = {{expt["name"]}}_UM
+	    pre-command scripting = """
+	module load anaconda
+	"""
+	    [[[directives]]]
+		-l walltime=24:00:00
+		-l select=serial=true:ncpus=1
+	    [[[environment]]]
+	       ROSE_TASK_APP = omnium
+	       ROSE_APP_OPT_CONF_KEYS = ""
+	       OMNIUM_DIR = {{OMNIUM_DIR}}
+	       ARCHIVE_DIR = {{ARCHIVE_DIR}}
+	       EXPT = {{expt["name"]}}
+
+	{% if POSTPROC_CYCLE %}
+	[[{{expt["name"]}}_cycle_postproc]]
+	    inherit = {{expt["name"]}}_postproc
+	    command scripting = rose task-run --verbose --command-key=cycle 
+	{% endif %} {# POSTPROC_CYCLE #}
+
+	{% if POSTPROC_EXPT %}
+	[[{{expt["name"]}}_expt_postproc]]
+	    inherit = {{expt["name"]}}_postproc
+	    command scripting = rose task-run --verbose --command-key=expt 
+	{% endif %} {# POSTPROC_EXPT #}
+
+	{% endif %}  {# expt["l_actrun"] #}
+    {% endfor %} {# EXPTS #}
+
+{% endif %} {# POSTPROC_CYCLE/W #}
+
+{% if POSTPROC_SUITE %}
+[[suite_postproc]]
+    inherit = XC30
+    pre-command scripting = """
+module load anaconda
+"""
+    command scripting = rose task-run --verbose --command-key=suite 
+    [[[directives]]]
+	-l walltime=24:00:00
+	-l select=serial=true:ncpus=1
+    [[[environment]]]
+       ROSE_TASK_APP = omnium
+       ROSE_APP_OPT_CONF_KEYS = ""
+       OMNIUM_DIR = {{OMNIUM_DIR}}
+       EXPTS = {{EXPTS|get_expts}}
+
+{% endif %} {# POSTPROC_SUITE #}
+
+{% if ARCHIVE %}
+# N.B. Archive *the whole suite*.
+[[archive]]
+    inherit = XC30
+    script = archive.sh
+    [[[directives]]]
+	-l walltime=24:00:00
+	-l select=serial=true:ncpus=1
+    [[[environment]]]
+       ARCHIVE_DIR = {{ARCHIVE_DIR}}
+
+    {% if DELETE_WORK %}
+    [[delete_work]]
+	inherit = XC30
+	script = delete_work.sh
+	[[[directives]]]
+	    -l walltime=24:00:00
+	    -l select=serial=true:ncpus=1
+
+    {% endif %} {# DELETE_WORK #}
+{% endif %} {# ARCHIVE #}

@@ -19,7 +19,11 @@ def main(suite, args):
         for stash_var in stash_vars:
             print(format_var(stash_var))
     elif args.get_name:
-        sec, item = args.get_name.split(',')
+        try:
+            sec, item = args.get_name.split(',')
+        except ValueError:
+            msg = '--get-name arg should be comma separated "<section>,<item>", e.g. 0,150'
+            raise omnium.OmniumError(msg)
         print(stash[int(sec)][int(item)])
     else:
         print('Either --search or --get-name')

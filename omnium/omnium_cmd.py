@@ -78,6 +78,6 @@ def main(argv, import_log_msg=''):
             return cmd.main(suite, args)
         except Exception as e:
             logger.exception('{}'.format(e))
-            return 1
+            raise
     else:
         return cmd.main(suite, args)

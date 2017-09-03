@@ -5,3 +5,4 @@ dist/
 docs/_build/
 omnium.egg-info/
 .idea/
+tests/test_suite/u-ap347/.omnium/log/

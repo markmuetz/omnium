@@ -1,7 +1,9 @@
 import os
+from logging import getLogger
 
 from omnium.syncher import Syncher
-from omnium.suite import Suite
+
+logger = getLogger('om.send')
 
 ARGS = [(['filenames'], {'help': 'Filenames to send', 'nargs': '+'}),
         (['--remote', '-r'], {'help': 'Remote'}),
@@ -9,9 +11,6 @@ ARGS = [(['filenames'], {'help': 'Filenames to send', 'nargs': '+'}),
 
 
 def main(suite, args):
-    suite = Suite()
-    suite.load(os.getcwd())
-
     syncher = Syncher(suite, args.remote, args.verbose)
 
     filenames = args.filenames

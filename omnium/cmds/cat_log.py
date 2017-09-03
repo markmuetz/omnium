@@ -7,9 +7,7 @@ from logging import getLogger
 logger = getLogger('om.cat_log')
 
 ARGS = [(['--search', '-s'], {'help': 'Regex to search for'}),
-        (['--level', '-l'], {'help': 'Logging level'}),
-        (['--remote', '-r'], {'help': 'Remote'}),
-        (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'})]
+        (['--level', '-l'], {'help': 'Logging level'})]
 
 
 def main(suite, args):

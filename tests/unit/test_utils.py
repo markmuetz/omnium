@@ -3,6 +3,7 @@ from unittest import TestCase
 from mock import Mock
 
 import omnium
+import omnium.consts as consts
 
 
 class TestUtilsGetCube(TestCase):
@@ -17,6 +18,12 @@ class TestUtilsGetCube(TestCase):
             cube.attributes = {'STASH': stash, 'cust_attr': str(i + 1)}
             cubes.append(cube)
         cls.cubes = cubes
+
+    def test_consts(self):
+        assert hasattr(consts, 'g')
+        assert hasattr(consts, 'L')
+        assert hasattr(consts, 'cp')
+        assert hasattr(consts, 'Re')
 
     def test_get_cube(self):
         omnium.utils.get_cube(TestUtilsGetCube.cubes, 0, 10)

@@ -1,0 +1,18 @@
+{# ################### Store variables in rose-suite.conf in dictionaries ################### #}
+
+{# Work out the number of experiments in use #}
+{% set NUM_EXPTS = ("NUM_EXPTS")|get_variable() %}
+
+{# Create a data structure, EXPTS, to hold all information about the different experiments #}
+{% set EXPTS = [] %}
+{# Loop over different experiments #}
+{% for expt in range(1, NUM_EXPTS + 1) %}
+    {% set exptp = expt|pad(2,"0") %}
+    {% set EXPT = {} %}
+    {% set EXPT_ATTR_NAMES = ["ewproc", "l_actrun", "name", "nsproc", "opts", "wallclock"] %}
+    {% for expt_attr_n in EXPT_ATTR_NAMES %}
+	{% set expt_attr_val = ("expt" + exptp + "_" + expt_attr_n)|get_variable() %}
+	{% do EXPT.update({expt_attr_n: expt_attr_val}) %}
+    {% endfor %}
+    {% do EXPTS.append(EXPT) %}
+{% endfor %}
