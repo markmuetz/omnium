@@ -3,6 +3,7 @@ import imp
 from unittest import TestCase
 
 from mock import patch
+from pyqtgraph.Qt import QtGui
 
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
@@ -50,7 +51,9 @@ class TestCmds(TestCase):
         # https://stackoverflow.com/a/5850288/54557
         imp.load_source('__main__', os.path.join(os.path.dirname(omnium.__file__), 'version.py'))
 
+    @patch.object(QtGui.QApplication, 'exec_')
     @patch.object(ViewerControlWindow, 'show')
-    def test_viewer_control(self, mock_show):
+    def test_viewer_control(self, mock_show, mock_exec):
         omnium_main(['omnium', 'viewer'])
         mock_show.assert_called()
+        mock_exec.assert_called()

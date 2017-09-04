@@ -14,4 +14,4 @@ def main(suite, args):
 
         viewer_control = ViewerControlWindow(args.state, args.filenames)
         viewer_control.show()
-        sys.exit(app.exec_())
+        return app.exec_()
