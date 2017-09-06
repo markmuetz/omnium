@@ -13,6 +13,7 @@ ARGS = [(['--host-name'], {'help': 'Short name for host', 'default': 'rdf'}),
         (['--local', '-l'], {'help': 'Perform local clone', 'action': 'store_true'}),
         (['--verbose', '-v'], {'help': 'Verbose rsync', 'action': 'store_true'}),
         (['suite'], {'help': 'Suite name', 'nargs': 1})]
+RUN_OUTSIDE_SUITE = True
 
 
 def main(suite, args):

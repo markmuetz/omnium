@@ -22,6 +22,7 @@ ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False
 def main(argv, import_log_msg=''):
     "Parse commands/env, setup logging, dispatch to cmds/<cmd>.py"
     omnium_cmds, args = parse_commands('omnium', ARGS, cmds, argv[1:])
+    cmd = omnium_cmds[args.cmd_name]
 
     env_debug = os.getenv('OMNIUM_DEBUG') == 'True'
     cylc_control = os.getenv('CYLC_CONTROL') == 'True'
@@ -55,22 +56,28 @@ def main(argv, import_log_msg=''):
     logger.debug('start dir: {}'.format(os.getcwd()))
     suite = Suite(os.getcwd(), cylc_control)
     if not suite.is_in_suite:
-        logger.warn('Not in a rose suite')
+        if not getattr(cmd, 'RUN_OUTSIDE_SUITE', False):
+            logger.error('Not in an omnium suite')
+            return
     else:
-        add_file_logging(suite.logging_filename)
+        if hasattr(cmd, 'get_logging_filename'):
+            logging_filename = cmd.get_logging_filename(suite, args)
+        else:
+            logging_filename = suite.logging_filename
+
+        add_file_logging(logging_filename)
 
     if omnium_dev:
         logger.info('running omnium_dev')
         import omnium
         logger.info(omnium)
     logger.debug('omnium import: {}'.format(import_log_msg))
-    logger.debug(argv)
+    logger.debug(' '.join(argv))
     logger.debug(args.cmd_name)
     logger.debug('cylc_control: {}'.format(cylc_control))
 
     state = State()
     logger.debug('omnium git_hash, status: {}, {}'.format(state.git_hash, state.git_status))
-    cmd = omnium_cmds[args.cmd_name]
     if not args.throw_exceptions:
         logger.debug('Catching all exceptions')
         try:

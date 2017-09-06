@@ -12,6 +12,7 @@ ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
                                     'action': 'store_true'}),
         (['--overwrite'], {'help': 'Overwrite new file if already exists', 'action': 'store_true'}),
         (['--zlib'], {'help': 'Use compression', 'action': 'store_true'})]
+RUN_OUTSIDE_SUITE = True
 
 
 def main(suite, args):

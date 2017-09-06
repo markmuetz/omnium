@@ -23,7 +23,7 @@ class Syncher(object):
     clone_cmd_fmt = ("rsync -zuar{verbose} --exclude '.omnium/' {progress} {include} "
                      "--exclude '*' {host}:{path}/ {dst_suite}")
 
-    def __init__(self, suite, local, remote_name=None, verbose=False):
+    def __init__(self, suite, local=False, remote_name=None, verbose=False):
         self.suite = suite
         self.local = local
         if self.local:

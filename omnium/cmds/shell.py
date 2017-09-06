@@ -1,5 +1,6 @@
 """Launches IPython shell"""
 ARGS = [(['--failsafe'], {'action': 'store_true'})]
+RUN_OUTSIDE_SUITE = True
 
 
 def main(suite, args):
@@ -34,8 +35,9 @@ def main(suite, args):
         for name in CONVERTERS.keys():
             print('Loaded converter: {}'.format(name))
 
-        for name, inst in [('stash', stash), ('state', state)]:
-            print('Loaded instance: {}: {}'.format(name, inst))
+        print('Loaded instance: {}: {}'.format('state', state))
+        len_stash_entries = sum([len(od) for od in stash.values()])
+        print('Loaded instance: {}: {} entries'.format('stash', len_stash_entries))
 
     # IPython.start_ipython(argv=[])
     # This is better because it allows you to access e.g. args, config.

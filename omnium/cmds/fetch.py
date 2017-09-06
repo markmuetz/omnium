@@ -14,7 +14,7 @@ ARGS = [(['filenames'], {'help': 'Filenames to fetch', 'nargs': '+'}),
 
 
 def main(suite, args):
-    syncher = Syncher(suite, args.remote, args.verbose)
+    syncher = Syncher(suite, remote_name=args.remote, verbose=args.verbose)
 
     filenames = args.filenames
     rel_filenames = []
