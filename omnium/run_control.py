@@ -63,6 +63,13 @@ class RunControl(object):
             self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work',
                                                       initial_cycle_point, expt + '_atmos')
 
+        config = self.suite.app_config
+        run_type = self.run_type
+
+        settings_sec = 'settings_{}'.format(run_type)
+
+        self.settings = config[settings_sec]
+
     def check_setup(self):
         for expt in self.expts:
             data_dir = self.atmos_datam_dir[expt]
@@ -126,18 +133,7 @@ class RunControl(object):
             if not filenames_for_conversion:
                 logger.warn('No files not already being converted to convert')
 
-    def gen_analysis_workflow(self):
-        self.analysis_workflow = OrderedDict()
-
-        config = self.suite.app_config
-        run_type = self.run_type
-        expts = self.expts
-
-        settings_sec = 'settings_{}'.format(run_type)
-        runcontrol_sec = 'runcontrol_{}'.format(run_type)
-
-        self.settings = config[settings_sec]
-
+    def run_convert(self):
         convert = self.settings.getboolean('convert', False)
         if convert:
             converter_name = self.settings.get('converter', 'ff2nc')
@@ -146,6 +142,10 @@ class RunControl(object):
             filename_globs = self.settings['filenames'].split(',')
             self.convert_all(converter_name, filename_globs, overwrite, delete)
 
+    def gen_analysis_workflow(self):
+        self.analysis_workflow = OrderedDict()
+
+        runcontrol_sec = 'runcontrol_{}'.format(run_type)
         if runcontrol_sec in config:
             runcontrol = config[runcontrol_sec]
         else:
@@ -167,8 +167,7 @@ class RunControl(object):
             if analysis not in self.analysis_classes:
                 raise OmniumError('COULD NOT FIND ANALYZER: {}'.format(analysis))
 
-            Analyser = self.analysis_classes[analysis]
-            logger.debug(Analyser)
+            logger.debug(analysis)
 
             filename_glob = analyser_config['filename']
             logger.debug(filename_glob)
@@ -178,7 +177,7 @@ class RunControl(object):
             if analysis in self.analysis_workflow:
                 raise OmniumError('{} already in analysis workflow'.format(analysis))
 
-            self.analysis_workflow[analysis] = (Analyser, analyser_config['data_type'],
+            self.analysis_workflow[analysis] = (analysis, analyser_config['data_type'],
                                                 analyser_config, filename_glob, enabled)
 
         for analyser_name in self.analysis_classes.keys():
@@ -189,23 +188,23 @@ class RunControl(object):
     def run_analysis(self, analysis, user_filename_glob=None):
         if not self.analysis_workflow:
             self.gen_analysis_workflow()
-        (Analyser, data_type, analyser_config,
+        (analysis, data_type, analyser_config,
          filename_glob, enabled) = self.analysis_workflow[analysis]
         if user_filename_glob:
             filename_glob = user_filename_glob
             logger.debug('Using user defined glob: {}'.format(filename_glob))
-        self._setup_run_analyser(Analyser, data_type, analyser_config, filename_glob)
+        self._setup_run_analyser(analysis, data_type, analyser_config, filename_glob)
 
     def run_all(self):
         logger.debug('running all analysis')
-        for (Analyser, data_type, analyser_config,
+        for (analysis, data_type, analyser_config,
              filename_glob, enabled) in self.analysis_workflow.values():
             if enabled:
-                logger.debug('analysis {} enabled'.format(Analyser.analysis_name))
-                self._setup_run_analyser(Analyser, data_type, analyser_config, filename_glob)
+                logger.debug('analysis {} enabled'.format(analysis))
+                self._setup_run_analyser(analysis, data_type, analyser_config, filename_glob)
 
-    def _setup_run_analyser(self, Analyser, data_type, analyser_config, filename_glob):
-        logger.info('Running {}: {}, {}'.format(Analyser.analysis_name, self.expts, filename_glob))
+    def get_filenames(self, analysis, data_type, filename_glob):
+        Analyser = self.analysis_classes[analysis]
 
         multi_file = Analyser.multi_file
         multi_expt = Analyser.multi_expt
@@ -214,32 +213,32 @@ class RunControl(object):
             data_dir = self.atmos_datam_dir
         elif data_type == 'dataw':
             data_dir = self.atmos_dataw_dir
-
-        if multi_file and multi_expt:
-            raise OmniumError('Only one of multi_file, multi_expt can be True')
-
         if multi_expt:
             # N.B. multi_file == 'False'
-            logger.info('  Running {}: {}: {}'.format(Analyser.analysis_name,
-                                                      self.expts, filename_glob))
-            self._run_analyser(Analyser, data_type, analyser_config,
-                               [filename_glob], self.expts, multi_file, multi_expt)
+            yield self.expts, [filename_glob]
         else:
             for expt in self.expts:
                 filenames = Analyser.get_files(data_dir[expt], filename_glob)
                 if multi_file:
-                    logger.info('  Running {}: {}: {}'.format(Analyser.analysis_name,
-                                                              expt, filename_glob))
-                    self._run_analyser(Analyser, data_type, analyser_config,
-                                       filenames, [expt], multi_file, multi_expt)
+                    yield [expt], filenames
                 else:
                     for filename in filenames:
-                        logger.info('  Running {}: {}: {}'.format(Analyser.analysis_name,
-                                                                  expt, filename))
+                        yield [expt], [filename]
 
-                        self._run_analyser(Analyser, data_type, analyser_config,
-                                           [filename], [expt],
-                                           multi_file, multi_expt)
+    def _setup_run_analyser(self, analysis, data_type, analyser_config, filename_glob):
+        Analyser = self.analysis_classes[analysis]
+        logger.info('Running {}: {}, {}'.format(Analyser.analysis_name, self.expts, filename_glob))
+
+        multi_file = Analyser.multi_file
+        multi_expt = Analyser.multi_expt
+
+        if multi_file and multi_expt:
+            raise OmniumError('Only one of multi_file, multi_expt can be True')
+
+        for expts, filenames in self.get_filenames(analysis, data_type, filename_glob):
+            logger.info('  Running {}: {}: {}'.format(Analyser.analysis_name, expts, filenames))
+            self._run_analyser(Analyser, data_type, analyser_config,
+                               filenames, expts, multi_file, multi_expt)
 
     def _run_analyser(self, Analyser, data_type, analyser_config,
                       filenames, expts, multi_file, multi_expt):

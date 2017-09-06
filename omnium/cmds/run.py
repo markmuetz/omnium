@@ -39,8 +39,23 @@ def main(suite, args):
     run_control = RunControl(suite, args.run_type, args.expts, production, args.force,
                              args.display_only, args.interactive)
     run_control.gen_analysis_workflow()
-
-    if args.all:
-        run_control.run_all()
-    elif args.analysis:
-        run_control.run_analysis(args.analysis, args.filenames)
+    if args.mpi:
+        # Note this will raise an import error if not installed.
+        import mpi4py
+        from omnium.mpi_control import MpiMaster, MpiSlave
+        comm = mpi4py.MPI.COMM_WORLD
+        rank = str(comm.Get_rank()) + '_'
+        if rank == 0:
+            # MpiMaster.
+            pass
+            master = MpiMaster(run_control)
+            master.run()
+        else:
+            # MpiSlave.
+            slave = MpiSlave(run_control)
+            slave.listen()
+    else:
+        if args.all:
+            run_control.run_all()
+        elif args.analysis:
+            run_control.run_analysis(args.analysis, args.filenames)
