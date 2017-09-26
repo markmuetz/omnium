@@ -86,65 +86,6 @@ class RunControl(object):
     def print_tasks(self):
         self.task_master.print_tasks()
 
-    def run(self):
-        self.gen_analysis_workflow()
-        self.run_all()
-
-    def convert_all(self, converter_name, filename_globs, overwrite, delete):
-        for expt in self.expts:
-            if self.run_type == 'cycle':
-                data_dir = self.atmos_datam_dir[expt]
-            elif self.run_type == 'expt':
-                data_dir = self.atmos_dataw_dir[expt]
-
-            filenames = []
-            logger.info('Converting files like:')
-            for filename_glob in filename_globs:
-                logger.info('  ' + filename_glob)
-                for filename in sorted(glob(os.path.join(data_dir, filename_glob))):
-                    # Make sure that UM has finished writing file.
-                    if os.path.exists(filename + '.done'):
-                        logger.debug('  Adding: {}'.format(filename))
-                        filenames.append(filename)
-                    else:
-                        logger.warn('  Not finished: {}'.format(filename))
-
-            converter = CONVERTERS[converter_name](overwrite, delete)
-            filenames_for_conversion = []
-            for filename in filenames:
-                # Check that file is not being converted by another process.
-                if os.path.exists(filename + '.converting'):
-                    logger.warn('  Already being converted: {}'.format(filename))
-                else:
-                    with open(filename + '.converting', 'w') as f:
-                        f.write('Converting with {}\n'.format(converter_name))
-                    filenames_for_conversion.append(filename)
-
-            if not filenames:
-                logger.warn('No files to convert')
-
-            for filename in filenames_for_conversion:
-                try:
-                    converter.convert(filename)
-                    # N.B. if converter fails, there will be a left over .converting file.
-                    # This is intentional: I want to see if this has failed.
-                    os.remove(filename + '.converting')
-                except OmniumError as oe:
-                    logger.error('Could not convert {}'.format(filename))
-                    logger.error(oe)
-
-            if not filenames_for_conversion:
-                logger.warn('No files not already being converted to convert')
-
-    def run_convert(self):
-        convert = self.settings.getboolean('convert', False)
-        if convert:
-            converter_name = self.settings.get('converter', 'ff2nc')
-            overwrite = self.settings.getboolean('overwrite', False)
-            delete = self.settings.getboolean('delete', False)
-            filename_globs = self.settings['filenames'].split(',')
-            self.convert_all(converter_name, filename_globs, overwrite, delete)
-
     def gen_analysis_workflow(self):
         self.analysis_workflow = OrderedDict()
         config = self.config
@@ -199,16 +140,6 @@ class RunControl(object):
                                       self.expts, self.atmos_datam_dir, self.atmos_dataw_dir,
                                       converter_name)
         self.task_master.gen_tasks()
-
-    def run_analysis(self, analysis, user_filename_glob=None):
-        if not self.analysis_workflow:
-            self.gen_analysis_workflow()
-        (analysis, data_type, analyser_config,
-         filename_glob, enabled) = self.analysis_workflow[analysis]
-        if user_filename_glob:
-            filename_glob = user_filename_glob
-            logger.debug('Using user defined glob: {}'.format(filename_glob))
-        self._setup_run_analyser(analysis, data_type, analyser_config, filename_glob)
 
     def run_all(self):
         logger.debug('running all analysis')
@@ -277,4 +208,3 @@ class RunControl(object):
         else:
             logger.info('  Analysis already run')
         return analyser
-
