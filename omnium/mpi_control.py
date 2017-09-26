@@ -1,83 +1,73 @@
-import mpi4py
+from mpi4py import MPI
 from logging import getLogger
 
 logger = getLogger('om.mpi_ctrl')
 
+WORKTAG = 0
+DIETAG = 1
+
 
 class MpiMaster(object):
-    def __init__(self, run_control):
+    def __init__(self, run_control, comm, rank, size):
         self.run_control = run_control
-        self.comm = mpi4py.MPI.COMM_WORLD
-        self.rank = self.comm.Get_rank()
-        self.size = self.comm.Get_size()
-        self.my_data = []
+        self.comm = comm
+        self.rank = rank
+        self.size = size
 
     def run(self):
-        logger.debug('running all analysis')
-        for (analysis, data_type, analyser_config,
-             filename_glob, enabled) in self.run_run_control.analysis_workflow.values():
-            if enabled:
-                logger.debug('analysis {} enabled'.format(analysis))
-                self.setup_run_analyser(analysis, data_type, analyser_config, filename_glob)
+        all_tasks_iter = iter(self.run_control.task_master.get_all_tasks())
+        status = MPI.Status()
+        # Launch all tasks initially.
+        for dest in range(1, self.size):
+            task  = all_tasks_iter.next()
+            data = {'command': 'run_task', 'task': task}
+            logger.debug('Sending to dest {}: {}'.format(dest, data))
+            self.comm.send(data, dest=dest, tag=WORKTAG)
 
-    def setup_run_analyser(self, analysis, data_type, analyser_config, filename_glob):
-        my_datas = []
-        for expts, filenames in self.run_control.get_filenames(analysis, data_type, filename_glob):
-            min_num_files_per_inst = int(len(filenames) / self.size)
-            num_extra_files = len(filenames) % self.size
+        # Farm out rest of work when a worker reports back that it's done.
+        while True:
+            try:
+                task  = all_tasks_iter.next()
+            except StopIteration:
+                logger.debug('All tasks sent')
+                break
+            data = self.comm.recv(source=MPI.ANY_SOURCE,
+                                  tag=MPI.ANY_TAG, status=status)
+            logger.debug('Data received from {}: {}'.format(status.Get_source(), data))
+            data = {'command': 'run_task', 'task': task}
+            logger.debug('Sending more data to {}: {}'.format(status.Get_source(), data))
+            self.comm.send(data, dest=status.Get_source(), tag=WORKTAG)
 
-            start_index = min_num_files_per_inst + 1
-            for i in range(1, self.size):
-                if i <= num_extra_files:
-                    num_files = min_num_files_per_inst + 1
-                else:
-                    num_files = min_num_files_per_inst
-                data = {'command': 'data',
-                        'analysis': analysis,
-                        'expts': expts,
-                        'analyser_config': analyser_config,
-                        'filenames': filenames[start_index:start_index + num_files]}
-                logger.debug('Sending to rank {}: {}'.format(i, data))
-                self.comm.send(data, dest=i, tag=11)
-                start_index += num_files
+        # We are done! Listen for final data responses.
+        for dest in range(1, self.size):
+            data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
+            logger.debug('Final data received from {}: {}'.format(status.Get_source(), data))
 
-            if num_extra_files:
-                data = {'command': 'data',
-                        'expts': expts,
-                        'analyser_config': analyser_config,
-                        'filenames': filenames[0: min_num_files_per_inst + 1]}
-            else:
-                data = {'command': 'data',
-                        'expts': expts,
-                        'analyser_config': analyser_config,
-                        'filenames': filenames[0: min_num_files_per_inst]}
-            self.run_control._setup_run_analyser(**data)
+        # Send all slaves a die command.
+        for dest in range(1, self.size):
+            data = {'command': 'die'}
+            self.comm.send(data, dest=dest, tag=DIETAG)
 
-        for i in range(1, self.size):
-            data = {'command': 'start'}
-            self.comm.send(data, dest=i, tag=11)
-
-        for data in self.my_data:
-            logger.debug('Running data: '.format(data))
-            self.run_control._setup_run_analyser(**data)
         logger.debug('Finished')
 
 
 class MpiSlave(object):
-    def __init__(self, run_control):
+    def __init__(self, run_control, comm, rank, size):
         self.run_control = run_control
-        self.comm = mpi4py.MPI.COMM_WORLD
-        self.rank = self.comm.Get_rank()
-        self.size = self.comm.Get_size()
-        self.my_data = []
+        self.comm = comm
+        self.rank = rank
+        self.size = size
 
     def listen(self):
-        data = self.comm.recv(source=0, tag=11)
-        if data['command'] == 'data':
+        status = MPI.Status()
+        while True:
+            data = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
             logger.debug('Received data: '.format(data))
-            self.my_data.append(data)
-        elif data['command'] == 'start':
-            for data in self.my_data:
-                logger.debug('Running data: '.format(data))
-                self.run_control._setup_run_analyser(**data)
+            if status.Get_tag() == DIETAG:
+                break
+            else:
+                self.run_control.run_task(data['task'])
+                data['task'].status = 'done'
+                self.comm.send(data, dest=0, tag=WORKTAG)
+
         logger.debug('Finished')

@@ -1,8 +1,12 @@
 import os
 from glob import glob
 import fnmatch
+from logging import getLogger
+
 from copy import copy
 from omnium.converters import CONVERTERS
+
+logger = getLogger('om.task')
 
 
 class Task(object):
@@ -46,6 +50,10 @@ class TaskMaster(object):
         self.output_filenames = []
         self.filename_task_map = {}
 
+    def get_all_tasks(self):
+        for task in self.all_tasks:
+            yield task
+
     def print_tasks(self):
         for task in self.all_tasks:
             print(task)
@@ -81,7 +89,7 @@ class TaskMaster(object):
             for input_filename in input_filenames:
                 if os.path.exists(input_filename + '.done'):
                     # assert(input_filename not in self.filename_task_map)
-                    split_filename = input_filename.split('.')
+                    split_filename = os.path.basename(input_filename).split('.')
                     output_filename = Analyser.gen_output_filename(False,
                                                                    analysis_name,
                                                                    'atmos',
@@ -134,3 +142,4 @@ class TaskMaster(object):
 
             for analysis_name, Analyser, enabled in subsequent_analysis:
                 self.gen_subsequent_tasks(expt, analysis_name, Analyser, enabled)
+        logger.info('Generated {} tasks'.format(len(self.all_tasks)))

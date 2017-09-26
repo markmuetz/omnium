@@ -1,4 +1,7 @@
 import os
+from logging import getLogger
+
+logger = getLogger('om.run')
 
 ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
         (['--run-type', '-t'], {'help': 'cycle/expt/[suite]', 'default': 'suite'}),
@@ -23,9 +26,9 @@ def get_logging_filename(suite, args):
 
     if args.mpi:
         # Note this will raise an import error if not installed.
-        import mpi4py
-        comm = mpi4py.MPI.COMM_WORLD
-        rank = str(comm.Get_rank()) + '_'
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        rank = 'mpi_rank_' + str(comm.Get_rank()) + '_'
     else:
         rank = ''
 
@@ -39,22 +42,25 @@ def main(suite, args):
     production = (os.getenv('PRODUCTION') == 'True') or args.production
     run_control = RunControl(suite, args.run_type, args.expts, production, args.force,
                              args.display_only, args.interactive)
-    run_control.gen_analysis_workflow()
     if args.mpi:
         # Note this will raise an import error if not installed.
-        import mpi4py
+        from mpi4py import MPI
         from omnium.mpi_control import MpiMaster, MpiSlave
-        comm = mpi4py.MPI.COMM_WORLD
-        rank = str(comm.Get_rank()) + '_'
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+        logger.debug('Size, rank: {}, {}'.format(size, rank))
+        run_control.gen_analysis_workflow()
         if rank == 0:
-            # MpiMaster.
-            master = MpiMaster(run_control)
+            run_control.gen_tasks()
+            master = MpiMaster(run_control, comm, rank, size)
             master.run()
         else:
-            # MpiSlave.
-            slave = MpiSlave(run_control)
+            slave = MpiSlave(run_control, comm, rank, size)
             slave.listen()
     else:
+        run_control.gen_analysis_workflow()
+        run_control.gen_tasks()
         if args.print_only:
             run_control.print_tasks()
         elif args.all:

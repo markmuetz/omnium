@@ -1,5 +1,4 @@
 import os
-import sys
 from glob import glob
 from collections import OrderedDict
 from logging import getLogger
@@ -85,10 +84,7 @@ class RunControl(object):
             print('{}: {}'.format(attr, getattr(self, attr)))
 
     def print_tasks(self):
-        task_master = TaskMaster(self.suite, self.settings, self.analysis_workflow,
-                                 self.expts, self.atmos_datam_dir, self.atmos_dataw_dir, 'ff2nc')
-        task_master.gen_tasks()
-        task_master.print_tasks()
+        self.task_master.print_tasks()
 
     def run(self):
         self.gen_analysis_workflow()
@@ -193,6 +189,17 @@ class RunControl(object):
                 logger.warn('Analyser found but has no config: {}'.format(analyser_name))
         logger.debug(self.analysis_workflow.keys())
 
+    def gen_tasks(self):
+        convert = self.settings.getboolean('convert', False)
+        if convert:
+            converter_name = self.settings.get('converter', 'ff2nc')
+        else:
+            converter_name = None
+        self.task_master = TaskMaster(self.suite, self.settings, self.analysis_workflow,
+                                      self.expts, self.atmos_datam_dir, self.atmos_dataw_dir,
+                                      converter_name)
+        self.task_master.gen_tasks()
+
     def run_analysis(self, analysis, user_filename_glob=None):
         if not self.analysis_workflow:
             self.gen_analysis_workflow()
@@ -205,65 +212,58 @@ class RunControl(object):
 
     def run_all(self):
         logger.debug('running all analysis')
-        for (analysis, data_type, analyser_config,
-             filename_glob, enabled) in self.analysis_workflow.values():
-            if enabled:
-                logger.debug('analysis {} enabled'.format(analysis))
-                self._setup_run_analyser(analysis, data_type, analyser_config, filename_glob)
 
-    def get_filenames(self, analysis, data_type, filename_glob):
-        Analyser = self.analysis_classes[analysis]
+        for task in self.task_master.get_all_tasks():
+            self.run_task(task)
+
+    def run_task(self, task):
+        logger.debug(task)
+        if task.task_type == 'conversion':
+            self.run_conversion(task)
+        elif task.task_type == 'analysis':
+            self.run_analysis(task)
+
+    def run_conversion(self, task):
+        overwrite = self.settings.getboolean('overwrite', False)
+        delete = self.settings.getboolean('delete', False)
+        converter = CONVERTERS[task.name](overwrite, delete)
+        filenames_for_conversion = []
+        for filename in task.filenames:
+            # Check that file is not being converted by another process.
+            if os.path.exists(filename + '.converting'):
+                logger.warn('  Already being converted: {}'.format(filename))
+            else:
+                with open(filename + '.converting', 'w') as f:
+                    f.write('Converting with {}\n'.format(task.name))
+                filenames_for_conversion.append(filename)
+
+        for filename in filenames_for_conversion:
+            try:
+                converter.convert(filename)
+                # N.B. if converter fails, there will be a left over .converting file.
+                # This is intentional: I want to see if this has failed.
+                os.remove(filename + '.converting')
+            except OmniumError as oe:
+                logger.error('Could not convert {}'.format(filename))
+                logger.error(oe)
+
+        if not filenames_for_conversion:
+            logger.warn('No files not already being converted to convert')
+
+    def run_analysis(self, task):
+        Analyser = self.analysis_classes[task.name]
 
         multi_file = Analyser.multi_file
         multi_expt = Analyser.multi_expt
-
-        if data_type == 'datam':
-            data_dir = self.atmos_datam_dir
-        elif data_type == 'dataw':
-            data_dir = self.atmos_dataw_dir
-        if multi_expt:
-            # N.B. multi_file == 'False'
-            yield self.expts, [filename_glob]
-        else:
-            for expt in self.expts:
-                filenames = Analyser.get_files(data_dir[expt], filename_glob)
-                if multi_file:
-                    yield [expt], filenames
-                else:
-                    for filename in filenames:
-                        yield [expt], [filename]
-
-    def _setup_run_analyser(self, analysis, data_type, analyser_config, filename_glob):
-        Analyser = self.analysis_classes[analysis]
-        logger.info('Running {}: {}, {}'.format(Analyser.analysis_name, self.expts, filename_glob))
-
-        multi_file = Analyser.multi_file
-        multi_expt = Analyser.multi_expt
-
-        if multi_file and multi_expt:
-            raise OmniumError('Only one of multi_file, multi_expt can be True')
-
-        for expts, filenames in self.get_filenames(analysis, data_type, filename_glob):
-            logger.info('  Running {}: {}: {}'.format(Analyser.analysis_name, expts, filenames))
-            self._run_analyser(Analyser, data_type, analyser_config,
-                               filenames, expts, multi_file, multi_expt)
-
-    def _run_analyser(self, Analyser, data_type, analyser_config,
-                      filenames, expts, multi_file, multi_expt):
-        if data_type == 'datam':
-            data_dir = self.atmos_datam_dir
-        elif data_type == 'dataw':
-            data_dir = self.atmos_dataw_dir
 
         if multi_expt:
             results_dir = os.path.join(self.suite.suite_dir, 'share/data/history/suite_results')
         else:
-            results_dir = data_dir[expts[0]]
-
+            results_dir = os.path.dirname(task.output_filenames[0])
         expt_group = self.settings.get('expt_group', None)
-        analyser = Analyser(self.suite, data_type, data_dir, results_dir,
-                            filenames, expts, expt_group)
-        analyser.set_config(analyser_config)
+
+        analyser = Analyser(self.suite, task, results_dir, expt_group)
+        analyser.set_config(self.config[task.name])
 
         if self.display_only:
             logger.info('  Display results only')
@@ -277,3 +277,4 @@ class RunControl(object):
         else:
             logger.info('  Analysis already run')
         return analyser
+

@@ -20,56 +20,69 @@ class Analyser(object):
     multi_expt = False
 
     @staticmethod
-    def get_files(data_dir, filename):
-        return sorted(glob(os.path.join(data_dir, filename)))
+    def gen_output_filename(multi_file, analysis_name, atmos, data_type, split_filename):
+        if data_type == 'datam':
+            if len(split_filename) >= 3:
+                time_hours = split_filename[1]
+                instream = split_filename[2]
+                if multi_file:
+                    # TODO: v hacky nipping off last 3 chars.
+                    # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
+                    output_filename = '{}.{}.nc'.format(atmos, analysis_name)
+                else:
+                    output_filename = '{}.{}.{}.nc'.format(atmos,
+                                                           time_hours,
+                                                           analysis_name)
+            elif len(split_filename) <= 2:
+                logger.debug('analysing dump')
+                # It's a dump. Should have a better way of telling though.
+                if multi_file:
+                    # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
+                    dump_without_time_hours = split_filename[0][:-3]
+                    output_filename = '{}.{}.nc'.format(dump_without_time_hours,
+                                                        analysis_name)
+                else:
+                    output_filename = '{}.{}.nc'.format(split_filename[0], analysis_name)
+        elif data_type == 'dataw':
+            instream = split_filename[1]
+            output_filename = '{}.{}.nc'.format(atmos, analysis_name)
+        return output_filename
 
-    def __init__(self, suite, data_type, data_dir, results_dir,
-                 filenames, expts, expt_group=None):
-
+    def __init__(self, suite, task, results_dir, expt_group=None):
         if self.multi_file and self.multi_expt:
             raise OmniumError('Only one of multi_file, multi_expt can be True')
         self.suite = suite
-        self.data_type = data_type
-        self.data_dir = data_dir
+        self.task = task
         self.results_dir = results_dir
         self.expt_group = expt_group
         if self.multi_expt:
             self.expt = None
-            self.expts = expts
+            self.expts = task.expts
         else:
-            assert len(expts) == 1
-            self.expt = expts[0]
+            self.expt = task.expt
             self.expts = None
 
         if self.multi_file:
-            self.filenames = filenames
+            self.filenames = task.filenames
             self.filename = None
             filename = os.path.basename(self.filenames[0])
+            self.output_filename = task.output_filenames[0]
         else:
-            assert len(filenames) == 1
-            filename = os.path.basename(filenames[0])
+            assert len(task.filenames) == 1
+            filename = os.path.basename(task.filenames[0])
             if self.multi_expt:
                 self.expt_filename = OrderedDict()
                 for expt in self.expts:
                     self.expt_filename[expt] = os.path.join(self.data_dir[expt], filename)
                 filename = os.path.basename(self.expt_filename.values()[0])
             else:
-                self.filename = os.path.join(self.data_dir[self.expt], filename)
+                self.filename = task.filenames[0]
             self.filenames = None
+            self.output_filename = task.output_filenames[0]
 
-        logger.debug('data_type: {}'.format(data_type))
         logger.debug('multi_file: {}'.format(self.multi_file))
         logger.debug('multi_expt: {}'.format(self.multi_expt))
 
-        split_filename = filename.split('.')
-        atmos = split_filename[0]
-        runid = split_filename[1]
-
-        logger.debug('filename: {}'.format(filename))
-        logger.debug('split_filename: {}'.format(split_filename))
-        self.output_filename = Analyser.gen_output_filename(atmos, data_type, split_filename)
-
-        self.runid = runid
         logger.debug('output_filename: {}'.format(self.output_filename))
         self.results = OrderedDict()
         self.force = False
@@ -82,35 +95,6 @@ class Analyser(object):
         if not os.path.exists(self.results_dir):
             logger.debug('creating results_dir: {}'.format(self.results_dir))
             os.makedirs(self.results_dir)
-
-    @staticmethod
-    def gen_output_filename(multi_file, analysis_name, atmos, data_type, split_filename):
-        if data_type == 'datam':
-            if len(split_filename) >= 3:
-                time_hours = split_filename[1]
-                instream = split_filename[2]
-                if multi_file:
-                    # TODO: v hacky nipping off last 3 chars.
-                    # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
-                    output_filename = '{}.{}.nc'.format(atmos, analysis_name)
-                else:
-                    output_filename = '{}.{}.{}.nc'.format(atmos,
-                                                                time_hours,
-                                                                analysis_name)
-            elif len(split_filename) <= 2:
-                logger.debug('analysing dump')
-                # It's a dump. Should have a better way of telling though.
-                if multi_file:
-                    # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
-                    dump_without_time_hours = split_filename[0][:-3]
-                    output_filename = '{}.{}.nc'.format(dump_without_time_hours,
-                                                             analysis_name)
-                else:
-                    output_filename = '{}.{}.nc'.format(split_filename[0], analysis_name)
-        elif data_type == 'dataw':
-            instream = split_filename[1]
-            output_filename = '{}.{}.nc'.format(atmos, analysis_name)
-        return output_filename
 
     def set_config(self, config):
         logger.debug(config)
@@ -238,6 +222,8 @@ class Analyser(object):
             os.makedirs(figdir)
 
         if self.multi_expt:
+            filename = 'atmos.{}.{}'.format(self.analysis_name, name)
+        elif self.multi_file:
             filename = 'atmos.{}.{}'.format(self.analysis_name, name)
         else:
             filename = 'atmos.{}.{}.{}'.format(self.runid, self.analysis_name, name)
