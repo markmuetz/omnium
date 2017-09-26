@@ -85,7 +85,8 @@ class RunControl(object):
             print('{}: {}'.format(attr, getattr(self, attr)))
 
     def print_tasks(self):
-        task_master = TaskMaster(self.suite, self.analysis_workflow)
+        task_master = TaskMaster(self.suite, self.settings, self.analysis_workflow,
+                                 self.expts, self.atmos_datam_dir, self.atmos_dataw_dir, 'ff2nc')
         task_master.gen_tasks()
         task_master.print_tasks()
 

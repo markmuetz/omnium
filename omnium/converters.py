@@ -24,20 +24,20 @@ class Converter(object):
         self.allow_non_standard = allow_non_standard
         self.zlib = zlib
 
-    def _converted_filename(self, old_filename):
+    @classmethod
+    def _converted_filename(cls, old_filename):
         dirname = os.path.dirname(old_filename)
         filename = os.path.basename(old_filename)
 
-        if not self.allow_non_standard:
-            for pattern in self.standard_patterns:
-                match = re.match(pattern, filename)
+        for pattern in cls.standard_patterns:
+            match = re.match(pattern, filename)
 
-                if match:
-                    logger.debug('matched {} with {}'.format(filename, pattern))
-                    break
+            if match:
+                logger.debug('matched {} with {}'.format(filename, pattern))
+                break
 
-            if not match:
-                raise OmniumError('Filename not standard: {}'.format(filename))
+        if not match:
+            raise OmniumError('Filename not standard: {}'.format(filename))
 
         newname = filename + '.nc'
         return os.path.join(dirname, newname)

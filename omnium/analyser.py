@@ -67,31 +67,7 @@ class Analyser(object):
 
         logger.debug('filename: {}'.format(filename))
         logger.debug('split_filename: {}'.format(split_filename))
-        if data_type == 'datam':
-            if len(split_filename) >= 3:
-                time_hours = split_filename[1]
-                instream = split_filename[2]
-                if self.multi_file:
-                    # TODO: v hacky nipping off last 3 chars.
-                    # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
-                    self.output_filename = '{}.{}.nc'.format(atmos, self.analysis_name)
-                else:
-                    self.output_filename = '{}.{}.{}.nc'.format(atmos,
-                                                                time_hours,
-                                                                self.analysis_name)
-            elif len(split_filename) <= 2:
-                logger.debug('analysing dump')
-                # It's a dump. Should have a better way of telling though.
-                if self.multi_file:
-                    # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
-                    dump_without_time_hours = split_filename[0][:-3]
-                    self.output_filename = '{}.{}.nc'.format(dump_without_time_hours,
-                                                             self.analysis_name)
-                else:
-                    self.output_filename = '{}.{}.nc'.format(split_filename[0], self.analysis_name)
-        elif data_type == 'dataw':
-            instream = split_filename[1]
-            self.output_filename = '{}.{}.nc'.format(atmos, self.analysis_name)
+        self.output_filename = Analyser.gen_output_filename(atmos, data_type, split_filename)
 
         self.runid = runid
         logger.debug('output_filename: {}'.format(self.output_filename))
@@ -106,6 +82,35 @@ class Analyser(object):
         if not os.path.exists(self.results_dir):
             logger.debug('creating results_dir: {}'.format(self.results_dir))
             os.makedirs(self.results_dir)
+
+    @staticmethod
+    def gen_output_filename(multi_file, analysis_name, atmos, data_type, split_filename):
+        if data_type == 'datam':
+            if len(split_filename) >= 3:
+                time_hours = split_filename[1]
+                instream = split_filename[2]
+                if multi_file:
+                    # TODO: v hacky nipping off last 3 chars.
+                    # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
+                    output_filename = '{}.{}.nc'.format(atmos, analysis_name)
+                else:
+                    output_filename = '{}.{}.{}.nc'.format(atmos,
+                                                                time_hours,
+                                                                analysis_name)
+            elif len(split_filename) <= 2:
+                logger.debug('analysing dump')
+                # It's a dump. Should have a better way of telling though.
+                if multi_file:
+                    # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
+                    dump_without_time_hours = split_filename[0][:-3]
+                    output_filename = '{}.{}.nc'.format(dump_without_time_hours,
+                                                             analysis_name)
+                else:
+                    output_filename = '{}.{}.nc'.format(split_filename[0], analysis_name)
+        elif data_type == 'dataw':
+            instream = split_filename[1]
+            output_filename = '{}.{}.nc'.format(atmos, analysis_name)
+        return output_filename
 
     def set_config(self, config):
         logger.debug(config)
