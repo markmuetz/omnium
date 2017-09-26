@@ -7,6 +7,7 @@ ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
         (['--filenames', '-n'], {'help': 'Filenames to run on'}),
         (['--force', '-f'], {'help': 'Force run', 'action': 'store_true'}),
         (['--production', '-p'], {'help': 'Run in production mode', 'action': 'store_true'}),
+        (['--print-only', '-o'], {'help': 'Print only', 'action': 'store_true'}),
         (['--mpi'], {'help': 'Run using mpi', 'action': 'store_true'}),
         (['--display-only', '-d'], {'help': 'Display only (must have been run previously)',
                                     'action': 'store_true'}),
@@ -47,7 +48,6 @@ def main(suite, args):
         rank = str(comm.Get_rank()) + '_'
         if rank == 0:
             # MpiMaster.
-            pass
             master = MpiMaster(run_control)
             master.run()
         else:
@@ -55,7 +55,9 @@ def main(suite, args):
             slave = MpiSlave(run_control)
             slave.listen()
     else:
-        if args.all:
+        if args.print_only:
+            run_control.print_tasks()
+        elif args.all:
             run_control.run_all()
         elif args.analysis:
             run_control.run_analysis(args.analysis, args.filenames)

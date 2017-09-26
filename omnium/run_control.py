@@ -7,6 +7,7 @@ from logging import getLogger
 from omnium.converters import CONVERTERS
 from omnium.omnium_errors import OmniumError
 from omnium.state import State
+from omnium.task import TaskMaster
 
 logger = getLogger('om.run_ctrl')
 
@@ -83,6 +84,11 @@ class RunControl(object):
         for attr in ['run_type', 'expts', 'atmos_datam_dir', 'atmos_dataw_dir']:
             print('{}: {}'.format(attr, getattr(self, attr)))
 
+    def print_tasks(self):
+        task_master = TaskMaster(self.suite, self.analysis_workflow)
+        task_master.gen_tasks()
+        task_master.print_tasks()
+
     def run(self):
         self.gen_analysis_workflow()
         self.run_all()
@@ -144,8 +150,9 @@ class RunControl(object):
 
     def gen_analysis_workflow(self):
         self.analysis_workflow = OrderedDict()
+        config = self.config
 
-        runcontrol_sec = 'runcontrol_{}'.format(run_type)
+        runcontrol_sec = 'runcontrol_{}'.format(self.run_type)
         if runcontrol_sec in config:
             runcontrol = config[runcontrol_sec]
         else:
@@ -177,8 +184,8 @@ class RunControl(object):
             if analysis in self.analysis_workflow:
                 raise OmniumError('{} already in analysis workflow'.format(analysis))
 
-            self.analysis_workflow[analysis] = (analysis, analyser_config['data_type'],
-                                                analyser_config, filename_glob, enabled)
+            Analyser = self.analysis_classes[analysis]
+            self.analysis_workflow[analysis] = (analysis, Analyser, enabled)
 
         for analyser_name in self.analysis_classes.keys():
             if analyser_name not in self.analysis_workflow:
