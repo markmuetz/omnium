@@ -64,12 +64,12 @@ class RunControl(object):
             self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work',
                                                       initial_cycle_point, expt + '_atmos')
 
-        config = self.suite.app_config
+        self.config = self.suite.app_config
         run_type = self.run_type
 
         settings_sec = 'settings_{}'.format(run_type)
 
-        self.settings = config[settings_sec]
+        self.settings = self.config[settings_sec]
 
     def check_setup(self):
         for expt in self.expts:
