@@ -15,28 +15,37 @@ class MpiMaster(object):
         self.size = size
 
     def run(self):
-        all_tasks_iter = iter(self.run_control.task_master.get_all_tasks())
+        task_master = self.run_control.task_master
         status = MPI.Status()
         # Launch all tasks initially.
         for dest in range(1, self.size):
-            task  = all_tasks_iter.next()
+            task  = task_master.get_next_pending()
             data = {'command': 'run_task', 'task': task}
             logger.debug('Sending to dest {}: {}'.format(dest, data))
             self.comm.send(data, dest=dest, tag=WORKTAG)
 
+        dests = []
         # Farm out rest of work when a worker reports back that it's done.
         while True:
             try:
-                task  = all_tasks_iter.next()
+                task = task_master.get_next_pending()
+                if not task:
+                    break
+                    # Need to be smarter. There might be no pending tasks, but there are still tasks
+                    # that can be started because of unmet dependencies.
+                    dests.append(dest)
             except StopIteration:
                 logger.debug('All tasks sent')
                 break
             data = self.comm.recv(source=MPI.ANY_SOURCE,
                                   tag=MPI.ANY_TAG, status=status)
+            task_master.update_task(data['task'])
             logger.debug('Data received from {}: {}'.format(status.Get_source(), data))
             data = {'command': 'run_task', 'task': task}
-            logger.debug('Sending more data to {}: {}'.format(status.Get_source(), data))
-            self.comm.send(data, dest=status.Get_source(), tag=WORKTAG)
+            if dests:
+                dest = dests.pop()
+            logger.debug('Sending more data to {}: {}'.format(dest, data))
+            self.comm.send(data, dest=dest, tag=WORKTAG)
 
         # We are done! Listen for final data responses.
         for dest in range(1, self.size):

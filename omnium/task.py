@@ -10,7 +10,8 @@ logger = getLogger('om.task')
 
 
 class Task(object):
-    def __init__(self, expt, cycle, task_type, name, filenames, output_filenames):
+    def __init__(self, index, expt, cycle, task_type, name, filenames, output_filenames):
+        self.index = index
         self.expt = expt
         self.cycle = cycle
         self.task_type = task_type
@@ -50,6 +51,16 @@ class TaskMaster(object):
         self.output_filenames = []
         self.filename_task_map = {}
 
+    def get_next_pending(self):
+        for task in self.remaining_tasks:
+            if not task.status == 'done':
+                if not task.prev_tasks or all([pt.status == 'done' for pt in task.prev_tasks]):
+                    return task
+
+    def update_task(self, task):
+        existing_task = self.all_tasks[task.index]
+        existing_task.status = task.status
+
     def get_all_tasks(self):
         for task in self.all_tasks:
             yield task
@@ -67,7 +78,7 @@ class TaskMaster(object):
             for filename in filenames:
                 # assert(filename not in self.filename_task_map)
                 output_filename = self.converter._converted_filename(filename)
-                task = Task(expt, 'cycle', 'conversion', self.converter.name, [filename], [output_filename])
+                task = Task(len(self.all_tasks), 'cycle', 'conversion', self.converter.name, [filename], [output_filename])
                 self.all_tasks.append(task)
                 for output_filename in task.output_filenames:
                     self.filename_task_map[output_filename] = task
@@ -95,7 +106,7 @@ class TaskMaster(object):
                                                                    'atmos',
                                                                    data_type,
                                                                    split_filename)
-                    task = Task(expt, 'cycle', 'analysis', analysis_name, [input_filename], [os.path.join(data_dir, output_filename)])
+                    task = Task(len(self.all_tasks), 'cycle', 'analysis', analysis_name, [input_filename], [os.path.join(data_dir, output_filename)])
                     self.all_tasks.append(task)
                     for output_filename in task.output_filenames:
                         self.filename_task_map[output_filename] = task
@@ -123,7 +134,7 @@ class TaskMaster(object):
                                                                data_type,
                                                                split_filename)
                 prev_task = self.filename_task_map[filtered_filename]
-                task = Task(expt, 'cycle', 'analysis', analysis_name, [filtered_filename], [os.path.join(data_dir, output_filename)])
+                task = Task(len(self.all_tasks), 'cycle', 'analysis', analysis_name, [filtered_filename], [os.path.join(data_dir, output_filename)])
                 for output_filename in task.output_filenames:
                     self.filename_task_map[output_filename] = task
                 self.all_tasks.append(task)
@@ -142,4 +153,5 @@ class TaskMaster(object):
 
             for analysis_name, Analyser, enabled in subsequent_analysis:
                 self.gen_subsequent_tasks(expt, analysis_name, Analyser, enabled)
+        self.remaining_tasks = copy(self.all_tasks)
         logger.info('Generated {} tasks'.format(len(self.all_tasks)))
