@@ -65,20 +65,15 @@ class Analyser(object):
         if self.multi_file:
             self.filenames = task.filenames
             self.filename = None
-            filename = os.path.basename(self.filenames[0])
-            self.output_filename = task.output_filenames[0]
         else:
-            assert len(task.filenames) == 1
-            filename = os.path.basename(task.filenames[0])
             if self.multi_expt:
-                self.expt_filename = OrderedDict()
-                for expt in self.expts:
-                    self.expt_filename[expt] = os.path.join(self.data_dir[expt], filename)
-                filename = os.path.basename(self.expt_filename.values()[0])
+                self.filenames = task.filenames
+                self.filename = None
             else:
+                assert len(task.filenames) == 1
                 self.filename = task.filenames[0]
-            self.filenames = None
-            self.output_filename = task.output_filenames[0]
+
+        self.output_filename = task.output_filenames[0]
 
         logger.debug('multi_file: {}'.format(self.multi_file))
         logger.debug('multi_expt: {}'.format(self.multi_expt))
@@ -121,10 +116,10 @@ class Analyser(object):
         else:
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
-                for expt in self.expts:
-                    logger.debug('loading expt:{} fn:{}'.format(expt, self.expt_filename[expt]))
-                    self.suite.abort_if_missing(self.expt_filename[expt])
-                    self.expt_cubes[expt] = iris.load(self.expt_filename[expt])
+                for expt, filename in zip(self.expts, self.filenames):
+                    logger.debug('loading fn:{}'.format(filename))
+                    self.suite.abort_if_missing(filename)
+                    self.expt_cubes[expt] = iris.load(filename)
             else:
                 logger.debug('loading {}'.format(self.filename))
                 self.suite.abort_if_missing(self.filename)
@@ -189,6 +184,7 @@ class Analyser(object):
             # iris.save(cubelist, cubelist_filename)
 
         self.append_log('Saved')
+        open(cubelist_filename + '.done', 'a').close()
 
     def display(self, interactive=False):
         if hasattr(self, 'display_results'):

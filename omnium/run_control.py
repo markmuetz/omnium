@@ -136,10 +136,10 @@ class RunControl(object):
             converter_name = self.settings.get('converter', 'ff2nc')
         else:
             converter_name = None
-        self.task_master = TaskMaster(self.suite, self.settings, self.analysis_workflow,
+        self.task_master = TaskMaster(self.suite, self.run_type, self.settings, self.analysis_workflow,
                                       self.expts, self.atmos_datam_dir, self.atmos_dataw_dir,
                                       converter_name)
-        self.task_master.gen_tasks()
+        self.task_master.gen_all_tasks()
 
     def run_all(self):
         logger.debug('running all analysis')
@@ -187,10 +187,7 @@ class RunControl(object):
         multi_file = Analyser.multi_file
         multi_expt = Analyser.multi_expt
 
-        if multi_expt:
-            results_dir = os.path.join(self.suite.suite_dir, 'share/data/history/suite_results')
-        else:
-            results_dir = os.path.dirname(task.output_filenames[0])
+        results_dir = os.path.dirname(task.output_filenames[0])
         expt_group = self.settings.get('expt_group', None)
 
         analyser = Analyser(self.suite, task, results_dir, expt_group)
