@@ -13,6 +13,7 @@ class MpiMaster(object):
         self.comm = comm
         self.rank = rank
         self.size = size
+        logger.info('Initialized MPI master: {}/{}'.format(rank, size))
 
     def run(self):
         task_master = self.run_control.task_master
@@ -21,13 +22,7 @@ class MpiMaster(object):
         if self.size > len(task_master.pending_tasks):
             logger.warn('MPI size > # of pending tasks, not sure what will happen')
 
-        for dest in range(1, self.size):
-            task  = task_master.get_next_pending()
-            data = {'command': 'run_task', 'task': task}
-            logger.debug('Sending to dest {}: {}'.format(dest, data))
-            self.comm.send(data, dest=dest, tag=WORKTAG)
-
-        waiting_dests = []
+        waiting_dests = range(1, self.size)[::-1]
         # Farm out rest of work when a worker reports back that it's done.
         while True:
             try:
@@ -39,35 +34,41 @@ class MpiMaster(object):
                 logger.debug('All tasks sent')
                 break
 
-            if not waiting_dests:
-                # No slaves waiting for work - block until notified of completion.
+            need_to_block = not waiting_dests or not task
+            if need_to_block:
+                # Block until notified of completion.
                 rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
-                logger.debug('Data received from {}: {}'.format(status.Get_source(), rdata))
+                logger.info('Data received from {}'.format(status.Get_source()))
+                logger.debug('data: {}'.format(rdata))
                 received_task = rdata['task']  # reconstituted via pickle.
                 task_master.update_task(received_task.index, received_task.status)
 
-            data = {'command': 'run_task', 'task': task}
-            if waiting_dests:
-                # Clear backlog of waiting dests.
-                logger.debug('Waiting tests: {}'.format(waiting_dests))
-                dest = waiting_dests.pop()
-            else:
-                dest = status.Get_source()
-            logger.debug('Sending more data to {}: {}'.format(dest, data))
-            self.comm.send(data, dest=dest, tag=WORKTAG)
+            if task:
+                if waiting_dests:
+                    # Clear backlog of waiting dests.
+                    logger.debug('Waiting dests: {}'.format(waiting_dests))
+                    dest = waiting_dests.pop()
+                else:
+                    dest = status.Get_source()
+
+                data = {'command': 'run_task', 'task': task}
+                logger.info('Sending data to {}'.format(dest))
+                logger.debug('data: {}'.format(data))
+                self.comm.send(data, dest=dest, tag=WORKTAG)
 
         # We are done! Listen for final data responses.
         for dest in range(1, self.size):
             data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
-            logger.debug('Final data received from {}: {}'.format(dest, data))
+            logger.info('Final data received from {}'.format(dest))
+            logger.debug('data: {}'.format(data))
 
         # Send all slaves a die command.
         for dest in range(1, self.size):
             data = {'command': 'die'}
-            logger.debug('Sending die to {}'.format(dest))
+            logger.info('Sending die to {}'.format(dest))
             self.comm.send(data, dest=dest, tag=DIETAG)
 
-        logger.debug('Finished')
+        logger.info('Finished')
 
 
 class MpiSlave(object):
@@ -76,6 +77,7 @@ class MpiSlave(object):
         self.comm = comm
         self.rank = rank
         self.size = size
+        logger.info('Initialized MPI slave: {}/{}'.format(rank, size))
 
     def listen(self):
         status = MPI.Status()

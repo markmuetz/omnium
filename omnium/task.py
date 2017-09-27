@@ -159,13 +159,13 @@ class TaskMaster(object):
                                                                    'atmos',
                                                                    data_type,
                                                                    split_filename)
-                    prev_task = self.filename_task_map[filtered_filename]
                     task = Task(len(self.all_tasks), expt, self.run_type, 'analysis', analysis_name,
                                 [filtered_filename], [os.path.join(data_dir, output_filename)])
-                    prev_task.add_next(task)
                     if not initial:
-                        for output_filename in task.output_filenames:
-                            self.filename_task_map[output_filename] = task
+                        prev_task = self.filename_task_map[filtered_filename]
+                        prev_task.add_next(task)
+                    for output_filename in task.output_filenames:
+                        self.filename_task_map[output_filename] = task
                     self.all_tasks.append(task)
                     self.output_filenames.extend(task.output_filenames)
 
