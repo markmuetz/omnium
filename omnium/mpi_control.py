@@ -24,26 +24,34 @@ class MpiMaster(object):
             logger.debug('Sending to dest {}: {}'.format(dest, data))
             self.comm.send(data, dest=dest, tag=WORKTAG)
 
-        dests = []
+        waiting_dests = []
         # Farm out rest of work when a worker reports back that it's done.
         while True:
             try:
                 task = task_master.get_next_pending()
                 if not task:
-                    break
+                    waiting_dests.append(dest)
                     # Need to be smarter. There might be no pending tasks, but there are still tasks
                     # that can be started because of unmet dependencies.
-                    dests.append(dest)
             except StopIteration:
                 logger.debug('All tasks sent')
                 break
-            data = self.comm.recv(source=MPI.ANY_SOURCE,
-                                  tag=MPI.ANY_TAG, status=status)
-            task_master.update_task(data['task'])
-            logger.debug('Data received from {}: {}'.format(status.Get_source(), data))
+
+
+            if not waiting_dests:
+                # No slaves waiting for work - block until notified of completion.
+                data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+                logger.debug('Data received from {}: {}'.format(status.Get_source(), data))
+                received_task = data['task']  # reconstituted via pickle.
+                task_master.update_task(received_task.index, received_task.status)
+
             data = {'command': 'run_task', 'task': task}
-            if dests:
-                dest = dests.pop()
+            if waiting_dests:
+                # Clear backlog of waiting dests.
+                logger.debug('Waiting tests: {}'.format(waiting_dests))
+                dest = waiting_dests.pop()
+            else:
+                dest = status.Get_source()
             logger.debug('Sending more data to {}: {}'.format(dest, data))
             self.comm.send(data, dest=dest, tag=WORKTAG)
 
