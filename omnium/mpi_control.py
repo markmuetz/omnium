@@ -18,6 +18,9 @@ class MpiMaster(object):
         task_master = self.run_control.task_master
         status = MPI.Status()
         # Launch all tasks initially.
+        if self.size > len(task_master.pending_tasks):
+            logger.warn('MPI size > # of pending tasks, not sure what will happen')
+
         for dest in range(1, self.size):
             task  = task_master.get_next_pending()
             data = {'command': 'run_task', 'task': task}
@@ -30,19 +33,17 @@ class MpiMaster(object):
             try:
                 task = task_master.get_next_pending()
                 if not task:
+                    # There are tasks with unmet dependencies.
                     waiting_dests.append(dest)
-                    # Need to be smarter. There might be no pending tasks, but there are still tasks
-                    # that can be started because of unmet dependencies.
             except StopIteration:
                 logger.debug('All tasks sent')
                 break
 
-
             if not waiting_dests:
                 # No slaves waiting for work - block until notified of completion.
-                data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
-                logger.debug('Data received from {}: {}'.format(status.Get_source(), data))
-                received_task = data['task']  # reconstituted via pickle.
+                rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+                logger.debug('Data received from {}: {}'.format(status.Get_source(), rdata))
+                received_task = rdata['task']  # reconstituted via pickle.
                 task_master.update_task(received_task.index, received_task.status)
 
             data = {'command': 'run_task', 'task': task}
@@ -63,6 +64,7 @@ class MpiMaster(object):
         # Send all slaves a die command.
         for dest in range(1, self.size):
             data = {'command': 'die'}
+            logger.debug('Sending die to {}'.format(dest))
             self.comm.send(data, dest=dest, tag=DIETAG)
 
         logger.debug('Finished')
