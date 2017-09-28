@@ -1,5 +1,10 @@
 import argparse
-import argcomplete
+
+try:
+    import argcomplete
+    use_argparse = True
+except ImportError:
+    use_argparse = False
 
 
 def parse_commands(name, args, module, cmdline_args):
@@ -18,7 +23,8 @@ def parse_commands(name, args, module, cmdline_args):
         for args, kwargs in cmd_module.ARGS:
             subparser.add_argument(*args, **kwargs)
 
-    argcomplete.autocomplete(parser)
+    if use_argparse:
+        argcomplete.autocomplete(parser)
     args = parser.parse_args(cmdline_args)
 
     return cmds, args

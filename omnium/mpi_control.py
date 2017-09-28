@@ -58,8 +58,8 @@ class MpiMaster(object):
 
         # We are done! Listen for final data responses.
         for dest in range(1, self.size):
-            data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
-            logger.info('Final data received from {}'.format(dest))
+            data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+            logger.info('Final data received from {}'.format(status.Get_source()))
             logger.debug('data: {}'.format(data))
 
         # Send all slaves a die command.
