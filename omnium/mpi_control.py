@@ -58,9 +58,11 @@ class MpiMaster(object):
 
         # We are done! Listen for final data responses.
         for dest in range(1, self.size):
-            data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+            rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+            received_task = rdata['task']  # reconstituted via pickle.
+            task_master.update_task(received_task.index, received_task.status)
             logger.info('Final data received from {}'.format(status.Get_source()))
-            logger.debug('data: {}'.format(data))
+            logger.debug('data: {}'.format(rdata))
 
         # Send all slaves a die command.
         for dest in range(1, self.size):
