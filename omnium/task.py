@@ -132,6 +132,7 @@ class TaskMaster(object):
         else:
             filtered_filenames = sorted(fnmatch.filter(self.output_filenames,
                                                        os.path.join(data_dir, filename_glob)))
+            filtered_filenames.extend(sorted(glob(os.path.join(data_dir, filename_glob))))
             logger.debug('found files: {}'.format(filtered_filenames))
 
         if Analyser.multi_file:
