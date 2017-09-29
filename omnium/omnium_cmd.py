@@ -66,6 +66,7 @@ def main(argv, import_log_msg=''):
             logging_filename = suite.logging_filename
 
         add_file_logging(logging_filename)
+    suite.load_analysers()
 
     if omnium_dev:
         logger.info('running omnium_dev')

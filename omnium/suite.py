@@ -101,14 +101,6 @@ class Suite(object):
             # I have an app config. See if I can find analysis_classes:
             logger.debug('loaded app config')
 
-        omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
-        if omnium_analysers_paths:
-            analyser_dirs = omnium_analysers_paths.split(':')
-        self.analysers = Analysers(analyser_dirs)
-        self.analysers.find_all()
-        self.analysis_hash.extend(self.analysers.analysis_hash)
-        self.analysis_hash.extend(self.analysers.analysis_hash)
-
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
         if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
             os.makedirs(os.path.join(self.suite_dir, '.omnium'))
@@ -127,6 +119,15 @@ class Suite(object):
 
         if not os.path.exists(os.path.dirname(self.logging_filename)):
             os.makedirs(os.path.dirname(self.logging_filename))
+
+    def load_analysers(self):
+        omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
+        if omnium_analysers_paths:
+            analyser_dirs = omnium_analysers_paths.split(':')
+        self.analysers = Analysers(analyser_dirs)
+        self.analysers.find_all()
+        self.analysis_hash.extend(self.analysers.analysis_hash)
+        self.analysis_hash.extend(self.analysers.analysis_hash)
 
     def init(self, suite_name, suite_type, host_name=None, host=None, base_path=None):
         assert suite_type in Suite.suite_types
