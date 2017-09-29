@@ -127,7 +127,9 @@ class RunControl(object):
 
         for analyser_name in self.analysis_classes.keys():
             if analyser_name not in self.analysis_workflow:
-                logger.warn('Analyser found but has no config: {}'.format(analyser_name))
+                # This is normal - if an analysers config is for a different run_type this
+                # will be hit.
+                logger.debug('Analyser found but has no config: {}'.format(analyser_name))
         logger.debug(self.analysis_workflow.keys())
 
     def gen_tasks(self):

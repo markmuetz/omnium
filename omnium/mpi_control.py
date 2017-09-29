@@ -40,6 +40,10 @@ class MpiMaster(object):
                 rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
                 logger.info('Data received from {}'.format(status.Get_source()))
                 logger.debug('data: {}'.format(rdata))
+                if rdata['command'] == 'error':
+                    logger.error('Rank {} raised error')
+                    logger.error(rdata['msg'])
+                    raise Exception('Unrecoverable error')
                 received_task = rdata['task']  # reconstituted via pickle.
                 task_master.update_task(received_task.index, received_task.status)
 
@@ -57,7 +61,7 @@ class MpiMaster(object):
                 self.comm.send(data, dest=dest, tag=WORKTAG)
 
         # We are done! Listen for final data responses.
-        for dest in range(1, self.size):
+        for dest in range(1, self.size - len(waiting_dests)):
             rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
             received_task = rdata['task']  # reconstituted via pickle.
             task_master.update_task(received_task.index, received_task.status)
@@ -82,15 +86,21 @@ class MpiSlave(object):
         logger.info('Initialized MPI slave: {}/{}'.format(rank, size))
 
     def listen(self):
-        status = MPI.Status()
-        while True:
-            data = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-            logger.debug('Received data: {}'.format(data))
-            if status.Get_tag() == DIETAG:
-                break
-            else:
-                self.run_control.run_task(data['task'])
-                data['task'].status = 'done'
-                self.comm.send(data, dest=0, tag=WORKTAG)
+        try:
+            status = MPI.Status()
+            while True:
+                data = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+                logger.debug('Received data: {}'.format(data))
+                if status.Get_tag() == DIETAG:
+                    break
+                else:
+                    self.run_control.run_task(data['task'])
+                    data['task'].status = 'done'
+                    self.comm.send(data, dest=0, tag=WORKTAG)
 
-        logger.debug('Finished')
+            logger.debug('Finished')
+        except Exception as e:
+            logger.error(e)
+            data = {'command': 'error', 'msg': e.message}
+            self.comm.send(data, dest=0, tag=WORKTAG)
+
