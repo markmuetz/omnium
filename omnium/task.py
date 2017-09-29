@@ -231,23 +231,30 @@ class TaskMaster(object):
         logger.debug('{} pending tasks'.format(len(self.pending_tasks)))
 
     def gen_all_tasks(self):
+        logger.debug('generating all tasks for {}'.format(self.run_type))
         if self.run_type in ['cycle', 'expt']:
             for expt in self.expts:
+                logger.debug('generating tasks for {}'.format(expt))
                 if self.converter:
+                    logger.debug('convert: {}'.format(self.converter))
                     self.gen_converter_tasks(expt)
                     subsequent_analysis = self.analysis_workflow.values()
                 else:
                     analysis_name, Analyser, enabled = self.analysis_workflow.values()[0]
+                    logger.debug('initial analysis: {}'.format(analysis_name))
                     self.gen_tasks(True, expt, analysis_name, Analyser, enabled)
                     subsequent_analysis = self.analysis_workflow.values()[1:]
 
                 for analysis_name, Analyser, enabled in subsequent_analysis:
+                    logger.debug('subsequent analysis: {}'.format(analysis_name))
                     self.gen_tasks(False, expt, analysis_name, Analyser, enabled)
         elif self.run_type == 'suite':
             analysis_name, Analyser, enabled = self.analysis_workflow.values()[0]
+            logger.debug('initial analysis: {}'.format(analysis_name))
             self.gen_suite_tasks(True, self.expts, analysis_name, Analyser, enabled)
             subsequent_analysis = self.analysis_workflow.values()[1:]
             for analysis_name, Analyser, enabled in subsequent_analysis:
+                logger.debug('subsequent analysis: {}'.format(analysis_name))
                 self.gen_suite_tasks(False, expts, analysis_name, Analyser, enabled)
 
         self.find_pending()
