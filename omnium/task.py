@@ -124,7 +124,7 @@ class TaskMaster(object):
                 data_dir = self.atmos_dataw_dir[expt]
             analysis_config = self.config[analysis_name]
             filename_glob = analysis_config['filename']
-            logger.debug('using data_dir: {}'.format(data-dir))
+            logger.debug('using data_dir: {}'.format(data_dir))
             logger.debug('using filename_glob: {}'.format(filename_glob))
             if initial:
                 filtered_filenames = sorted(glob(os.path.join(data_dir, filename_glob)))
