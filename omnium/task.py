@@ -113,107 +113,39 @@ class TaskMaster(object):
                         self.filename_task_map[output_filename] = task
                     self.output_filenames.extend(task.output_filenames)
 
-    def gen_tasks(self, initial, expt, analysis_name, Analyser, enabled):
-        if enabled:
-            logger.debug('generating tasks for {}'.format(analysis_name))
-            analysis_config = self.config[analysis_name]
-            data_type = analysis_config['data_type']
-            if data_type == 'datam':
-                data_dir = self.atmos_datam_dir[expt]
-            elif data_type == 'dataw':
-                data_dir = self.atmos_dataw_dir[expt]
-            analysis_config = self.config[analysis_name]
-            filename_glob = analysis_config['filename']
-            logger.debug('using data_dir: {}'.format(data_dir))
-            logger.debug('using filename_glob: {}'.format(filename_glob))
-            if initial:
-                filtered_filenames = sorted(glob(os.path.join(data_dir, filename_glob)))
-                self.output_filenames.extend(copy(filtered_filenames))
-                logger.debug('found initial files: {}'.format(filtered_filenames))
-            else:
-                filtered_filenames = sorted(fnmatch.filter(self.output_filenames,
-                                                           os.path.join(data_dir, filename_glob)))
-                logger.debug('found files: {}'.format(filtered_filenames))
+    def gen_tasks(self, initial, expt, analysis_name, Analyser):
+        logger.debug('generating tasks for {}'.format(analysis_name))
+        analysis_config = self.config[analysis_name]
+        data_type = analysis_config['data_type']
+        if data_type == 'datam':
+            data_dir = self.atmos_datam_dir[expt]
+        elif data_type == 'dataw':
+            data_dir = self.atmos_dataw_dir[expt]
+        analysis_config = self.config[analysis_name]
+        filename_glob = analysis_config['filename']
+        logger.debug('using data_dir: {}'.format(data_dir))
+        logger.debug('using filename_glob: {}'.format(filename_glob))
+        if initial:
+            filtered_filenames = sorted(glob(os.path.join(data_dir, filename_glob)))
+            self.output_filenames.extend(copy(filtered_filenames))
+            logger.debug('found initial files: {}'.format(filtered_filenames))
+        else:
+            filtered_filenames = sorted(fnmatch.filter(self.output_filenames,
+                                                       os.path.join(data_dir, filename_glob)))
+            logger.debug('found files: {}'.format(filtered_filenames))
 
-            if Analyser.multi_file:
-                logger.debug('multi file analysis')
+        if Analyser.multi_file:
+            logger.debug('multi file analysis')
 
-                split_filename = os.path.basename(filtered_filenames[0]).split('.')
-                output_filename = Analyser.gen_output_filename(True,
-                                                               analysis_name,
-                                                               'atmos',
-                                                               data_type,
-                                                               split_filename)
-                task = Task(len(self.all_tasks), expt, self.run_type, 'analysis', analysis_name,
-                            filtered_filenames, [os.path.join(data_dir, output_filename)])
-                if not initial:
-                    for filtered_filename in filtered_filenames:
-                        prev_task = self.filename_task_map[filtered_filename]
-                        prev_task.add_next(task)
-
-                for output_filename in task.output_filenames:
-                    self.filename_task_map[output_filename] = task
-                self.all_tasks.append(task)
-                self.output_filenames.extend(task.output_filenames)
-                logger.debug(task)
-            else:
-                logger.debug('single file analysis')
-                for filtered_filename in filtered_filenames:
-                    if initial and not os.path.exists(os.path.join(data_dir, filtered_filename + '.done')):
-                        # Skip files that don't have a .done file if it's an initial task.
-                        continue
-                    # assert(filtered_filename not in self.filename_task_map)
-                    split_filename = os.path.basename(filtered_filename).split('.')
-                    output_filename = Analyser.gen_output_filename(False,
-                                                                   analysis_name,
-                                                                   'atmos',
-                                                                   data_type,
-                                                                   split_filename)
-                    task = Task(len(self.all_tasks), expt, self.run_type, 'analysis', analysis_name,
-                                [filtered_filename], [os.path.join(data_dir, output_filename)])
-                    if not initial:
-                        prev_task = self.filename_task_map[filtered_filename]
-                        prev_task.add_next(task)
-                    for output_filename in task.output_filenames:
-                        self.filename_task_map[output_filename] = task
-                    self.all_tasks.append(task)
-                    self.output_filenames.extend(task.output_filenames)
-                    logger.debug(task)
-
-    def gen_suite_tasks(self, initial, expts, analysis_name, Analyser, enabled):
-        if enabled:
-            filenames = []
-            analysis_config = self.config[analysis_name]
-            data_type = analysis_config['data_type']
-            analysis_config = self.config[analysis_name]
-            filename_glob = analysis_config['filename']
-
-            for expt in expts:
-                if data_type == 'datam':
-                    data_dir = self.atmos_datam_dir[expt]
-                elif data_type == 'dataw':
-                    data_dir = self.atmos_dataw_dir[expt]
-                if initial:
-                    filtered_filenames = sorted(glob(os.path.join(data_dir, filename_glob)))
-                    self.output_filenames.extend(copy(filtered_filenames))
-                else:
-                    filtered_filenames = sorted(fnmatch.filter(self.output_filenames,
-                                                               os.path.join(data_dir, filename_glob)))
-                assert len(filtered_filenames) == 1
-                filenames.append(filtered_filenames[0])
-
-            res_dir = os.path.join(self.suite.suite_dir, 'share/data/history/suite_output')
-            split_filename = os.path.basename(filenames[0]).split('.')
+            split_filename = os.path.basename(filtered_filenames[0]).split('.')
             output_filename = Analyser.gen_output_filename(True,
                                                            analysis_name,
                                                            'atmos',
                                                            data_type,
                                                            split_filename)
-            task = Task(len(self.all_tasks), expts, 'suite', 'analysis', analysis_name,
-                        filenames, [os.path.join(res_dir, output_filename)])
-
+            task = Task(len(self.all_tasks), expt, self.run_type, 'analysis', analysis_name,
+                        filtered_filenames, [os.path.join(data_dir, output_filename)])
             if not initial:
-                # TODO: how to handle deps for suite tasks?
                 for filtered_filename in filtered_filenames:
                     prev_task = self.filename_task_map[filtered_filename]
                     prev_task.add_next(task)
@@ -222,6 +154,72 @@ class TaskMaster(object):
                 self.filename_task_map[output_filename] = task
             self.all_tasks.append(task)
             self.output_filenames.extend(task.output_filenames)
+            logger.debug(task)
+        else:
+            logger.debug('single file analysis')
+            for filtered_filename in filtered_filenames:
+                if initial and not os.path.exists(os.path.join(data_dir, filtered_filename + '.done')):
+                    # Skip files that don't have a .done file if it's an initial task.
+                    continue
+                # assert(filtered_filename not in self.filename_task_map)
+                split_filename = os.path.basename(filtered_filename).split('.')
+                output_filename = Analyser.gen_output_filename(False,
+                                                               analysis_name,
+                                                               'atmos',
+                                                               data_type,
+                                                               split_filename)
+                task = Task(len(self.all_tasks), expt, self.run_type, 'analysis', analysis_name,
+                            [filtered_filename], [os.path.join(data_dir, output_filename)])
+                if not initial:
+                    prev_task = self.filename_task_map[filtered_filename]
+                    prev_task.add_next(task)
+                for output_filename in task.output_filenames:
+                    self.filename_task_map[output_filename] = task
+                self.all_tasks.append(task)
+                self.output_filenames.extend(task.output_filenames)
+                logger.debug(task)
+
+    def gen_suite_tasks(self, initial, expts, analysis_name, Analyser):
+        filenames = []
+        analysis_config = self.config[analysis_name]
+        data_type = analysis_config['data_type']
+        analysis_config = self.config[analysis_name]
+        filename_glob = analysis_config['filename']
+
+        for expt in expts:
+            if data_type == 'datam':
+                data_dir = self.atmos_datam_dir[expt]
+            elif data_type == 'dataw':
+                data_dir = self.atmos_dataw_dir[expt]
+            if initial:
+                filtered_filenames = sorted(glob(os.path.join(data_dir, filename_glob)))
+                self.output_filenames.extend(copy(filtered_filenames))
+            else:
+                filtered_filenames = sorted(fnmatch.filter(self.output_filenames,
+                                                           os.path.join(data_dir, filename_glob)))
+            assert len(filtered_filenames) == 1
+            filenames.append(filtered_filenames[0])
+
+        res_dir = os.path.join(self.suite.suite_dir, 'share/data/history/suite_output')
+        split_filename = os.path.basename(filenames[0]).split('.')
+        output_filename = Analyser.gen_output_filename(True,
+                                                       analysis_name,
+                                                       'atmos',
+                                                       data_type,
+                                                       split_filename)
+        task = Task(len(self.all_tasks), expts, 'suite', 'analysis', analysis_name,
+                    filenames, [os.path.join(res_dir, output_filename)])
+
+        if not initial:
+            # TODO: how to handle deps for suite tasks?
+            for filtered_filename in filtered_filenames:
+                prev_task = self.filename_task_map[filtered_filename]
+                prev_task.add_next(task)
+
+        for output_filename in task.output_filenames:
+            self.filename_task_map[output_filename] = task
+        self.all_tasks.append(task)
+        self.output_filenames.extend(task.output_filenames)
 
     def find_pending(self):
         for task in self.all_tasks:
@@ -232,30 +230,32 @@ class TaskMaster(object):
 
     def gen_all_tasks(self):
         logger.debug('generating all tasks for {}'.format(self.run_type))
+        enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
         if self.run_type in ['cycle', 'expt']:
             for expt in self.expts:
                 logger.debug('generating tasks for {}'.format(expt))
                 if self.converter:
                     logger.debug('convert: {}'.format(self.converter))
                     self.gen_converter_tasks(expt)
-                    subsequent_analysis = self.analysis_workflow.values()
+                    subsequent_analysis = enabled_analysis
                 else:
-                    analysis_name, Analyser, enabled = self.analysis_workflow.values()[0]
+                    # TODO: Need to be smarter about which tasks are initial and which are subsequent.
+                    analysis_name, Analyser, enabled = enabled_analysis[0]
                     logger.debug('initial analysis: {}'.format(analysis_name))
-                    self.gen_tasks(True, expt, analysis_name, Analyser, enabled)
-                    subsequent_analysis = self.analysis_workflow.values()[1:]
+                    self.gen_tasks(True, expt, analysis_name, Analyser)
+                    subsequent_analysis = enabled_analysis[1:]
 
                 for analysis_name, Analyser, enabled in subsequent_analysis:
                     logger.debug('subsequent analysis: {}'.format(analysis_name))
-                    self.gen_tasks(False, expt, analysis_name, Analyser, enabled)
+                    self.gen_tasks(False, expt, analysis_name, Analyser)
         elif self.run_type == 'suite':
-            analysis_name, Analyser, enabled = self.analysis_workflow.values()[0]
+            analysis_name, Analyser, enabled = enabled_analysis[0]
             logger.debug('initial analysis: {}'.format(analysis_name))
-            self.gen_suite_tasks(True, self.expts, analysis_name, Analyser, enabled)
-            subsequent_analysis = self.analysis_workflow.values()[1:]
+            self.gen_suite_tasks(True, self.expts, analysis_name, Analyser)
+            subsequent_analysis = enabled_analysis[1:]
             for analysis_name, Analyser, enabled in subsequent_analysis:
                 logger.debug('subsequent analysis: {}'.format(analysis_name))
-                self.gen_suite_tasks(False, expts, analysis_name, Analyser, enabled)
+                self.gen_suite_tasks(False, self.expts, analysis_name, Analyser)
 
         self.find_pending()
         logger.info('Generated {} tasks'.format(len(self.all_tasks)))
