@@ -148,8 +148,9 @@ class TaskMaster(object):
                         filtered_filenames, [os.path.join(data_dir, output_filename)])
             if not initial:
                 for filtered_filename in filtered_filenames:
-                    prev_task = self.filename_task_map[filtered_filename]
-                    prev_task.add_next(task)
+                    if filtered_filename in self.filename_task_map:
+                        prev_task = self.filename_task_map[filtered_filename]
+                        prev_task.add_next(task)
 
             for output_filename in task.output_filenames:
                 self.filename_task_map[output_filename] = task
@@ -172,8 +173,9 @@ class TaskMaster(object):
                 task = Task(len(self.all_tasks), expt, self.run_type, 'analysis', analysis_name,
                             [filtered_filename], [os.path.join(data_dir, output_filename)])
                 if not initial:
-                    prev_task = self.filename_task_map[filtered_filename]
-                    prev_task.add_next(task)
+                    if filtered_filename in self.filename_task_map:
+                        prev_task = self.filename_task_map[filtered_filename]
+                        prev_task.add_next(task)
                 for output_filename in task.output_filenames:
                     self.filename_task_map[output_filename] = task
                 self.all_tasks.append(task)
@@ -215,8 +217,9 @@ class TaskMaster(object):
         if not initial:
             # TODO: how to handle deps for suite tasks?
             for filtered_filename in filtered_filenames:
-                prev_task = self.filename_task_map[filtered_filename]
-                prev_task.add_next(task)
+                if filtered_filename in self.filename_task_map:
+                    prev_task = self.filename_task_map[filtered_filename]
+                    prev_task.add_next(task)
 
         for output_filename in task.output_filenames:
             self.filename_task_map[output_filename] = task
