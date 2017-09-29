@@ -7,9 +7,8 @@ from logging import getLogger
 from configparser import ConfigParser
 import socket
 
-from omnium.analysers import get_analysis_classes
+from omnium.analysers import Analysers
 from omnium_errors import OmniumError
-from utils import get_git_info
 
 logger = getLogger('om.suite')
 
@@ -104,28 +103,11 @@ class Suite(object):
 
         omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
         if omnium_analysers_paths:
-            self.analyser_dirs = omnium_analysers_paths.split(':')
-
-        if self.analyser_dirs:
-            # First dir takes precedence over second etc.
-            for analyser_dir in self.analyser_dirs:
-                if not os.path.exists(analyser_dir):
-                    logger.warn('Analysers dir does not exists: {}'.format(analyser_dir))
-                else:
-                    logger.debug('loading analyser dir: {}'.format(analyser_dir))
-                    sys.path.append(analyser_dir)
-
-                    git_hash, git_status = get_git_info(analyser_dir)
-                    logger.debug('analysers git_hash, status: {}, {}'.format(git_hash, git_status))
-                    analysis_classes = get_analysis_classes(analyser_dir)
-                    self.analysis_hash.append(git_hash)
-                    self.analysis_status.append(git_status)
-                    # Add any analysers *not already in classes*.
-                    for k, v in analysis_classes.items():
-                        if k not in self.analysis_classes:
-                            self.analysis_classes[k] = v
-                        else:
-                            logger.warn('Multiple analysis classes named: {}'.format(k))
+            analyser_dirs = omnium_analysers_paths.split(':')
+        self.analysers = Analysers(analyser_dirs)
+        self.analysers.find_all()
+        self.analysis_hash.extend(self.analysers.analysis_hash)
+        self.analysis_hash.extend(self.analysers.analysis_hash)
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
         if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
