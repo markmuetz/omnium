@@ -197,6 +197,7 @@ class TaskMaster(object):
             else:
                 filtered_filenames = sorted(fnmatch.filter(self.output_filenames,
                                                            os.path.join(data_dir, filename_glob)))
+                filtered_filenames.extend(sorted(glob(os.path.join(data_dir, filename_glob))))
             assert len(filtered_filenames) == 1
             filenames.append(filtered_filenames[0])
 
