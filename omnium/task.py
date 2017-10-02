@@ -194,6 +194,9 @@ class TaskMaster(object):
                 data_dir = self.atmos_datam_dir[expt]
             elif data_type == 'dataw':
                 data_dir = self.atmos_dataw_dir[expt]
+
+            logger.debug('using data_dir: {}'.format(data_dir))
+            logger.debug('using filename_glob: {}'.format(filename_glob))
             if initial:
                 filtered_filenames = sorted(glob(os.path.join(data_dir, filename_glob)))
                 self.output_filenames.extend(copy(filtered_filenames))
@@ -201,6 +204,7 @@ class TaskMaster(object):
                 filtered_filenames = sorted(fnmatch.filter(self.output_filenames,
                                                            os.path.join(data_dir, filename_glob)))
                 filtered_filenames.extend(sorted(glob(os.path.join(data_dir, filename_glob))))
+            logger.debug('found files: {}'.format(filtered_filenames))
             assert len(filtered_filenames) == 1
             filenames.append(filtered_filenames[0])
 
