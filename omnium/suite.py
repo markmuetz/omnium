@@ -127,7 +127,8 @@ class Suite(object):
         self.analysers = Analysers(analyser_dirs)
         self.analysers.find_all()
         self.analysis_hash.extend(self.analysers.analysis_hash)
-        self.analysis_hash.extend(self.analysers.analysis_hash)
+        self.analysis_status.extend(self.analysers.analysis_status)
+        self.analysis_classes = self.analysers.analysis_classes
 
     def init(self, suite_name, suite_type, host_name=None, host=None, base_path=None):
         assert suite_type in Suite.suite_types

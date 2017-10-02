@@ -53,6 +53,7 @@ def test_suite_init():
 
 def test_ls_analysers():
     omnium_main(['omnium', 'ls-analysers'])
+    omnium_main(['omnium', 'ls-analysers', '--long'])
 
 
 def test_cat_log():
