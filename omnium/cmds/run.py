@@ -66,4 +66,4 @@ def main(suite, args):
         elif args.all:
             run_control.run_all()
         elif args.analysis:
-            run_control.run_analysis(args.analysis, args.filenames)
+            run_control.run_single_analysis(args.analysis, args.filenames)

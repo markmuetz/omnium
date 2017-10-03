@@ -138,9 +138,9 @@ class RunControl(object):
             converter_name = self.settings.get('converter', 'ff2nc')
         else:
             converter_name = None
-        self.task_master = TaskMaster(self.suite, self.run_type, self.settings, self.analysis_workflow,
-                                      self.expts, self.atmos_datam_dir, self.atmos_dataw_dir,
-                                      converter_name)
+        self.task_master = TaskMaster(self.suite, self.run_type, self.settings,
+                                      self.analysis_workflow, self.expts, self.atmos_datam_dir,
+                                      self.atmos_dataw_dir, converter_name)
         self.task_master.gen_all_tasks()
 
     def run_all(self):
@@ -148,6 +148,14 @@ class RunControl(object):
 
         for task in self.task_master.get_all_tasks():
             self.run_task(task)
+
+    def run_single_analysis(self, analysis_name, filenames):
+        all_tasks = self.task_master.get_all_tasks()
+        for task in all_tasks:
+            if task.name == analysis_name:
+                if filenames:
+                    task.filenames = filenames
+                self.run_task(task)
 
     def run_task(self, task):
         logger.debug(task)

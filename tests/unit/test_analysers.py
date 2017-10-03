@@ -1,11 +1,13 @@
 import os
 from unittest import TestCase
 
-from omnium.analysers import get_analysis_classes
+from omnium.analysers import Analysers
 
 
 class TestAnalysers(TestCase):
     def test_get_analysis_classes(self):
         cwd = os.getcwd()
-        analysis_classes = get_analysis_classes(os.path.join(cwd, 'test_analysers'))
-        assert len(analysis_classes) == 2
+        analysers = Analysers([os.path.join(cwd, 'test_analysers')])
+        analysers.find_all()
+
+        assert len(analysers.analysis_classes) == 2

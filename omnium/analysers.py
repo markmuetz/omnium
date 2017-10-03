@@ -43,7 +43,6 @@ class Analysers(object):
                         else:
                             logger.warn('Multiple analysis classes named: {}'.format(k))
 
-
     @staticmethod
     def get_analysis_classes(cwd=None):
         """Discovery of analysis classes in a given directory

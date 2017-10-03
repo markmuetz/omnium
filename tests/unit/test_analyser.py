@@ -3,7 +3,13 @@ from mock import Mock, patch, mock_open
 from configparser import ConfigParser
 
 from omnium.analyser import Analyser
+from omnium.task import Task
 from omnium import OmniumError
+
+task = Task(0, ['S0'], 'suite', 'analysis', 'dummy_analysis',
+            ['fn1'], ['fn1.dummy_analysis.nc'])
+multi_expt_task = Task(0, ['S0', 'S1'], 'suite', 'analysis', 'dummy_analysis',
+                       ['fn1', 'fn1'], ['fn1.dummy_analysis.nc'])
 
 
 class TestAnalyserInstanceCreation(TestCase):
@@ -26,8 +32,7 @@ class TestAnalyserInstanceCreation(TestCase):
                 pass
 
         with self.assertRaises(AttributeError):
-            BrokenAnalyser2(None, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+            BrokenAnalyser2(None, task, 'output_dir', None)
 
     def test_both_multi(self):
         class BrokenAnalyser2(Analyser):
@@ -40,8 +45,7 @@ class TestAnalyserInstanceCreation(TestCase):
                 pass
 
         with self.assertRaises(OmniumError):
-            BrokenAnalyser2(None, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+            BrokenAnalyser2(None, task, 'output_dir', None)
 
     def test_ctor(self):
         class WorkingAnalyser(Analyser):
@@ -54,8 +58,7 @@ class TestAnalyserInstanceCreation(TestCase):
         patcher.start()
         suite = Mock()
         suite.check_filename_missing = lambda x: False
-        wa = WorkingAnalyser(suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                             ['atmos.000.pp1.nc'], ['expt'])
+        wa = WorkingAnalyser(suite, task, 'output_dir', None)
         assert not wa.multi_expt
         assert not wa.multi_file
         patcher.stop()
@@ -95,38 +98,32 @@ class TestAnalyserInstanceSetup(TestCase):
         self.patcher.stop()
 
     def test_ctor_single(self):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         assert not wa.multi_expt
         assert not wa.multi_file
 
     def test_ctor_single_dump(self):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos_da000.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         assert not wa.multi_expt
         assert not wa.multi_file
 
     def test_ctor_multi_expt(self):
-        mea = MultiExptAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                                ['atmos.000.pp1.nc'], ['expt'])
+        mea = MultiExptAnalyser(self.suite, task, 'output_dir', None)
         assert mea.multi_expt
         assert not mea.multi_file
 
     def test_ctor_multi_file(self):
-        mfa = MultiFileAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                                ['atmos.000.pp1.nc'], ['expt'])
+        mfa = MultiFileAnalyser(self.suite, task, 'output_dir', None)
         assert not mfa.multi_expt
         assert mfa.multi_file
 
     def test_ctor_multi_file_dump(self):
-        mfa = MultiFileAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                                ['atmos_da000.nc'], ['expt'])
+        mfa = MultiFileAnalyser(self.suite, task, 'output_dir', None)
         assert not mfa.multi_expt
         assert mfa.multi_file
 
     def test_set_config(self):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         config = ConfigParser()
         config.add_section('config')
         config.set('config', 'c1', '1')
@@ -154,8 +151,7 @@ class TestAnalyserInstanceFunction(TestCase):
         self.mock_log_file.stop()
 
     def test_already_analysed(self):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         patcher = patch('os.path.exists')
         exists = patcher.start()
         exists.side_effect = lambda x: True
@@ -163,21 +159,18 @@ class TestAnalyserInstanceFunction(TestCase):
         patcher.stop()
 
     def test_append_log(self):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         wa.append_log('test')
 
     @patch('iris.load')
     def test_load_single(self, mock_load):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         mock_load.return_value = [wa.filename]
         wa.load()
         assert wa.cubes == [wa.filename]
 
     def test_load_single_missing(self):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
 
         def abort_if_missing(fn):
             raise OmniumError('missing')
@@ -188,19 +181,15 @@ class TestAnalyserInstanceFunction(TestCase):
 
     @patch('iris.load')
     def test_load_multi_expt(self, mock_load):
-        mea = MultiExptAnalyser(self.suite, 'datam',
-                                {'expt1': '/path/to/data_dir', 'expt2': '/path/to/data_dir'}, '',
-                                ['atmos.000.pp1.nc'], ['expt1', 'expt2'])
+        mea = MultiExptAnalyser(self.suite, multi_expt_task, 'output_dir', None)
         filename = 'atmos.000.pp1.nc'
         mock_load.return_value = [filename]
         mea.load()
-        assert mea.expt_cubes['expt1'] == [filename]
-        assert mea.expt_cubes['expt2'] == [filename]
+        assert mea.expt_cubes['S0'] == [filename]
+        assert mea.expt_cubes['S1'] == [filename]
 
     def test_load_multi_expt_missing(self):
-        mea = MultiExptAnalyser(self.suite, 'datam',
-                                {'expt1': '/path/to/data_dir', 'expt2': '/path/to/data_dir'}, '',
-                                ['atmos.000.pp1.nc'], ['expt1', 'expt2'])
+        mea = MultiExptAnalyser(self.suite, multi_expt_task, 'output_dir', None)
 
         def abort_if_missing(fn):
             raise OmniumError('missing')
@@ -211,15 +200,13 @@ class TestAnalyserInstanceFunction(TestCase):
 
     @patch('iris.load')
     def test_load_multi_file(self, mock_load):
-        mfa = MultiFileAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                                ['atmos.000.pp1.nc'], ['expt'])
+        mfa = MultiFileAnalyser(self.suite, task, 'output_dir', None)
         mock_load.return_value = mfa.filenames
         mfa.load()
         assert mfa.cubes == mfa.filenames
 
     def test_load_multi_file_missing(self):
-        mfa = MultiFileAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                                ['atmos.000.pp1.nc'], ['expt'])
+        mfa = MultiFileAnalyser(self.suite, task, 'output_dir', None)
 
         def abort_if_missing(fn):
             raise OmniumError('missing')
@@ -232,8 +219,7 @@ class TestAnalyserInstanceFunction(TestCase):
     @patch('iris.load')
     def test_load_results(self, mock_load, mock_exists):
         mock_exists.return_value = True
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         results = [Mock(attributes={'omnium_cube_id': i}) for i in range(5)]
         mock_load.return_value = results
         wa.load_results()
@@ -244,31 +230,27 @@ class TestAnalyserInstanceFunction(TestCase):
     @patch('os.path.exists')
     def test_load_results_nonexistant(self, mock_exists):
         mock_exists.return_value = False
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         with self.assertRaises(OmniumError):
             wa.load_results()
 
     @patch.object(SingleAnalyser, 'run_analysis')
     def test_run(self, mock_run_analysis):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         wa.run()
         mock_run_analysis.assert_called_with()
 
     @patch.object(SingleAnalyser, 'run_analysis')
     @patch('ipdb.runcall')
     def test_run_interactive(self, mock_runcall, mock_run_analysis):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         wa.run(interactive=True)
         mock_runcall.assert_called_with(wa.run_analysis)
 
     @patch('iris.cube.CubeList')
     @patch('iris.save')
     def test_save(self, mock_save, mock_CubeList):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         wa.save()
         mock_CubeList.assert_called_with([])
         mock_save.assert_not_called()
@@ -283,8 +265,7 @@ class TestAnalyserInstanceFunction(TestCase):
         mock_save.assert_called()
 
     def test_display_results(self):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
 
         wa.display()
 
@@ -294,8 +275,7 @@ class TestAnalyserInstanceFunction(TestCase):
 
     @patch('ipdb.runcall')
     def test_display_results_interactive(self, mock_runcall):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
 
         wa.display_results = Mock()
         wa.display(interactive=True)
@@ -303,8 +283,7 @@ class TestAnalyserInstanceFunction(TestCase):
 
     @patch.object(Analyser, 'figpath')
     def test_save_text(self, mock_figpath):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         mock_figpath.return_value = 'filename'
         with patch('__builtin__.open', mock_open()) as mock_file:
             wa.save_text('name', 'message')
@@ -316,8 +295,7 @@ class TestAnalyserInstanceFunction(TestCase):
     @patch('os.path.exists')
     @patch('os.makedirs')
     def test_figpath(self, mock_makedirs, mock_exists):
-        wa = SingleAnalyser(self.suite, 'datam', {'expt': '/path/to/data_dir'}, '',
-                            ['atmos.000.pp1.nc'], ['expt'])
+        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
 
         mock_exists.return_value = False
         wa.figpath('steve')

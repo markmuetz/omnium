@@ -106,7 +106,8 @@ class TaskMaster(object):
                 # assert(filename not in self.filename_task_map)
                 if os.path.exists(os.path.join(data_dir, filename + '.done')):
                     output_filename = self.converter._converted_filename(filename)
-                    task = Task(len(self.all_tasks), expt, self.run_type, 'conversion', self.converter.name,
+                    task = Task(len(self.all_tasks), expt, self.run_type, 'conversion',
+                                self.converter.name,
                                 [filename], [output_filename])
                     self.all_tasks.append(task)
                     for output_filename in task.output_filenames:
@@ -160,7 +161,8 @@ class TaskMaster(object):
         else:
             logger.debug('single file analysis')
             for filtered_filename in filtered_filenames:
-                if initial and not os.path.exists(os.path.join(data_dir, filtered_filename + '.done')):
+                if initial and not os.path.exists(os.path.join(data_dir,
+                                                               filtered_filename + '.done')):
                     # Skip files that don't have a .done file if it's an initial task.
                     continue
                 # assert(filtered_filename not in self.filename_task_map)
@@ -248,7 +250,8 @@ class TaskMaster(object):
                     self.gen_converter_tasks(expt)
                     subsequent_analysis = enabled_analysis
                 else:
-                    # TODO: Need to be smarter about which tasks are initial and which are subsequent.
+                    # TODO: Need to be smarter about which
+                    # TODO: tasks are initial and which are subsequent.
                     analysis_name, Analyser, enabled = enabled_analysis[0]
                     logger.debug('initial analysis: {}'.format(analysis_name))
                     self.gen_tasks(True, expt, analysis_name, Analyser)
