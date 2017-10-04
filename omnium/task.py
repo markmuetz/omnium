@@ -136,6 +136,10 @@ class TaskMaster(object):
             filtered_filenames.extend(sorted(glob(os.path.join(data_dir, filename_glob))))
             logger.debug('found files: {}'.format(filtered_filenames))
 
+        if not filtered_filenames:
+            logger.debug('No files for {}'.format(analysis_name))
+            return
+
         if Analyser.multi_file:
             logger.debug('multi file analysis')
 
@@ -239,9 +243,12 @@ class TaskMaster(object):
 
         logger.debug('{} pending tasks'.format(len(self.pending_tasks)))
 
-    def gen_all_tasks(self):
+    def gen_all_tasks(self, use_disabled):
         logger.debug('generating all tasks for {}'.format(self.run_type))
-        enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
+        if use_disabled:
+            enabled_analysis = self.analysis_workflow.values()
+        else:
+            enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
         if self.run_type in ['cycle', 'expt']:
             for expt in self.expts:
                 logger.debug('generating tasks for {}'.format(expt))

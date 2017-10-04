@@ -52,7 +52,7 @@ class ColourConsoleFormatter(logging.Formatter):
 
 
 def add_file_logging(logging_filename):
-    root_logger = logging.getLogger('om')
+    root_logger = logging.getLogger()
 
     if getattr(root_logger, 'has_file_logging', False):
         # Stops log being setup for a 2nd time during ipython reload(...)
@@ -70,12 +70,19 @@ def add_file_logging(logging_filename):
 
 def setup_logger(debug=False, colour=True, warn_stderr=False):
     '''Gets a logger. Sets up root logger ('omnium') if nec.'''
-    root_logger = logging.getLogger('om')
+    root_logger = logging.getLogger()
+    om_logger = logging.getLogger('om')
     root_logger.propagate = False
 
-    if getattr(root_logger, 'is_setup', False):
+    root_handlers = []
+    while root_logger.handlers:
+        # By default, the root logger has a stream handler attached.
+        # Remove it. N.B any code that uses omnium should know this!
+        root_handlers.append(root_logger.handlers.pop())
+
+    if getattr(om_logger, 'is_setup', False):
         # Stops log being setup for a 2nd time during ipython reload(...)
-        root_logger.debug('Root logger already setup')
+        om_logger.debug('Root logger already setup')
     else:
         fmt = '%(levelname)-8s: %(message)s'
         if colour:
@@ -103,4 +110,7 @@ def setup_logger(debug=False, colour=True, warn_stderr=False):
 
         root_logger.is_setup = True
 
-    return root_logger
+    for hdlr in root_handlers:
+        om_logger.debug('Removed root handler: {}'.format(hdlr))
+
+    return om_logger

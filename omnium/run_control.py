@@ -132,7 +132,7 @@ class RunControl(object):
                 logger.debug('Analyser found but has no config: {}'.format(analyser_name))
         logger.debug(self.analysis_workflow.keys())
 
-    def gen_tasks(self):
+    def gen_tasks(self, use_disabled=False):
         convert = self.settings.getboolean('convert', False)
         if convert:
             converter_name = self.settings.get('converter', 'ff2nc')
@@ -141,7 +141,7 @@ class RunControl(object):
         self.task_master = TaskMaster(self.suite, self.run_type, self.settings,
                                       self.analysis_workflow, self.expts, self.atmos_datam_dir,
                                       self.atmos_dataw_dir, converter_name)
-        self.task_master.gen_all_tasks()
+        self.task_master.gen_all_tasks(use_disabled)
 
     def run_all(self):
         logger.debug('running all analysis')
