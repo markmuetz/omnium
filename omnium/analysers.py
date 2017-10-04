@@ -66,9 +66,6 @@ class Analysers(object):
                 module = imp.load_source(module_name, filename)
                 modules.append(module)
 
-        current_module = sys.modules[__name__]
-        modules.append(current_module)
-
         # Find subclasses of Analyser
         analysis_classes = OrderedDict()
 
