@@ -20,7 +20,7 @@ def main(suite, args):
         from omnium.stash import Stash
         from omnium.state import State
         from omnium.run_control import RunControl
-        from omnium.converters import CONVERTERS
+        from omnium.converter import CONVERTERS
         from omnium.syncher import Syncher
 
         stash = Stash()

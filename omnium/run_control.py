@@ -3,7 +3,6 @@ from glob import glob
 from collections import OrderedDict
 from logging import getLogger
 
-from omnium.converters import CONVERTERS
 from omnium.omnium_errors import OmniumError
 from omnium.state import State
 from omnium.task import TaskMaster
@@ -133,14 +132,9 @@ class RunControl(object):
         logger.debug(self.analysis_workflow.keys())
 
     def gen_tasks(self, use_disabled=False):
-        convert = self.settings.getboolean('convert', False)
-        if convert:
-            converter_name = self.settings.get('converter', 'ff2nc')
-        else:
-            converter_name = None
         self.task_master = TaskMaster(self.suite, self.run_type, self.settings,
                                       self.analysis_workflow, self.expts, self.atmos_datam_dir,
-                                      self.atmos_dataw_dir, converter_name)
+                                      self.atmos_dataw_dir)
         self.task_master.gen_all_tasks(use_disabled)
 
     def run_all(self):
@@ -159,37 +153,8 @@ class RunControl(object):
 
     def run_task(self, task):
         logger.debug(task)
-        if task.task_type == 'conversion':
-            self.run_conversion(task)
-        elif task.task_type == 'analysis':
+        if task.task_type == 'analysis':
             self.run_analysis(task)
-
-    def run_conversion(self, task):
-        overwrite = self.settings.getboolean('overwrite', False)
-        delete = self.settings.getboolean('delete', False)
-        converter = CONVERTERS[task.name](overwrite, delete)
-        filenames_for_conversion = []
-        for filename in task.filenames:
-            # Check that file is not being converted by another process.
-            if os.path.exists(filename + '.converting'):
-                logger.warn('  Already being converted: {}'.format(filename))
-            else:
-                with open(filename + '.converting', 'w') as f:
-                    f.write('Converting with {}\n'.format(task.name))
-                filenames_for_conversion.append(filename)
-
-        for filename in filenames_for_conversion:
-            try:
-                converter.convert(filename)
-                # N.B. if converter fails, there will be a left over .converting file.
-                # This is intentional: I want to see if this has failed.
-                os.remove(filename + '.converting')
-            except OmniumError as oe:
-                logger.error('Could not convert {}'.format(filename))
-                logger.error(oe)
-
-        if not filenames_for_conversion:
-            logger.warn('No files not already being converted to convert')
 
     def run_analysis(self, task):
         Analyser = self.analysis_classes[task.name]

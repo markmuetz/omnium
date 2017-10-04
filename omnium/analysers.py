@@ -10,6 +10,8 @@ from logging import getLogger
 from omnium.analyser import Analyser
 from omnium.omnium_errors import OmniumError
 from omnium.utils import get_git_info
+from omnium.converter import FF2NC_Converter
+from omnium.deleter import Deleter
 
 logger = getLogger('om.analysers')
 
@@ -69,6 +71,10 @@ class Analysers(object):
 
         # Find subclasses of Analyser
         analysis_classes = OrderedDict()
+
+        analysis_classes[FF2NC_Converter.analysis_name] = FF2NC_Converter
+        analysis_classes[Deleter.analysis_name] = Deleter
+
         for module in modules:
             for name, obj in inspect.getmembers(module):
                 if inspect.isclass(obj) and issubclass(obj, Analyser) and not obj == Analyser:

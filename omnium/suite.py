@@ -1,5 +1,4 @@
 import os
-import sys
 import io
 import shutil
 from collections import OrderedDict

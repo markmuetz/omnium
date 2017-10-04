@@ -1,6 +1,5 @@
 import os
 import datetime as dt
-from glob import glob
 from collections import OrderedDict
 import abc
 from logging import getLogger
@@ -88,7 +87,7 @@ class Analyser(object):
         self.force = False
         # N.B. there is only one results_dir, even for multi_expt
         self.logname = os.path.join(self.results_dir, self.output_filename + '.analysed')
-        if self.suite.check_filename_missing(self.logname):
+        if self.suite and self.suite.check_filename_missing(self.logname):
             os.remove(self.logname)
 
         # Need to make sure results dir exists before first call to self.append_log.
@@ -102,6 +101,8 @@ class Analyser(object):
             logger.debug(item)
         self._config = config
         self.force = self._config.getboolean('force', False)
+        self.min_runid = self._config.getint('min_runid', 0)
+        self.max_runid = self._config.getint('max_runid', int(1e10))
 
     def already_analysed(self):
         return os.path.exists(self.logname) and not self.suite.check_filename_missing(self.logname)
@@ -111,13 +112,29 @@ class Analyser(object):
         with open(self.logname, 'a') as f:
             f.write('{}: {}\n'.format(dt.datetime.now(), message))
 
+    def get_runid(self, filename):
+        filename = os.path.basename(filename)
+        try:
+            return int(filename.split()[1])
+        except:
+            logger.debug('cannot find runid for: '.format(filename))
+            return 0
+
+    def get_filenames_in_range(self):
+        filenames_in_range = []
+        for filename in self.filenames:
+            if self.min_runid <= self.get_runid(filename) <= self.max_runid:
+                filenames_in_range.append(filename)
+        return filenames_in_range
+
     def load(self):
         self.append_log('Loading')
         if self.multi_file:
             logger.debug('loading {}'.format(self.filenames))
-            for filename in self.filenames:
+            filenames_in_range = self.get_filenames_in_range()
+            for filename in filenames_in_range:
                 self.suite.abort_if_missing(filename)
-            self.cubes = iris.load(self.filenames)
+            self.cubes = iris.load(filenames_in_range)
         else:
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
@@ -128,7 +145,8 @@ class Analyser(object):
             else:
                 logger.debug('loading {}'.format(self.filename))
                 self.suite.abort_if_missing(self.filename)
-                self.cubes = iris.load(self.filename)
+                if self.min_runid <= self.get_runid(self.filename) <= self.max_runid:
+                    self.cubes = iris.load(self.filename)
 
         self.append_log('Loaded')
 

@@ -8,7 +8,7 @@ from pyqtgraph.Qt import QtGui
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
 import omnium
-from omnium.converters import Converter
+from omnium.converter import Converter
 from omnium.viewers.viewer_control import ViewerControlWindow
 
 

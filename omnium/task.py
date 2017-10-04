@@ -4,7 +4,6 @@ import fnmatch
 from logging import getLogger
 
 from copy import copy
-from omnium.converters import CONVERTERS
 
 logger = getLogger('om.task')
 
@@ -39,7 +38,7 @@ class Task(object):
 
 class TaskMaster(object):
     def __init__(self, suite, run_type, settings, analysis_workflow, expts,
-                 atmos_datam_dir, atmos_dataw_dir, converter=None):
+                 atmos_datam_dir, atmos_dataw_dir):
         self.suite = suite
         self.run_type = run_type
         self.settings = settings
@@ -48,7 +47,6 @@ class TaskMaster(object):
         self.expts = expts
         self.atmos_datam_dir = atmos_datam_dir
         self.atmos_dataw_dir = atmos_dataw_dir
-        self.converter = CONVERTERS[converter] if converter else None
 
         self.all_tasks = []
         self.pending_tasks = []
@@ -95,24 +93,6 @@ class TaskMaster(object):
     def print_tasks(self):
         for task in self.all_tasks:
             print(task)
-
-    def gen_converter_tasks(self, expt):
-        data_dir = self.atmos_datam_dir[expt]
-        print(self.settings)
-        filename_globs = self.settings['filenames'].split(',')
-        for filename_glob in filename_globs:
-            filenames = sorted(glob(os.path.join(data_dir, filename_glob)))
-            for filename in filenames:
-                # assert(filename not in self.filename_task_map)
-                if os.path.exists(os.path.join(data_dir, filename + '.done')):
-                    output_filename = self.converter._converted_filename(filename)
-                    task = Task(len(self.all_tasks), expt, self.run_type, 'conversion',
-                                self.converter.name,
-                                [filename], [output_filename])
-                    self.all_tasks.append(task)
-                    for output_filename in task.output_filenames:
-                        self.filename_task_map[output_filename] = task
-                    self.output_filenames.extend(task.output_filenames)
 
     def gen_tasks(self, initial, expt, analysis_name, Analyser):
         logger.debug('generating tasks for {}'.format(analysis_name))
@@ -252,17 +232,12 @@ class TaskMaster(object):
         if self.run_type in ['cycle', 'expt']:
             for expt in self.expts:
                 logger.debug('generating tasks for {}'.format(expt))
-                if self.converter:
-                    logger.debug('convert: {}'.format(self.converter))
-                    self.gen_converter_tasks(expt)
-                    subsequent_analysis = enabled_analysis
-                else:
-                    # TODO: Need to be smarter about which
-                    # TODO: tasks are initial and which are subsequent.
-                    analysis_name, Analyser, enabled = enabled_analysis[0]
-                    logger.debug('initial analysis: {}'.format(analysis_name))
-                    self.gen_tasks(True, expt, analysis_name, Analyser)
-                    subsequent_analysis = enabled_analysis[1:]
+                # TODO: Need to be smarter about which
+                # TODO: tasks are initial and which are subsequent.
+                analysis_name, Analyser, enabled = enabled_analysis[0]
+                logger.debug('initial analysis: {}'.format(analysis_name))
+                self.gen_tasks(True, expt, analysis_name, Analyser)
+                subsequent_analysis = enabled_analysis[1:]
 
                 for analysis_name, Analyser, enabled in subsequent_analysis:
                     logger.debug('subsequent analysis: {}'.format(analysis_name))

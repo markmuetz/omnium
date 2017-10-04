@@ -1,24 +1,30 @@
 """Converts all files given as command line args"""
 import os
-import re
 from logging import getLogger
+from configparser import ConfigParser
+
+from omnium.task import Task
 
 logger = getLogger('om.convert')
 
 ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
-        (['--converter', '-c'], {'help': 'Converter to use', 'default': 'ff2nc'}),
         (['--delete'], {'help': 'Delete after successful conversion', 'action': 'store_true'}),
-        (['--allow-non-standard'], {'help': 'Allow conversion of non-standard files',
-                                    'action': 'store_true'}),
         (['--overwrite'], {'help': 'Overwrite new file if already exists', 'action': 'store_true'}),
         (['--zlib'], {'help': 'Use compression', 'action': 'store_true'})]
 RUN_OUTSIDE_SUITE = True
 
 
 def main(suite, args):
-    from omnium.converters import CONVERTERS
-    converter = CONVERTERS[args.converter](args.overwrite, args.delete,
-                                           args.allow_non_standard, args.zlib)
+    from omnium.converter import FF2NC_Converter
+    cwd = os.getcwd()
+    cp = ConfigParser()
+    cp.add_section('convert')
+    cp.set('convert', 'delete', str(args.delete))
+    cp.set('convert', 'overwrite', str(args.overwrite))
+    cp.set('convert', 'zlib', str(args.zlib))
 
-    for filename in args.filenames:
-        converter.convert(filename)
+    for i, filename in enumerate(args.filenames):
+        task = Task(i, None, None, 'converter', 'ff2nc_convert', [filename], ['dummy_output_name'])
+        converter = FF2NC_Converter(suite, task, cwd, None)
+        converter.set_config(cp['convert'])
+        converter.save(None, suite)
