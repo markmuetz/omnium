@@ -37,11 +37,9 @@ class Task(object):
 
 
 class TaskMaster(object):
-    def __init__(self, suite, run_type, settings, analysis_workflow, expts,
-                 atmos_datam_dir, atmos_dataw_dir):
+    def __init__(self, suite, run_type, analysis_workflow, expts, atmos_datam_dir, atmos_dataw_dir):
         self.suite = suite
         self.run_type = run_type
-        self.settings = settings
         self.config = suite.app_config
         self.analysis_workflow = analysis_workflow
         self.expts = expts

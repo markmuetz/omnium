@@ -65,10 +65,6 @@ class RunControl(object):
         self.config = self.suite.app_config
         run_type = self.run_type
 
-        settings_sec = 'settings_{}'.format(run_type)
-
-        self.settings = self.config[settings_sec]
-
     def check_setup(self):
         for expt in self.expts:
             data_dir = self.atmos_datam_dir[expt]
@@ -132,9 +128,8 @@ class RunControl(object):
         logger.debug(self.analysis_workflow.keys())
 
     def gen_tasks(self, use_disabled=False):
-        self.task_master = TaskMaster(self.suite, self.run_type, self.settings,
-                                      self.analysis_workflow, self.expts, self.atmos_datam_dir,
-                                      self.atmos_dataw_dir)
+        self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
+                                      self.atmos_datam_dir, self.atmos_dataw_dir)
         self.task_master.gen_all_tasks(use_disabled)
 
     def run_all(self):
@@ -163,7 +158,7 @@ class RunControl(object):
         multi_expt = Analyser.multi_expt
 
         results_dir = os.path.dirname(task.output_filenames[0])
-        expt_group = self.settings.get('expt_group', None)
+        expt_group = None
 
         analyser = Analyser(self.suite, task, results_dir, expt_group)
         analyser.set_config(self.config[task.name])
