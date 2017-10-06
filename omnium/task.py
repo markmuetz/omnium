@@ -189,8 +189,9 @@ class TaskMaster(object):
                                                            os.path.join(data_dir, filename_glob)))
                 filtered_filenames.extend(sorted(glob(os.path.join(data_dir, filename_glob))))
             logger.debug('found files: {}'.format(filtered_filenames))
-            # assert len(filtered_filenames) == 1
-            filenames.append(filtered_filenames[0])
+            assert len(filtered_filenames) <= 1
+            if filtered_filenames:
+                filenames.append(filtered_filenames[0])
 
         if not filenames:
             logger.debug('found no files for {}'.format(analysis_name))
