@@ -189,8 +189,12 @@ class TaskMaster(object):
                                                            os.path.join(data_dir, filename_glob)))
                 filtered_filenames.extend(sorted(glob(os.path.join(data_dir, filename_glob))))
             logger.debug('found files: {}'.format(filtered_filenames))
-            assert len(filtered_filenames) == 1
+            # assert len(filtered_filenames) == 1
             filenames.append(filtered_filenames[0])
+
+        if not filenames:
+            logger.debug('found no files for {}'.format(analysis_name))
+            return
 
         res_dir = os.path.join(self.suite.suite_dir, 'share/data/history/suite_output')
         split_filename = os.path.basename(filenames[0]).split('.')
