@@ -9,7 +9,7 @@ logger = getLogger('om.convert')
 
 ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
         (['--delete'], {'help': 'Delete after successful conversion', 'action': 'store_true'}),
-        (['--overwrite'], {'help': 'Overwrite new file if already exists', 'action': 'store_true'}),
+        (['--force'], {'help': 'Overwrite new file if already exists', 'action': 'store_true'}),
         (['--zlib'], {'help': 'Use compression', 'action': 'store_true'})]
 RUN_OUTSIDE_SUITE = True
 
@@ -20,7 +20,7 @@ def main(suite, args):
     cp = ConfigParser()
     cp.add_section('convert')
     cp.set('convert', 'delete', str(args.delete))
-    cp.set('convert', 'overwrite', str(args.overwrite))
+    cp.set('convert', 'force', str(args.force))
     cp.set('convert', 'zlib', str(args.zlib))
 
     for i, filename in enumerate(args.filenames):

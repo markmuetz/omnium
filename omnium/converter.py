@@ -19,26 +19,32 @@ class FF2NC_Converter(Analyser):
     out_ext = '.nc'
 
     @classmethod
-    def _converted_filename(cls, old_filename):
-        dirname = os.path.dirname(old_filename)
-        filename = os.path.basename(old_filename)
+    def gen_output_filename(cls, data_type, filename):
+        split_filename = os.path.basename(filename).split('.')
+        runid = 0
+        if len(split_filename) >= 3:
+            try:
+                runid = int(split_filename[1])
+            except:
+                runid = 0
+        dirname = os.path.dirname(filename)
+        base_filename = os.path.basename(filename)
 
         for pattern in cls.standard_patterns:
-            match = re.match(pattern, filename)
+            match = re.match(pattern, base_filename)
 
             if match:
-                logger.debug('matched {} with {}'.format(filename, pattern))
+                logger.debug('matched {} with {}'.format(base_filename, pattern))
                 break
 
         if not match:
-            raise OmniumError('Filename not standard: {}'.format(filename))
+            raise OmniumError('Filename not standard: {}'.format(base_filename))
 
-        newname = filename + '.nc'
-        return os.path.join(dirname, newname)
+        newname = base_filename + '.nc'
+        return runid, newname
 
     def set_config(self, config):
         super(FF2NC_Converter, self).set_config(config)
-        self.overwrite = config.getboolean('overwrite', False)
         self.delete = config.getboolean('delete', False)
         self.zlib = config.getboolean('zlib', True)
         self.verify = config.getboolean('verify', False)
@@ -75,11 +81,11 @@ class FF2NC_Converter(Analyser):
 
     def save(self, state=None, suite=None):
         self.messages = ['archer_analysis convert ' + self.analysis_name]
-        converted_filename = self._converted_filename(self.filename)
+        converted_filename = self.task.output_filenames[0]
         logger.info('Convert: {} -> {}'.format(self.filename, converted_filename))
 
         if os.path.exists(converted_filename):
-            if self.overwrite:
+            if self.force:
                 logger.info('Deleting: {}'.format(converted_filename))
                 self.messages.append('Deleting: {}'.format(converted_filename))
                 os.remove(converted_filename)

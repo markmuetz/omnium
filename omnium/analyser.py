@@ -15,23 +15,30 @@ logger = getLogger('om.analyser')
 class Analyser(object):
     __metaclass__ = abc.ABCMeta
 
+    single_file = True
     multi_file = False
     multi_expt = False
 
-    @staticmethod
-    def gen_output_filename(multi_file, analysis_name, atmos, data_type, split_filename):
+    @classmethod
+    def gen_output_filename(cls, data_type, filename):
+        split_filename = os.path.basename(filename).split('.')
+        atmos = split_filename[0]
+        analysis_name = cls.analysis_name
+        multi_file = cls.multi_file
+        runid = 0
         if data_type == 'datam':
             if len(split_filename) >= 3:
-                time_hours = split_filename[1]
-                instream = split_filename[2]
+                try:
+                    runid = int(split_filename[1])
+                except:
+                    runid = 0
+
                 if multi_file:
                     # TODO: v hacky nipping off last 3 chars.
                     # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
                     output_filename = '{}.{}.nc'.format(atmos, analysis_name)
                 else:
-                    output_filename = '{}.{}.{}.nc'.format(atmos,
-                                                           time_hours,
-                                                           analysis_name)
+                    output_filename = '{}.{}.{}.nc'.format(atmos, runid, analysis_name)
             elif len(split_filename) <= 2:
                 logger.debug('analysing dump')
                 # It's a dump. Should have a better way of telling though.
@@ -43,9 +50,8 @@ class Analyser(object):
                 else:
                     output_filename = '{}.{}.nc'.format(split_filename[0], analysis_name)
         elif data_type == 'dataw':
-            instream = split_filename[1]
             output_filename = '{}.{}.nc'.format(atmos, analysis_name)
-        return output_filename
+        return runid, output_filename
 
     def __init__(self, suite, task, results_dir, expt_group=None):
         if self.multi_file and self.multi_expt:
@@ -101,6 +107,7 @@ class Analyser(object):
             logger.debug(item)
         self._config = config
         self.force = self._config.getboolean('force', False)
+        self.delete = self._config.getboolean('delete', False)
         self.min_runid = self._config.getint('min_runid', 0)
         self.max_runid = self._config.getint('max_runid', int(1e10))
 
@@ -111,14 +118,6 @@ class Analyser(object):
         logger.debug('{}: {}'.format(self.analysis_name, message))
         with open(self.logname, 'a') as f:
             f.write('{}: {}\n'.format(dt.datetime.now(), message))
-
-    def get_runid(self, filename):
-        filename = os.path.basename(filename)
-        try:
-            return int(filename.split()[1])
-        except:
-            logger.debug('cannot find runid for: '.format(filename))
-            return 0
 
     def get_filenames_in_range(self):
         filenames_in_range = []

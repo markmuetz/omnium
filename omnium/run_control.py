@@ -82,61 +82,70 @@ class RunControl(object):
         self.task_master.print_tasks()
 
     def gen_analysis_workflow(self):
-        self.analysis_workflow = OrderedDict()
         config = self.config
-
-        runcontrol_sec = 'runcontrol_{}'.format(self.run_type)
-        if runcontrol_sec in config:
-            runcontrol = config[runcontrol_sec]
-        else:
-            logger.info('No runcontrol for {}'.format(self.run_type))
-            return
-
+        self.full_analysis_workflow = OrderedDict()
         self.analysis_classes = self.suite.analysis_classes
 
-        for ordered_analysis, enabled_str in sorted(runcontrol.items()):
-            analysis = ordered_analysis[3:]
-            enabled = enabled_str == 'True'
-            # N.B. even if analyser not enabled in config, want to make sure it
-            # can still be run by e.g. run_analysis.
-            if config.has_section(analysis):
-                analyser_config = config[analysis]
+        for run_type in ['cycle', 'expt', 'suite']:
+            analysis_workflow = OrderedDict()
+
+            runcontrol_sec = 'runcontrol_{}'.format(run_type)
+            if runcontrol_sec in config:
+                runcontrol = config[runcontrol_sec]
             else:
-                raise OmniumError('NO CONFIG FOR ANALYSIS')
+                logger.info('No runcontrol for {}'.format(run_type))
+                continue
 
-            if analysis not in self.analysis_classes:
-                raise OmniumError('COULD NOT FIND ANALYZER: {}'.format(analysis))
+            for ordered_analysis, enabled_str in sorted(runcontrol.items()):
+                analysis = ordered_analysis[3:]
+                logger.debug('analysis: {}'.format(analysis))
+                enabled = enabled_str == 'True'
+                # N.B. even if analyser not enabled in config, want to make sure it
+                # can still be run by e.g. run_analysis.
+                if config.has_section(analysis):
+                    analyser_config = config[analysis]
+                    if 'analysis' in analyser_config:
+                        analysis_name = analyser_config['analysis']
+                        logger.debug('renamed analysis: {}'.format(analysis_name))
+                    else:
+                        analysis_name = analysis
+                else:
+                    raise OmniumError('NO CONFIG FOR ANALYSIS')
 
-            logger.debug(analysis)
+                if analysis_name not in self.analysis_classes:
+                    raise OmniumError('COULD NOT FIND ANALYZER: {}'.format(analysis_name))
 
-            filename_glob = analyser_config['filename']
-            logger.debug(filename_glob)
+                if analysis_name in analysis_workflow:
+                    raise OmniumError('{} already in analysis workflow'.format(analysis_name))
 
-            logger.debug('Adding analysis: {}'.format(analysis))
+                analyser_cls = self.analysis_classes[analysis_name]
+                self.full_analysis_workflow[analysis_name] = (analysis, analyser_cls, enabled)
+                analysis_workflow[analysis_name] = (analysis, analyser_cls, enabled)
 
-            if analysis in self.analysis_workflow:
-                raise OmniumError('{} already in analysis workflow'.format(analysis))
-
-            Analyser = self.analysis_classes[analysis]
-            self.analysis_workflow[analysis] = (analysis, Analyser, enabled)
+            logger.debug('{}: {}'.format(run_type, analysis_workflow.keys()))
+            if run_type == self.run_type:
+                self.analysis_workflow = analysis_workflow
 
         for analyser_name in self.analysis_classes.keys():
-            if analyser_name not in self.analysis_workflow:
-                # This is normal - if an analysers config is for a different run_type this
-                # will be hit.
-                logger.debug('Analyser found but has no config: {}'.format(analyser_name))
-        logger.debug(self.analysis_workflow.keys())
+            if analyser_name not in self.full_analysis_workflow:
+                logger.debug('analyser_cls found but has no config: {}'.format(analyser_name))
 
-    def gen_tasks(self, use_disabled=False):
+    def gen_tasks(self):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
                                       self.atmos_datam_dir, self.atmos_dataw_dir)
-        self.task_master.gen_all_tasks(use_disabled)
+        self.task_master.gen_all_tasks()
 
     def run_all(self):
         logger.debug('running all analysis')
 
         for task in self.task_master.get_all_tasks():
+            if not task:
+                # Should not be reached, when called like this should sequentially hand out tasks
+                # until there are no more left.
+                raise Exception('Task not issued by TaskMaster')
             self.run_task(task)
+            task.status = 'done'
+            self.task_master.update_task(task.index, task.status)
 
     def run_single_analysis(self, analysis_name, filenames):
         all_tasks = self.task_master.get_all_tasks()
@@ -147,20 +156,13 @@ class RunControl(object):
                 self.run_task(task)
 
     def run_task(self, task):
-        logger.debug(task)
-        if task.task_type == 'analysis':
-            self.run_analysis(task)
-
-    def run_analysis(self, task):
-        Analyser = self.analysis_classes[task.name]
-
-        multi_file = Analyser.multi_file
-        multi_expt = Analyser.multi_expt
+        logger.debug('running: {}'.format(task))
+        analyser_cls = self.analysis_classes[task.name]
 
         results_dir = os.path.dirname(task.output_filenames[0])
         expt_group = None
 
-        analyser = Analyser(self.suite, task, results_dir, expt_group)
+        analyser = analyser_cls(self.suite, task, results_dir, expt_group)
         analyser.set_config(self.config[task.name])
 
         if self.display_only:
@@ -174,4 +176,5 @@ class RunControl(object):
             analyser.display(self.interactive)
         else:
             logger.info('  Analysis already run')
+
         return analyser
