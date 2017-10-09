@@ -69,7 +69,7 @@ class Analyser(object):
                 self.filenames = task.filenames
                 self.filename = None
             else:
-                assert len(task.filenames) == 1
+                # assert len(task.filenames) == 1
                 self.filename = task.filenames[0]
                 split_filename = self.filename.split()
                 try:
