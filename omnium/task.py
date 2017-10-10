@@ -141,6 +141,7 @@ class TaskMaster(object):
                 self.filename_task_map[output_filename] = task
             self.all_tasks.append(task)
             self.all_filenames.extend(task.output_filenames)
+            self.all_filenames.extend([fn + '.done' for fn in task.output_filenames])
             if delete:
                 logger.debug('will delete file: {}'.format(filtered_filename))
                 self.all_filenames.remove(filtered_filename)
@@ -169,6 +170,7 @@ class TaskMaster(object):
             self.filename_task_map[output_filename] = task
         self.all_tasks.append(task)
         self.all_filenames.extend(task.output_filenames)
+        self.all_filenames.extend([fn + '.done' for fn in task.output_filenames])
         logger.debug(task)
 
     def _gen_cycle_tasks(self, expt, analysis_name, analyser_cls):
@@ -240,6 +242,7 @@ class TaskMaster(object):
 
         self.all_tasks.append(task)
         self.all_filenames.extend(task.output_filenames)
+        self.all_filenames.extend([fn + '.done' for fn in task.output_filenames])
 
     def _read_analysis_config(self, expt, analysis_name):
         analysis_config = self.config[analysis_name]
