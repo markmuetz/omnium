@@ -115,13 +115,13 @@ class TaskMaster(object):
             self.all_filenames.extend(dataw_filenames)
 
     def _gen_single_file_tasks(self, expt, analyser_cls, analysis_name,
-                               data_dir, data_type, filtered_filenames, delete,
+                               data_dir, data_type, done_filenames, delete,
                                min_runid, max_runid):
-        if not filtered_filenames:
+        if not done_filenames:
             logger.debug('no files for {}'.format(analyser_cls.analysis_name))
             return
 
-        for filtered_filename in filtered_filenames:
+        for filtered_filename in done_filenames:
             runid, output_filename = analyser_cls.gen_output_filename(data_type,
                                                                   filtered_filename)
             if not (min_runid <= runid <= max_runid):
@@ -146,21 +146,21 @@ class TaskMaster(object):
                 self.all_filenames.remove(filtered_filename)
 
     def _gen_multi_file_tasks(self, expt, analyser_cls, analysis_name,
-                              data_dir, data_type, filtered_filenames, delete):
+                              data_dir, data_type, done_filenames, delete):
         assert not delete
 
-        if not filtered_filenames:
+        if not done_filenames:
             logger.debug('no files for {}'.format(analyser_cls.analysis_name))
             return
 
         logger.debug('multi file analysis')
 
         runid, output_filename = analyser_cls.gen_output_filename(data_type,
-                                                              filtered_filenames[0])
+                                                              done_filenames[0])
         task = Task(len(self.all_tasks), expt, runid, self.run_type, 'analysis',
                     analyser_cls.analysis_name, analysis_name,
-                    filtered_filenames, [os.path.join(data_dir, output_filename)])
-        for filtered_filename in filtered_filenames:
+                    done_filenames, [os.path.join(data_dir, output_filename)])
+        for filtered_filename in done_filenames:
             if filtered_filename in self.filename_task_map:
                 prev_task = self.filename_task_map[filtered_filename]
                 prev_task.add_next(task)
@@ -179,9 +179,10 @@ class TaskMaster(object):
         delete = delete or analyser_cls.analysis_name == 'deleter'
         filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                    os.path.join(data_dir, filename_glob)))
-        logger.debug('found files: {}'.format(filtered_filenames))
+        done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
+        logger.debug('found files: {}'.format(done_filenames))
 
-        self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, filtered_filenames,
+        self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, done_filenames,
                                     delete, min_runid, max_runid)
 
     def _gen_expt_tasks(self, expt, analysis_name, analyser_cls):
@@ -191,14 +192,15 @@ class TaskMaster(object):
             self._read_analysis_config(expt, analysis_name)
         filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                    os.path.join(data_dir, filename_glob)))
-        logger.debug('found files: {}'.format(filtered_filenames))
+        done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
+        logger.debug('found files: {}'.format(done_filenames))
 
         if analyser_cls.single_file:
-            self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, filtered_filenames,
+            self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, done_filenames,
                                         delete, min_runid, max_runid)
         elif analyser_cls.multi_file:
             self._gen_multi_file_tasks(expt, analyser_cls,
-                                       data_dir, data_type, filtered_filenames, delete)
+                                       data_dir, data_type, done_filenames, delete)
 
     def _gen_suite_tasks(self, analysis_name, analyser_cls):
         assert analyser_cls.multi_expt
@@ -208,10 +210,11 @@ class TaskMaster(object):
                 self._read_analysis_config(expt, analysis_name)
             filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                        os.path.join(data_dir, filename_glob)))
-            logger.debug('found files: {}'.format(filtered_filenames))
-            assert len(filtered_filenames) <= 1
-            if filtered_filenames:
-                filenames.append(filtered_filenames[0])
+            done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
+            logger.debug('found files: {}'.format(done_filenames))
+            assert len(done_filenames) <= 1
+            if done_filenames:
+                filenames.append(done_filenames[0])
 
         if not filenames:
             logger.debug('found no files for {}'.format(analysis_name))
