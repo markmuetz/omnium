@@ -30,6 +30,7 @@ class MpiMaster(object):
                 if not task:
                     # There are tasks with unmet dependencies.
                     waiting_dests.append(dest)
+                    logger.debug('appended waiting dests: {}'.format(waiting_dests))
             except StopIteration:
                 logger.debug('All tasks sent')
                 break
@@ -50,7 +51,7 @@ class MpiMaster(object):
             if task:
                 if waiting_dests:
                     # Clear backlog of waiting dests.
-                    logger.debug('Waiting dests: {}'.format(waiting_dests))
+                    logger.debug('pop waiting dests: {}'.format(waiting_dests))
                     dest = waiting_dests.pop()
                 else:
                     dest = status.Get_source()
@@ -63,6 +64,10 @@ class MpiMaster(object):
         # We are done! Listen for final data responses.
         for dest in range(1, self.size - len(waiting_dests)):
             rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+            if rdata['command'] == 'error':
+                logger.error('Rank {} raised error'.format(status.Get_source()))
+                logger.error(rdata['msg'])
+                raise Exception('Unrecoverable error')
             received_task = rdata['task']  # reconstituted via pickle.
             task_master.update_task(received_task.index, received_task.status)
             logger.info('Final data received from {}'.format(status.Get_source()))
@@ -89,6 +94,7 @@ class MpiSlave(object):
         try:
             status = MPI.Status()
             while True:
+                logger.debug('Waiting for data')
                 data = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
                 logger.debug('Received data: {}'.format(data))
                 if status.Get_tag() == DIETAG:
@@ -103,3 +109,4 @@ class MpiSlave(object):
             logger.error(e)
             data = {'command': 'error', 'msg': e.message}
             self.comm.send(data, dest=0, tag=WORKTAG)
+            raise

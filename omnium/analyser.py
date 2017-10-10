@@ -119,21 +119,12 @@ class Analyser(object):
         with open(self.logname, 'a') as f:
             f.write('{}: {}\n'.format(dt.datetime.now(), message))
 
-    def get_filenames_in_range(self):
-        filenames_in_range = []
-        for filename in self.filenames:
-            if self.min_runid <= self.get_runid(filename) <= self.max_runid:
-                filenames_in_range.append(filename)
-        return filenames_in_range
-
     def load(self):
         self.append_log('Loading')
         if self.multi_file:
-            logger.debug('loading {}'.format(self.filenames))
-            filenames_in_range = self.get_filenames_in_range()
-            for filename in filenames_in_range:
+            for filename in self.filenames:
                 self.suite.abort_if_missing(filename)
-            self.cubes = iris.load(filenames_in_range)
+            self.cubes = iris.load(self.filenames)
         else:
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
@@ -144,8 +135,7 @@ class Analyser(object):
             else:
                 logger.debug('loading {}'.format(self.filename))
                 self.suite.abort_if_missing(self.filename)
-                if self.min_runid <= self.get_runid(self.filename) <= self.max_runid:
-                    self.cubes = iris.load(self.filename)
+                self.cubes = iris.load(self.filename)
 
         self.append_log('Loaded')
 
