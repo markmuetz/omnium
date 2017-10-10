@@ -38,7 +38,7 @@ class Analyser(object):
                     # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
                     output_filename = '{}.{}.nc'.format(atmos, analysis_name)
                 else:
-                    output_filename = '{}.{}.{}.nc'.format(atmos, runid, analysis_name)
+                    output_filename = '{}.{:03}.{}.nc'.format(atmos, runid, analysis_name)
             elif len(split_filename) <= 2:
                 logger.debug('analysing dump')
                 # It's a dump. Should have a better way of telling though.
