@@ -67,5 +67,5 @@ def main(suite, args):
             run_control.gen_tasks()
             run_control.run_all()
         elif args.analysis:
-            run_control.gen_tasks(use_disabled=True)
+            run_control.gen_tasks()
             run_control.run_single_analysis(args.analysis, args.filenames)

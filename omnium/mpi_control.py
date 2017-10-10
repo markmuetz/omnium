@@ -41,7 +41,7 @@ class MpiMaster(object):
                 logger.info('Data received from {}'.format(status.Get_source()))
                 logger.debug('data: {}'.format(rdata))
                 if rdata['command'] == 'error':
-                    logger.error('Rank {} raised error')
+                    logger.error('Rank {} raised error'.format(status.Get_source()))
                     logger.error(rdata['msg'])
                     raise Exception('Unrecoverable error')
                 received_task = rdata['task']  # reconstituted via pickle.

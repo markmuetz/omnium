@@ -149,11 +149,14 @@ class RunControl(object):
 
     def run_single_analysis(self, analysis_name, filenames):
         all_tasks = self.task_master.get_all_tasks()
-        for task in all_tasks:
-            if task.name == analysis_name:
-                if filenames:
-                    task.filenames = filenames
-                self.run_task(task)
+        tasks_to_run = [t for t in all_tasks if t.name == analysis_name]
+        if not tasks_to_run:
+            raise OmniumError('No tasks matching {} found'.format(analysis_name))
+
+        for task in tasks_to_run:
+            if filenames:
+                task.filenames = filenames
+            self.run_task(task)
 
     def run_task(self, task):
         logger.debug('running: {}'.format(task))
@@ -163,7 +166,7 @@ class RunControl(object):
         expt_group = None
 
         analyser = analyser_cls(self.suite, task, results_dir, expt_group)
-        analyser.set_config(self.config[task.name])
+        analyser.set_config(self.config[task.config_name])
 
         if self.display_only:
             logger.info('  Display results only')

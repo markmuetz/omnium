@@ -9,7 +9,8 @@ logger = getLogger('om.task')
 
 
 class Task(object):
-    def __init__(self, index, expt, runid, run_type, task_type, name, filenames, output_filenames):
+    def __init__(self, index, expt, runid, run_type, task_type, name, config_name,
+                 filenames, output_filenames):
         self.index = index
         if run_type == 'suite':
             self.expts = expt
@@ -18,6 +19,7 @@ class Task(object):
         self.runid = runid
         self.task_type = task_type
         self.name = name
+        self.config_name = config_name
         self.filenames = filenames
         self.output_filenames = output_filenames
         self.status = 'pending'
@@ -112,7 +114,7 @@ class TaskMaster(object):
             self.all_filenames.extend(datam_filenames)
             self.all_filenames.extend(dataw_filenames)
 
-    def _gen_single_file_tasks(self, expt, analyser_cls,
+    def _gen_single_file_tasks(self, expt, analyser_cls, analysis_name,
                                data_dir, data_type, filtered_filenames, delete,
                                min_runid, max_runid):
         if not filtered_filenames:
@@ -129,7 +131,7 @@ class TaskMaster(object):
                 continue
 
             task = Task(len(self.all_tasks), expt, runid, self.run_type, 'analysis',
-                        analyser_cls.analysis_name,
+                        analyser_cls.analysis_name, analysis_name,
                         [filtered_filename], [os.path.join(data_dir, output_filename)])
             logger.debug(task)
             if filtered_filename in self.filename_task_map:
@@ -143,7 +145,7 @@ class TaskMaster(object):
                 logger.debug('will delete file: {}'.format(filtered_filename))
                 self.all_filenames.remove(filtered_filename)
 
-    def _gen_multi_file_tasks(self, expt, analyser_cls,
+    def _gen_multi_file_tasks(self, expt, analyser_cls, analysis_name,
                               data_dir, data_type, filtered_filenames, delete):
         assert not delete
 
@@ -156,7 +158,7 @@ class TaskMaster(object):
         runid, output_filename = analyser_cls.gen_output_filename(data_type,
                                                               filtered_filenames[0])
         task = Task(len(self.all_tasks), expt, runid, self.run_type, 'analysis',
-                    analyser_cls.analysis_name,
+                    analyser_cls.analysis_name, analysis_name,
                     filtered_filenames, [os.path.join(data_dir, output_filename)])
         for filtered_filename in filtered_filenames:
             if filtered_filename in self.filename_task_map:
@@ -179,7 +181,7 @@ class TaskMaster(object):
                                                    os.path.join(data_dir, filename_glob)))
         logger.debug('found files: {}'.format(filtered_filenames))
 
-        self._gen_single_file_tasks(expt, analyser_cls, data_dir, data_type, filtered_filenames,
+        self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, filtered_filenames,
                                     delete, min_runid, max_runid)
 
     def _gen_expt_tasks(self, expt, analysis_name, analyser_cls):
@@ -192,7 +194,7 @@ class TaskMaster(object):
         logger.debug('found files: {}'.format(filtered_filenames))
 
         if analyser_cls.single_file:
-            self._gen_single_file_tasks(expt, analyser_cls, data_dir, data_type, filtered_filenames,
+            self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, filtered_filenames,
                                         delete, min_runid, max_runid)
         elif analyser_cls.multi_file:
             self._gen_multi_file_tasks(expt, analyser_cls,
@@ -221,7 +223,7 @@ class TaskMaster(object):
         runid, output_filename = analyser_cls.gen_output_filename(data_type,
                                                               filenames[0])
         task = Task(len(self.all_tasks), self.expts, runid, 'suite', 'analysis',
-                    analyser_cls.analysis_name,
+                    analyser_cls.analysis_name, analysis_name,
                     filenames, [os.path.join(res_dir, output_filename)])
 
         # TODO: how to handle deps for suite tasks?
