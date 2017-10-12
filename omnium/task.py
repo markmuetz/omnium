@@ -199,10 +199,11 @@ class TaskMaster(object):
         logger.debug('found files: {}'.format(done_filenames))
 
         if analyser_cls.single_file:
-            self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, done_filenames,
-                                        delete, min_runid, max_runid)
+            self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
+                                        done_filenames, delete, min_runid, max_runid)
         elif analyser_cls.multi_file:
-            self._gen_multi_file_tasks(expt, analyser_cls, data_dir, data_type, done_filenames, delete)
+            self._gen_multi_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
+                                       done_filenames, delete)
 
     def _gen_suite_tasks(self, analysis_name, analyser_cls):
         assert analyser_cls.multi_expt
