@@ -121,6 +121,8 @@ class TaskMaster(object):
             logger.debug('no files for {}'.format(analyser_cls.analysis_name))
             return
 
+        logger.debug('single file analysis')
+
         for filtered_filename in done_filenames:
             runid, output_filename = analyser_cls.gen_output_filename(data_type,
                                                                   filtered_filename)
@@ -149,7 +151,6 @@ class TaskMaster(object):
     def _gen_multi_file_tasks(self, expt, analyser_cls, analysis_name,
                               data_dir, data_type, done_filenames, delete):
         assert not delete
-
         if not done_filenames:
             logger.debug('no files for {}'.format(analyser_cls.analysis_name))
             return
@@ -201,8 +202,7 @@ class TaskMaster(object):
             self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, done_filenames,
                                         delete, min_runid, max_runid)
         elif analyser_cls.multi_file:
-            self._gen_multi_file_tasks(expt, analyser_cls,
-                                       data_dir, data_type, done_filenames, delete)
+            self._gen_multi_file_tasks(expt, analyser_cls, data_dir, data_type, done_filenames, delete)
 
     def _gen_suite_tasks(self, analysis_name, analyser_cls):
         assert analyser_cls.multi_expt
