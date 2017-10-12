@@ -17,6 +17,7 @@ class FF2NC_Converter(Analyser):
     analysis_name = 'ff2nc_converter'
     standard_patterns = ['.*\.pp\d', '^atmosa_da(?P<ts>\d{3}$)']
     out_ext = '.nc'
+    single_file = True
 
     @classmethod
     def gen_output_filename(cls, data_type, filename):

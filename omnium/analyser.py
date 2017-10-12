@@ -15,7 +15,8 @@ logger = getLogger('om.analyser')
 class Analyser(object):
     __metaclass__ = abc.ABCMeta
 
-    single_file = True
+    # One of these must be overridden by base class.
+    single_file = False
     multi_file = False
     multi_expt = False
 
@@ -85,6 +86,7 @@ class Analyser(object):
 
         self.output_filename = task.output_filenames[0]
 
+        logger.debug('single_file: {}'.format(self.single_file))
         logger.debug('multi_file: {}'.format(self.multi_file))
         logger.debug('multi_expt: {}'.format(self.multi_expt))
 

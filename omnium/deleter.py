@@ -8,6 +8,8 @@ logger = getLogger('om.deleter')
 
 class Deleter(Analyser):
     analysis_name = 'deleter'
+    single_file = True
+
     def load(self):
         pass
 
