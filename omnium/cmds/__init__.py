@@ -1,5 +1,5 @@
-from collections import OrderedDict
 import importlib
+from collections import OrderedDict
 from logging import getLogger
 
 logger = getLogger('om.cmds')

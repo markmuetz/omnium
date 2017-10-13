@@ -1,10 +1,8 @@
 import os
 import subprocess as sp
 
-import numpy as np
-
 import iris
-
+import numpy as np
 from omnium.omnium_errors import OmniumError
 
 

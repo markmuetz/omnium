@@ -1,5 +1,6 @@
-from mpi4py import MPI
 from logging import getLogger
+
+from mpi4py import MPI
 
 logger = getLogger('om.mpi_ctrl')
 

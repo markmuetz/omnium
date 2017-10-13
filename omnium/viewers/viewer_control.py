@@ -1,15 +1,14 @@
 import os
-import re
 import pickle
+import re
 from collections import OrderedDict
 from logging import getLogger
 
-from pyqtgraph.Qt import QtCore, QtGui
+import iris
+from omnium import Stash
 from omnium.viewers.data_displays import (TwodWindow, ThreedWindow,
                                           PlotWindow, ProfileWindow, ProfileContourWindow)
-from omnium import Stash
-
-import iris
+from pyqtgraph.Qt import QtCore, QtGui
 
 logger = getLogger('om.vc_win')
 

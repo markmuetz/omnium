@@ -1,5 +1,4 @@
 import os
-from collections import OrderedDict as odict
 
 from utils import get_git_info
 

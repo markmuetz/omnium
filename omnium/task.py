@@ -1,9 +1,7 @@
+import fnmatch
 import os
 from glob import glob
-import fnmatch
 from logging import getLogger
-
-from copy import copy
 
 logger = getLogger('om.task')
 

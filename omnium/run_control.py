@@ -1,6 +1,6 @@
 import os
-from glob import glob
 from collections import OrderedDict
+from glob import glob
 from logging import getLogger
 
 from omnium.omnium_errors import OmniumError

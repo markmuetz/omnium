@@ -1,4 +1,5 @@
 import os
+
 from omnium.analysers import Analysers
 
 ARGS = [(['-l', '--long'], {'help': 'print long version',

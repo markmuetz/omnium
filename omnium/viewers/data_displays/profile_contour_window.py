@@ -1,9 +1,7 @@
 import numpy as np
-
-from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
-
 from omnium.viewers.data_displays import DataDisplayWindow
+from pyqtgraph.Qt import QtGui
 
 
 class ProfileContourWindow(DataDisplayWindow):

@@ -1,11 +1,11 @@
-import os
 import io
+import os
 import shutil
+import socket
 from collections import OrderedDict
 from logging import getLogger
-from configparser import ConfigParser
-import socket
 
+from configparser import ConfigParser
 from omnium.analysers import Analysers
 from omnium_errors import OmniumError
 

@@ -1,8 +1,6 @@
 import os
 from logging import getLogger
 
-from omnium.suite import Suite
-
 logger = getLogger('om.clean_sym')
 
 ARGS = [(['--dry-run', '-d'], {'help': 'Dry run', 'action': 'store_true'})]

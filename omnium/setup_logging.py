@@ -1,5 +1,5 @@
-import sys
 import logging
+import sys
 
 
 # Thanks: http://stackoverflow.com/a/287944/54557

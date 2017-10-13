@@ -1,15 +1,14 @@
-import os
 import imp
+import os
 from unittest import TestCase
 
+import omnium
 from mock import patch
-from pyqtgraph.Qt import QtGui
-
+from omnium.converter import Converter
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
-import omnium
-from omnium.converter import Converter
 from omnium.viewers.viewer_control import ViewerControlWindow
+from pyqtgraph.Qt import QtGui
 
 
 class TestCmds(TestCase):

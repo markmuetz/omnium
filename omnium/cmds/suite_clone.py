@@ -1,8 +1,6 @@
 """Clones an existing omnium suite"""
-import os
 from logging import getLogger
 
-from omnium.suite import Suite
 from omnium.syncher import Syncher
 
 logger = getLogger('om.suite_init')

@@ -1,7 +1,6 @@
 from unittest import TestCase
-from mock import Mock, patch, mock_open
 
-from omnium.task import Task, TaskMaster
+from omnium.task import Task
 
 
 class TestTask(TestCase):

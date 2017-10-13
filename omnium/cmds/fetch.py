@@ -1,9 +1,7 @@
 import os
-from glob import glob
 from logging import getLogger
 
 from omnium.syncher import Syncher
-from omnium.suite import Suite
 
 logger = getLogger('om.fetch')
 

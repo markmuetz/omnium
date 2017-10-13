@@ -1,6 +1,4 @@
 """Gives info about stash variables"""
-import os
-import re
 
 ARGS = [(['--search', '-s'], {'help': 'Search for stash var'}),
         (['--get-name', '-g'], {'help': 'Get name of stash var with code: e.g. 0,4'}),

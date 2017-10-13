@@ -1,8 +1,5 @@
 from unittest import TestCase
 
-import numpy as np
-import iris
-
 from omnium.stash import Stash
 
 

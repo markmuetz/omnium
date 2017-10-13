@@ -1,8 +1,5 @@
 """Shows useful information about a suite"""
-import os
 from logging import getLogger
-
-from omnium.suite import Suite
 
 logger = getLogger('om.suite_info')
 

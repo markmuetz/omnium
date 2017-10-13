@@ -1,5 +1,4 @@
 """Initializes a new omnium suite, to be used in an existing rose/cylc suite."""
-import os
 from logging import getLogger
 
 from omnium.suite import Suite

@@ -1,10 +1,10 @@
 from unittest import TestCase
-from mock import Mock, patch, mock_open
-from configparser import ConfigParser
 
+from configparser import ConfigParser
+from mock import Mock, patch, mock_open
+from omnium import OmniumError
 from omnium.analyser import Analyser
 from omnium.task import Task
-from omnium import OmniumError
 
 task = Task(0, ['S0'], 'suite', 'analysis', 'dummy_analysis',
             ['fn1'], ['fn1.dummy_analysis.nc'])

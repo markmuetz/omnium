@@ -1,17 +1,17 @@
 """Provide an easy way of getting analyser classes by name"""
+import imp
+import inspect
 import os
 import sys
-from glob import glob
 from collections import OrderedDict
-import inspect
-import imp
+from glob import glob
 from logging import getLogger
 
 from omnium.analyser import Analyser
-from omnium.omnium_errors import OmniumError
-from omnium.utils import get_git_info
 from omnium.converter import FF2NC_Converter
 from omnium.deleter import Deleter
+from omnium.omnium_errors import OmniumError
+from omnium.utils import get_git_info
 
 logger = getLogger('om.analysers')
 

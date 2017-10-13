@@ -1,7 +1,6 @@
 import datetime as dt
 
 from pyqtgraph.Qt import QtCore, QtGui
-import pyqtgraph as pg
 
 
 class DataDisplayWindow(QtGui.QMainWindow):

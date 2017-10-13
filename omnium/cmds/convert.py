@@ -1,8 +1,8 @@
 """Converts all files given as command line args"""
 import os
 from logging import getLogger
-from configparser import ConfigParser
 
+from configparser import ConfigParser
 from omnium.task import Task
 
 logger = getLogger('om.convert')

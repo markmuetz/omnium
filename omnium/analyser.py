@@ -1,11 +1,10 @@
-import os
-import datetime as dt
-from collections import OrderedDict
 import abc
+import datetime as dt
+import os
+from collections import OrderedDict
 from logging import getLogger
 
 import iris
-
 from omnium.omnium_errors import OmniumError
 from omnium.version import get_version
 

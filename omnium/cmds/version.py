@@ -1,5 +1,4 @@
 """Print version info"""
-import os
 from omnium.version import get_version
 
 ARGS = [(['-l', '--long'], {'help': 'print long version',

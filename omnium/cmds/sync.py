@@ -1,10 +1,7 @@
 """Syncs a mirror with a data source"""
-import os
 from logging import getLogger
 
-from omnium.omnium_errors import OmniumError
 from omnium.syncher import Syncher
-from omnium.suite import Suite
 
 logger = getLogger('om.sync')
 

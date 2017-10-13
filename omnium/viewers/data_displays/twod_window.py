@@ -1,11 +1,10 @@
-import numpy as np
-from functools import partial
 from collections import OrderedDict
+from functools import partial
 
-from pyqtgraph.Qt import QtCore, QtGui
+import numpy as np
 import pyqtgraph as pg
-
 from omnium.viewers.data_displays import DataDisplayWindow
+from pyqtgraph.Qt import QtCore, QtGui
 
 
 class TwodWindow(DataDisplayWindow):
