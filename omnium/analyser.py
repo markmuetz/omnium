@@ -54,8 +54,8 @@ class Analyser(object):
         return runid, output_filename
 
     def __init__(self, suite, task, results_dir, expt_group=None):
-        if self.multi_file and self.multi_expt:
-            raise OmniumError('Only one of multi_file, multi_expt can be True')
+        assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
+        assert self.analysis_name
         self.suite = suite
         self.task = task
         self.results_dir = results_dir

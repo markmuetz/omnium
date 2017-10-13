@@ -6,9 +6,10 @@ from omnium import OmniumError
 from omnium.analyser import Analyser
 from omnium.task import Task
 
-task = Task(0, ['S0'], 'suite', 'analysis', 'dummy_analysis',
+task = Task(0, ['S0'], None, 'suite', 'analysis', 'dummy_analysis', 'dummy_analysis',
             ['fn1'], ['fn1.dummy_analysis.nc'])
-multi_expt_task = Task(0, ['S0', 'S1'], 'suite', 'analysis', 'dummy_analysis',
+multi_expt_task = Task(0, ['S0', 'S1'], None, 'suite', 'analysis', 'dummy_analysis',
+                       'dummy_analysis',
                        ['fn1', 'fn1'], ['fn1.dummy_analysis.nc'])
 
 
@@ -31,7 +32,7 @@ class TestAnalyserInstanceCreation(TestCase):
             def run_analysis(self):
                 pass
 
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(AssertionError):
             BrokenAnalyser2(None, task, 'output_dir', None)
 
     def test_both_multi(self):
@@ -44,12 +45,13 @@ class TestAnalyserInstanceCreation(TestCase):
             def run_analysis(self):
                 pass
 
-        with self.assertRaises(OmniumError):
+        with self.assertRaises(AssertionError):
             BrokenAnalyser2(None, task, 'output_dir', None)
 
     def test_ctor(self):
         class WorkingAnalyser(Analyser):
             analysis_name = 'working_analyser'
+            single_file = True
 
             def run_analysis(self):
                 pass
@@ -66,6 +68,7 @@ class TestAnalyserInstanceCreation(TestCase):
 
 class SingleAnalyser(Analyser):
     analysis_name = 'working_analyser'
+    single_file = True
 
     def run_analysis(self):
         pass

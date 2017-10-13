@@ -4,7 +4,7 @@ from unittest import TestCase
 
 import omnium
 from mock import patch
-from omnium.converter import Converter
+from omnium.converter import FF2NC_Converter
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
 from omnium.viewers.viewer_control import ViewerControlWindow
@@ -13,10 +13,10 @@ from pyqtgraph.Qt import QtGui
 
 class TestCmds(TestCase):
     """Only test commands that can be run outside of an omnium suite."""
-    @patch.object(Converter, 'convert')
-    def test_convert(self, mock_convert):
+    @patch.object(FF2NC_Converter, 'save')
+    def test_convert(self, mock_save):
         omnium_main(['omnium', 'convert', 'filename'])
-        mock_convert.assert_called_with('filename')
+        mock_save.assert_called()
 
     @patch('IPython.embed')
     def test_shell(self, mock_embed):

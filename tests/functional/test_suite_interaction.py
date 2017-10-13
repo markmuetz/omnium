@@ -97,11 +97,11 @@ def test_fetch():
 
 def test_run():
     # Creates a file atmos.000.pp1.csv.out - send back to remote in send.
-    omnium_main(['omnium', 'run', '-a', 'csv_analysis', 'S0'])
+    omnium_main(['omnium', 'run', '-t', 'expt', '-a', 'csv_analysis', 'S0'])
 
 
 def test_run2():
-    omnium_main(['omnium', 'run', '-a', 'csv_analysis', 'S0'])
+    omnium_main(['omnium', 'run', '-t', 'expt', '-a', 'csv_analysis', 'S0'])
 
 
 def test_send():

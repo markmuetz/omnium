@@ -20,7 +20,7 @@ def main(suite, args):
         from omnium.stash import Stash
         from omnium.state import State
         from omnium.run_control import RunControl
-        from omnium.converter import CONVERTERS
+        from omnium.converter import FF2NC_Converter
         from omnium.syncher import Syncher
 
         stash = Stash()
@@ -29,11 +29,8 @@ def main(suite, args):
         for module in [os, dt, np, plt, iris, om]:
             print('Loaded module: {}'.format(module.__name__))
 
-        for cls in [OmniumError, Stash, RunControl, Syncher]:
+        for cls in [OmniumError, Stash, RunControl, Syncher, FF2NC_Converter]:
             print('Loaded class: {}'.format(cls.__name__))
-
-        for name in CONVERTERS.keys():
-            print('Loaded converter: {}'.format(name))
 
         print('Loaded instance: {}: {}'.format('state', state))
         len_stash_entries = sum([len(od) for od in stash.values()])

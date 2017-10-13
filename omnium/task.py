@@ -122,8 +122,7 @@ class TaskMaster(object):
         logger.debug('single file analysis')
 
         for filtered_filename in done_filenames:
-            runid, output_filename = analyser_cls.gen_output_filename(data_type,
-                                                                  filtered_filename)
+            runid, output_filename = analyser_cls.gen_output_filename(data_type, filtered_filename)
             if not (min_runid <= runid <= max_runid):
                 logger.debug('file {} out of runid range: {} - {}'.format(filtered_filename,
                                                                           min_runid,
@@ -155,8 +154,7 @@ class TaskMaster(object):
 
         logger.debug('multi file analysis')
 
-        runid, output_filename = analyser_cls.gen_output_filename(data_type,
-                                                              done_filenames[0])
+        runid, output_filename = analyser_cls.gen_output_filename(data_type, done_filenames[0])
         task = Task(len(self.all_tasks), expt, runid, self.run_type, 'analysis',
                     analyser_cls.analysis_name, analysis_name,
                     done_filenames, [os.path.join(data_dir, output_filename)])
@@ -183,8 +181,8 @@ class TaskMaster(object):
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
         logger.debug('found files: {}'.format(done_filenames))
 
-        self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type, done_filenames,
-                                    delete, min_runid, max_runid)
+        self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
+                                    done_filenames, delete, min_runid, max_runid)
 
     def _gen_expt_tasks(self, expt, analysis_name, analyser_cls):
         assert analyser_cls.single_file or analyser_cls.multi_file
@@ -224,8 +222,7 @@ class TaskMaster(object):
         assert len(filenames) == len(self.expts)
 
         res_dir = os.path.join(self.suite.suite_dir, 'share/data/history/suite_output')
-        runid, output_filename = analyser_cls.gen_output_filename(data_type,
-                                                              filenames[0])
+        runid, output_filename = analyser_cls.gen_output_filename(data_type, filenames[0])
         task = Task(len(self.all_tasks), self.expts, runid, 'suite', 'analysis',
                     analyser_cls.analysis_name, analysis_name,
                     filenames, [os.path.join(res_dir, output_filename)])

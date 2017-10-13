@@ -119,9 +119,6 @@ class RunControl(object):
                     raise OmniumError('{} already in analysis workflow'.format(analysis_name))
 
                 analyser_cls = self.analysis_classes[analysis_name]
-                assert sum([analyser_cls.single_file,
-                            analyser_cls.multi_file,
-                            analyser_cls.multi_expt]) == 1
                 self.full_analysis_workflow[analysis_name] = (analysis, analyser_cls, enabled)
                 analysis_workflow[analysis_name] = (analysis, analyser_cls, enabled)
 

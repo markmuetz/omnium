@@ -5,6 +5,7 @@ from omnium.analyser import Analyser
 
 class CsvAnalyser(Analyser):
     analysis_name = 'csv_analysis'
+    single_file = True
 
     def run_analysis(self):
         self.new_data = []

@@ -24,7 +24,8 @@ def main(suite, args):
     cp.set('convert', 'zlib', str(args.zlib))
 
     for i, filename in enumerate(args.filenames):
-        task = Task(i, None, None, 'converter', 'ff2nc_convert', [filename], ['dummy_output_name'])
+        task = Task(i, None, None, None, 'converter', 'ff2nc_convert', 'ff2nc_convert',
+                    [filename], ['dummy_output_name'])
         converter = FF2NC_Converter(suite, task, cwd, None)
         converter.set_config(cp['convert'])
         converter.save(None, suite)
