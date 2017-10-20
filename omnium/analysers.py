@@ -64,6 +64,7 @@ class Analysers(object):
         if self.analyser_dirs:
             # First dir takes precedence over second etc.
             for analyser_dir in self.analyser_dirs:
+                analyser_dir = analyser_dir.rstrip('/')
                 if not os.path.exists(analyser_dir):
                     logger.warn('Analysers dir does not exists: {}'.format(analyser_dir))
                 else:
