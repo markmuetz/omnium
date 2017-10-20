@@ -16,11 +16,12 @@ def main(suite, args):
     maxlen = max([len(k) for k in analysers.analysis_classes.keys()])
 
     if args.long:
-        fmt = '{0:' + str(maxlen) + '}: {1:10}, {2:10}, {3}'
-        print(fmt.format('Name', 'Multi_file', 'Multi_expt', 'Class_name'))
+        fmt = '{0:' + str(maxlen) + '}: {1:8}, {2:20}, {3}'
+        print(fmt.format('Name', 'S/MF/ME', 'Group', 'Class_name'))
         print('')
         for name, cls in analysers.analysis_classes.items():
-            print(fmt.format(name, str(cls.multi_file), str(cls.multi_expt), cls))
+            atype = ''.join([str(1*v) for v in [cls.single_file, cls.multi_file, cls.multi_expt]])
+            print(fmt.format(name, atype, analysers.analysis_groups[name], cls))
     else:
         fmt = '{0:' + str(maxlen) + '}: {1}'
         print(fmt.format('Name', 'Class_name'))

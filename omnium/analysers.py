@@ -58,6 +58,7 @@ class Analysers(object):
         self.analysis_classes = OrderedDict()
         self.analysis_hash = []
         self.analysis_status = []
+        self.analysis_groups = OrderedDict()
 
     def find_all(self):
         if self.analyser_dirs:
@@ -78,8 +79,11 @@ class Analysers(object):
                     for k, v in analysis_classes.items():
                         if k not in self.analysis_classes:
                             self.analysis_classes[k] = v
+                            self.analysis_groups[k] = os.path.basename(analyser_dir)
                         else:
                             logger.warn('Multiple analysis classes named: {}'.format(k))
 
         self.analysis_classes[FF2NC_Converter.analysis_name] = FF2NC_Converter
+        self.analysis_groups[FF2NC_Converter.analysis_name] = 'omnium'
         self.analysis_classes[Deleter.analysis_name] = Deleter
+        self.analysis_groups[Deleter.analysis_name] = 'omnium'
