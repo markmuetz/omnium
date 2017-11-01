@@ -7,10 +7,11 @@ logger = getLogger('om.stash')
 
 
 class Stash(OrderedDict):
-    def __init__(self):
+    def __init__(self, stash_master_path=None):
         super(Stash, self).__init__()
-        omnium_home = os.path.dirname(os.path.realpath(__file__))
-        stash_master_path = os.path.join(omnium_home, 'data/files/vn10.5/STASHmaster_A')
+        if stash_master_path is None:
+            omnium_home = os.path.dirname(os.path.realpath(__file__))
+            stash_master_path = os.path.join(omnium_home, 'data/files/vn10.5/STASHmaster_A')
         # stash_master_path = 'files/vn10.5/STASHmaster_A'
 
         with open(stash_master_path) as f:
