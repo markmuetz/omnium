@@ -1,6 +1,5 @@
 import os
 import re
-from itertools import izip
 from logging import getLogger
 
 import iris
@@ -65,7 +64,7 @@ class FF2NC_Converter(Analyser):
             conv_cube_it = conv_cube.slices(range(1, conv_cube.ndim))
 
             # zip iterators together, grabbing slices and comparing them.
-            for cslice, conv_cslice in izip(cube_it, conv_cube_it):
+            for cslice, conv_cslice in zip(cube_it, conv_cube_it):
                 if not np.all(cslice.data == conv_cslice.data):
                     logger.error('Cubes not equal')
                     logger.error('Cube: {}'.format(cslice.name()))

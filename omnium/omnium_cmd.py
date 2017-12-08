@@ -5,11 +5,11 @@ all commands are run as:
 """
 import os
 
-import cmds
-from command_parser import parse_commands
-from setup_logging import setup_logger, add_file_logging
-from state import State
-from suite import Suite
+import omnium.cmds as cmds
+from omnium.command_parser import parse_commands
+from omnium.setup_logging import setup_logger, add_file_logging
+from omnium.state import State
+from omnium.suite import Suite
 
 # Top level args, e.g. omnium -D ...
 ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False}),
@@ -21,6 +21,7 @@ ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False
 def main(argv, import_log_msg=''):
     "Parse commands/env, setup logging, dispatch to cmds/<cmd>.py"
     omnium_cmds, args = parse_commands('omnium', ARGS, cmds, argv[1:])
+    #import ipdb; ipdb.set_trace()
     cmd = omnium_cmds[args.cmd_name]
 
     env_debug = os.getenv('OMNIUM_DEBUG') == 'True'

@@ -6,8 +6,9 @@ from collections import OrderedDict
 from logging import getLogger
 
 from configparser import ConfigParser
+
 from omnium.analysers import Analysers
-from omnium_errors import OmniumError
+from omnium.omnium_errors import OmniumError
 
 logger = getLogger('om.suite')
 

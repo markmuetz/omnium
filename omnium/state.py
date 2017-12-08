@@ -1,6 +1,6 @@
 import os
 
-from utils import get_git_info
+from omnium.utils import get_git_info
 
 
 class State(object):

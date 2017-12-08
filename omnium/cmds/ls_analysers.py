@@ -9,6 +9,7 @@ RUN_OUTSIDE_SUITE = True
 
 def main(suite, args):
     omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
+    analyser_dirs = []
     if omnium_analysers_paths:
         analyser_dirs = omnium_analysers_paths.split(':')
     analysers = Analysers(analyser_dirs)

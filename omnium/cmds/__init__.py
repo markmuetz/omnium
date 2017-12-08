@@ -29,6 +29,6 @@ for command in commands:
     command_name = 'cmds.' + command.replace('-', '_')
     try:
         modules[command] = importlib.import_module('omnium.' + command_name)
-    except ImportError, e:
+    except ImportError as e:
         logger.warn('Cannot load module {}'.format(command_name))
         logger.warn(e)
