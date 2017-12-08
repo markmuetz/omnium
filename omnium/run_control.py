@@ -63,7 +63,6 @@ class RunControl(object):
                                                       initial_cycle_point, expt + '_atmos')
 
         self.config = self.suite.app_config
-        run_type = self.run_type
 
     def check_setup(self):
         for expt in self.expts:
