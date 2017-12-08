@@ -147,7 +147,7 @@ class RunControl(object):
             self.task_master.update_task(task.index, task.status)
 
     def run_single_analysis(self, analysis_name, filenames):
-        all_tasks = self.task_master.get_all_tasks()
+        all_tasks = self.task_master.all_tasks
         tasks_to_run = [t for t in all_tasks if t.name == analysis_name]
         if not tasks_to_run:
             raise OmniumError('No tasks matching {} found'.format(analysis_name))

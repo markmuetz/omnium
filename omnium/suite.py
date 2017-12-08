@@ -162,7 +162,7 @@ class Suite(object):
 
         dotomnium_dir = '.omnium'
         os.makedirs(dotomnium_dir)
-        with open(os.path.join(dotomnium_dir, 'suite.conf'), 'wb') as configfile:
+        with open(os.path.join(dotomnium_dir, 'suite.conf'), 'w') as configfile:
             self.suite_config.write(configfile)
 
         self.load(os.getcwd())
