@@ -123,7 +123,7 @@ class Suite(object):
         omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
         if omnium_analysers_paths:
             analyser_dirs = omnium_analysers_paths.split(':')
-	else:
+        else:
             analyser_dirs = []
         self.analysers = Analysers(analyser_dirs)
         self.analysers.find_all()
