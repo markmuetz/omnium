@@ -43,7 +43,7 @@ setup(
         'Intended Audience :: Science/Research',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: C',
         'Topic :: Scientific/Engineering :: Atmospheric Science',
         ],
