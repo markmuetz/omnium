@@ -143,7 +143,7 @@ class TestAnalyserInstanceFunction(TestCase):
         self.mock_make_dirs = patch('os.makedirs')
         self.mock_make_dirs.start()
 
-        self.mock_log_file = patch('__builtin__.open', mock_open())
+        self.mock_log_file = patch('builtins.open', mock_open())
         self.mock_log_file.start()
 
         self.suite = Mock()
@@ -264,7 +264,7 @@ class TestAnalyserInstanceFunction(TestCase):
             wa.results[name] = result
         mock_CubeList.return_value = [r[1] for r in results]
         wa.save()
-        mock_CubeList.assert_called_with(wa.results.values())
+        mock_CubeList.assert_called_with(list(wa.results.values()))
         mock_save.assert_called()
 
     def test_display_results(self):
@@ -288,7 +288,7 @@ class TestAnalyserInstanceFunction(TestCase):
     def test_save_text(self, mock_figpath):
         wa = SingleAnalyser(self.suite, task, 'output_dir', None)
         mock_figpath.return_value = 'filename'
-        with patch('__builtin__.open', mock_open()) as mock_file:
+        with patch('builtins.open', mock_open()) as mock_file:
             wa.save_text('name', 'message')
             mock_file.assert_called_with(*('filename', 'w'))
             handle = mock_file()

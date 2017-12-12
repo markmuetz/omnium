@@ -183,7 +183,7 @@ class Analyser(object):
 
             cube.attributes['omnium_process'] = self.analysis_name
 
-        cubelist = iris.cube.CubeList(self.results.values())
+        cubelist = iris.cube.CubeList(list(self.results.values()))
         if not len(cubelist):
             logger.warn('No results to save')
         else:

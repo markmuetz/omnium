@@ -21,7 +21,6 @@ ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False
 def main(argv, import_log_msg=''):
     "Parse commands/env, setup logging, dispatch to cmds/<cmd>.py"
     omnium_cmds, args = parse_commands('omnium', ARGS, cmds, argv[1:])
-    #import ipdb; ipdb.set_trace()
     cmd = omnium_cmds[args.cmd_name]
 
     env_debug = os.getenv('OMNIUM_DEBUG') == 'True'

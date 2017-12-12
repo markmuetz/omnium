@@ -26,7 +26,7 @@ def setup_ipython():
     if hasattr(main, '__file__'):
         raise Exception('Should only be used interactively')
     # Thanks: http://stackoverflow.com/a/14298025/54557
-    builtin = sys.modules['__builtin__'].__dict__
+    builtins = sys.modules['builtins'].__dict__
 
     stash = init()
     globals_vars = OrderedDict()
@@ -34,4 +34,4 @@ def setup_ipython():
     print('Adding to global namespace:')
     for key, value in globals_vars.items():
         print('  ' + key)
-        builtin[key] = value
+        builtins[key] = value

@@ -194,7 +194,7 @@ class Syncher(object):
 
         output = sp.check_output(cmd, shell=True)
         logger.debug(output)
-        return output.split('\n')[:-1]
+        return output.decode('utf-8').split('\n')[:-1]
 
     def file_cat(self, rel_filename):
         # TODO: rm duplication between this, file_info and fetch

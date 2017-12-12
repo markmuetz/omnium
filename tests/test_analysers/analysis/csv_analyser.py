@@ -23,7 +23,7 @@ class CsvAnalyser(Analyser):
         self.data = lines[1:]
 
     def save(self, state, suite):
-        with open(self.filename + '.out', 'wb') as f:
+        with open(self.filename + '.out', 'w') as f:
             writer = csv.writer(f, delimiter=',')
             writer.writerow(self.header)
             for data_line in self.new_data:

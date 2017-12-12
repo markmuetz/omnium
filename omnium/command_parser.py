@@ -25,7 +25,6 @@ def parse_commands(name, top_level_args, module, cmdline_args):
 
     if use_argparse:
         argcomplete.autocomplete(parser)
-    #import ipdb; ipdb.set_trace()
     args = parser.parse_args(cmdline_args)
 
     return cmds, args
