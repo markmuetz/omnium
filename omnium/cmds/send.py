@@ -18,7 +18,7 @@ def main(suite, args):
     rel_filenames = []
     for filename in filenames:
         if os.path.islink(filename):
-            logger.warn('Included symlink {}'.format(filename))
+            logger.warning('Included symlink {}'.format(filename))
         else:
             rel_filenames.append(os.path.join(rel_dir, filename))
 

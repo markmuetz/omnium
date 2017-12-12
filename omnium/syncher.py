@@ -139,7 +139,7 @@ class Syncher(object):
                 rel_filenames.remove(rel_filename)
 
         if not rel_filenames:
-            logger.warn('No files to fetch')
+            logger.warning('No files to fetch')
             return
 
         remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
@@ -179,7 +179,7 @@ class Syncher(object):
                 rel_filenames.remove(rel_filename)
 
         if not rel_filenames:
-            logger.warn('No files to fetch')
+            logger.warning('No files to fetch')
             return
 
         remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
@@ -215,7 +215,7 @@ class Syncher(object):
         if rel_filename[:2] != './':
             rel_filename = './' + rel_filename
         if rel_filename not in remote_index:
-            logger.warn('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
+            logger.warning('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
             return
 
         remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)

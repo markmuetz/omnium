@@ -92,7 +92,7 @@ class FF2NC_Converter(Analyser):
                 # Could have been a problem creating file *or*
                 # could still be being written.
                 logger.info('Already converted but:')
-                logger.warn('No .done file: {}'.format(converted_filename))
+                logger.warning('No .done file: {}'.format(converted_filename))
                 return converted_filename
             else:
                 logger.info('Already converted')
@@ -104,7 +104,7 @@ class FF2NC_Converter(Analyser):
         self.messages.append('New filename: {}'.format(converted_filename))
 
         if len(self.cubes) == 0:
-            logger.warn('{} contains no data'.format(self.filename))
+            logger.warning('{} contains no data'.format(self.filename))
         else:
             logger.debug('Saving data to:{} (zlib={})'.format(converted_filename, self.zlib))
             # Use default compression: complevel 4.

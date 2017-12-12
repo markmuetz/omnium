@@ -27,7 +27,7 @@ class RunControl(object):
         self.display_only = display_only
         self.interactive = interactive
 
-        logger.warn('Disabling Python warnings')
+        logger.warning('Disabling Python warnings')
         import warnings
         warnings.filterwarnings("ignore")
         self.state = State()
@@ -68,10 +68,10 @@ class RunControl(object):
         for expt in self.expts:
             data_dir = self.atmos_datam_dir[expt]
             if not os.path.exists(data_dir):
-                logger.warn('Dir does not exist: {}'.format(data_dir))
+                logger.warning('Dir does not exist: {}'.format(data_dir))
             data_dir = self.atmos_dataw_dir[expt]
             if not os.path.exists(data_dir):
-                logger.warn('Dir does not exist: {}'.format(data_dir))
+                logger.warning('Dir does not exist: {}'.format(data_dir))
 
     def print_setup(self):
         for attr in ['run_type', 'expts', 'atmos_datam_dir', 'atmos_dataw_dir']:

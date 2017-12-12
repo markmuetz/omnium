@@ -66,7 +66,7 @@ class Analysers(object):
             for analyser_dir in self.analyser_dirs:
                 analyser_dir = analyser_dir.rstrip('/')
                 if not os.path.exists(analyser_dir):
-                    logger.warn('Analysers dir does not exists: {}'.format(analyser_dir))
+                    logger.warning('Analysers dir does not exists: {}'.format(analyser_dir))
                 else:
                     logger.debug('loading analyser dir: {}'.format(analyser_dir))
                     sys.path.append(analyser_dir)
@@ -82,7 +82,7 @@ class Analysers(object):
                             self.analysis_classes[k] = v
                             self.analysis_groups[k] = os.path.basename(analyser_dir)
                         else:
-                            logger.warn('Multiple analysis classes named: {}'.format(k))
+                            logger.warning('Multiple analysis classes named: {}'.format(k))
 
         self.analysis_classes[FF2NC_Converter.analysis_name] = FF2NC_Converter
         self.analysis_groups[FF2NC_Converter.analysis_name] = 'omnium'

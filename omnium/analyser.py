@@ -185,7 +185,7 @@ class Analyser(object):
 
         cubelist = iris.cube.CubeList(list(self.results.values()))
         if not len(cubelist):
-            logger.warn('No results to save')
+            logger.warning('No results to save')
         else:
             logger.debug('saving to {}'.format(cubelist_filename))
             # logger.debug('Not using zlib')

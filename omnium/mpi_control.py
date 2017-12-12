@@ -21,7 +21,7 @@ class MpiMaster(object):
         status = MPI.Status()
         # Launch all tasks initially.
         if self.size > len(task_master.pending_tasks):
-            logger.warn('MPI size > # of pending tasks, not sure what will happen')
+            logger.warning('MPI size > # of pending tasks, not sure what will happen')
 
         waiting_dests = range(1, self.size)[::-1]
         # Farm out rest of work when a worker reports back that it's done.
