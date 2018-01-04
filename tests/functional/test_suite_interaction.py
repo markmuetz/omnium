@@ -13,7 +13,7 @@ def setup():
     global origcwd
     origcwd = os.getcwd()
 
-    os.environ['OMNIUM_ANALYZERS_PATH'] = os.path.join(origcwd, 'test_analysers')
+    os.environ['OMNIUM_ANALYSER_PKGS'] = 'analysis'
 
     if os.path.exists(SCRATCH_DIR):
         shutil.rmtree(SCRATCH_DIR)

@@ -113,7 +113,7 @@ class RunControl(object):
                     raise OmniumError('NO CONFIG FOR ANALYSIS')
 
                 if analysis_name not in self.analysis_classes:
-                    raise OmniumError('COULD NOT FIND ANALYZER: {}'.format(analysis_name))
+                    raise OmniumError('COULD NOT FIND ANALYSER: {}'.format(analysis_name))
 
                 if analysis_name in analysis_workflow:
                     raise OmniumError('{} already in analysis workflow'.format(analysis_name))
