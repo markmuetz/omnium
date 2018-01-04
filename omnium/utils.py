@@ -11,7 +11,7 @@ def get_git_info(location):
     os.chdir(location)
     try:
         git_hash = sp.check_output('git rev-parse HEAD'.split()).strip()
-        if sp.check_output('git status --porcelain'.split()) == '':
+        if sp.check_output('git status --porcelain'.split()) == b'':
             return git_hash, 'clean'
         else:
             return git_hash, 'uncommitted_changes'
