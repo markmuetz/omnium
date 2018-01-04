@@ -8,11 +8,11 @@ RUN_OUTSIDE_SUITE = True
 
 
 def main(suite, args):
-    omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
-    analyser_dirs = []
-    if omnium_analysers_paths:
-        analyser_dirs = omnium_analysers_paths.split(':')
-    analysers = Analysers(analyser_dirs)
+    omnium_analyser_pkgs = os.getenv('OMNIUM_ANALYSER_PKGS')
+    analyser_pkgs = []
+    if omnium_analyser_pkgs:
+        analyser_pkgs = omnium_analyser_pkgs.split(':')
+    analysers = Analysers(analyser_pkgs)
     analysers.find_all()
     maxlen = max([len(k) for k in analysers.analysis_classes.keys()])
 

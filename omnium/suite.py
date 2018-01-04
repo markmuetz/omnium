@@ -121,7 +121,7 @@ class Suite(object):
             os.makedirs(os.path.dirname(self.logging_filename))
 
     def load_analysers(self):
-        omnium_analysers_paths = os.getenv('OMNIUM_ANALYZERS_PATH')
+        omnium_analysers_paths = os.getenv('OMNIUM_ANALYSER_PKGS')
         if omnium_analysers_paths:
             analyser_dirs = omnium_analysers_paths.split(':')
         else:
