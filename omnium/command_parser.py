@@ -2,9 +2,9 @@ import argparse
 
 try:
     import argcomplete
-    use_argparse = True
+    use_argcomplete = True
 except ImportError:
-    use_argparse = False
+    use_argcomplete = False
 
 
 def parse_commands(name, top_level_args, module, cmdline_args):
@@ -24,7 +24,7 @@ def parse_commands(name, top_level_args, module, cmdline_args):
         for cmd_pos_args, cmd_kwargs in cmd_module.ARGS:
             subparser.add_argument(*cmd_pos_args, **cmd_kwargs)
 
-    if use_argparse:
+    if use_argcomplete:
         argcomplete.autocomplete(parser)
     args = parser.parse_args(cmdline_args)
 
