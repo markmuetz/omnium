@@ -1,13 +1,15 @@
 import os
 from logging import getLogger
 
+from omnium.omnium_errors import OmniumError
+
 logger = getLogger('om.run')
 
 ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
-        (['--run-type', '-t'], {'help': 'cycle/expt/[suite]', 'default': 'suite'}),
-        (['expts'], {'nargs': '+', 'help': 'Experiment to analyse'}),
+        (['--run-type', '-t'], {'help': 'cycle/expt/suite/[cmd]', 'default': 'cmd'}),
+        (['expts'], {'nargs': '*', 'help': 'Experiments to analyse'}),
         (['--all'], {'help': 'Run all analysis', 'action': 'store_true'}),
-        (['--filenames', '-n'], {'help': 'Filenames to run on'}),
+        (['--filenames', '-n'], {'nargs': '+', 'help': 'Filenames to run on'}),
         (['--force', '-f'], {'help': 'Force run', 'action': 'store_true'}),
         (['--production', '-p'], {'help': 'Run in production mode', 'action': 'store_true'}),
         (['--print-only', '-o'], {'help': 'Print only', 'action': 'store_true'}),
@@ -40,7 +42,18 @@ def get_logging_filename(suite, args):
 def main(suite, args):
     from omnium.run_control import RunControl
     production = (os.getenv('PRODUCTION') == 'True') or args.production
-    run_control = RunControl(suite, args.run_type, args.expts, production, args.force,
+    if args.filenames:
+        assert args.run_type == 'cmd'
+        expts = []
+        for fn in args.filenames:
+            absfn = os.path.abspath(fn)
+            if not os.path.exists(absfn):
+                raise OmniumError('{} not found'.format(absfn))
+            expts.append(os.path.basename(os.path.dirname(absfn)))
+    else:
+        expts = args.expts
+
+    run_control = RunControl(suite, args.run_type, expts, production, args.force,
                              args.display_only, args.interactive)
     if args.mpi:
         # Note this will raise an import error if not installed.
@@ -67,5 +80,5 @@ def main(suite, args):
             run_control.gen_tasks()
             run_control.run_all()
         elif args.analysis:
-            run_control.gen_tasks()
-            run_control.run_single_analysis(args.analysis, args.filenames)
+            run_control.gen_tasks_for_analysis(args.analysis, args.filenames)
+            run_control.run_single_analysis(args.analysis)

@@ -17,7 +17,7 @@ class RunControl(object):
         self.production = production
 
         self.run_type = run_type
-        if self.run_type == 'suite':
+        if self.run_type in ['cmd', 'suite']:
             self.expts = expts
         else:
             assert len(expts) == 1
@@ -26,6 +26,7 @@ class RunControl(object):
         self.force = force
         self.display_only = display_only
         self.interactive = interactive
+        self.analysis_workflow = OrderedDict()
 
         logger.warning('Disabling Python warnings')
         import warnings
@@ -85,7 +86,7 @@ class RunControl(object):
         self.full_analysis_workflow = OrderedDict()
         self.analysis_classes = self.suite.analysis_classes
 
-        for run_type in ['cycle', 'expt', 'suite']:
+        for run_type in ['cmd', 'cycle', 'expt', 'suite']:
             analysis_workflow = OrderedDict()
 
             runcontrol_sec = 'runcontrol_{}'.format(run_type)
@@ -123,7 +124,12 @@ class RunControl(object):
 
             logger.debug('{}: {}'.format(run_type, analysis_workflow.keys()))
             if run_type == self.run_type:
-                self.analysis_workflow = analysis_workflow
+                if run_type != 'cmd':
+                    self.analysis_workflow = analysis_workflow
+
+        if self.run_type == 'cmd':
+            # When running as cmd want all the analysis available.
+            self.analysis_workflow = self.full_analysis_workflow
 
         for analyser_name in self.analysis_classes.keys():
             if analyser_name not in self.full_analysis_workflow:
@@ -133,6 +139,11 @@ class RunControl(object):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
                                       self.atmos_datam_dir, self.atmos_dataw_dir)
         self.task_master.gen_all_tasks()
+
+    def gen_tasks_for_analysis(self, analysis, filenames):
+        self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
+                                      self.atmos_datam_dir, self.atmos_dataw_dir)
+        self.task_master.gen_single_analysis_tasks(analysis, filenames)
 
     def run_all(self):
         logger.debug('running all analysis')
@@ -146,18 +157,21 @@ class RunControl(object):
             task.status = 'done'
             self.task_master.update_task(task.index, task.status)
 
-    def run_single_analysis(self, analysis_name, filenames):
+    def run_single_analysis(self, analysis_name):
         all_tasks = self.task_master.all_tasks
         tasks_to_run = [t for t in all_tasks if t.name == analysis_name]
         if not tasks_to_run:
             raise OmniumError('No tasks matching {} found'.format(analysis_name))
 
         for task in tasks_to_run:
-            if filenames:
-                task.filenames = filenames
             self.run_task(task)
 
     def run_task(self, task):
+        print_filenames = os.path.basename(task.filenames[0])
+        if len(task.filenames) > 1:
+            print_filenames += '...' + os.path.basename(task.filenames[-1])
+        logger.info('Running task {}: {} - {}:{}'.format(task.index, task.name, task.expt,
+                                                         print_filenames))
         logger.debug('running: {}'.format(task))
         analyser_cls = self.analysis_classes[task.name]
 
