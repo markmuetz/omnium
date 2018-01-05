@@ -2,4 +2,4 @@
 omnium Testing
 ==============
 
-.. include:: ../tests/readme.rst
+.. include:: ../omnium/tests/readme.rst

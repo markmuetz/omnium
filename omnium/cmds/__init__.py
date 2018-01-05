@@ -22,6 +22,7 @@ commands = [
     'send',
     'version',
     'viewer',
+    'test',
 ]
 
 modules = OrderedDict()

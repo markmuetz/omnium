@@ -30,7 +30,7 @@ class Analysers(object):
                 try:
                     pkg = importlib.import_module(analyser_package)
                 except ImportError:
-                    logger.exception('Package {} not found on PYTHONPATH'.format(analyser_package))
+                    logger.error("Package '{}' not found on PYTHONPATH".format(analyser_package))
 
                 for cls in pkg.analysis_classes:
                     if cls not in self.analysis_classes:
