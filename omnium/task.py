@@ -300,7 +300,7 @@ class TaskMaster(object):
         elif self.run_type == 'suite':
             self._gen_suite_tasks(analysis_name, analyser_cls)
 
-    def gen_all_tasks(self, filenames):
+    def gen_all_tasks(self):
         logger.debug('generating all tasks for {}'.format(self.run_type))
         self._scan_data_dirs()
         enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
