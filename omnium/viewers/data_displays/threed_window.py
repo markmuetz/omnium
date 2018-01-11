@@ -179,11 +179,16 @@ class ThreedWindow(DataDisplayWindow):
                 self.view.addItem(point_scatter)
                 self.rendered_point_scatters[index] = point_scatter
 
+        items_to_remove = []
         for index in self.rendered_point_scatters.keys():
             if index not in self.point_scatters:
-                print('removing {}'.format(index))
-                point_scatter = self.rendered_point_scatters.pop(index)
-                self.view.removeItem(point_scatter)
+                print('label for removal {}'.format(index))
+                items_to_remove.append(index)
+
+        for index in items_to_remove:
+            print('removing {}'.format(index))
+            point_scatter = self.rendered_point_scatters.pop(index)
+            self.view.removeItem(point_scatter)
 
     def add_cube(self, cube_index):
         cube = self.cubes[cube_index]
@@ -206,7 +211,7 @@ class ThreedWindow(DataDisplayWindow):
     def handleVarSelectorChanged(self, item, column):
         data = item.data(column, QtCore.Qt.UserRole)
         if item.checkState(column) == QtCore.Qt.Checked:
-            index = data.toPyObject()
+            index = data
             cube = self.cubes[index]
             print(cube.name())
             print('checked')
@@ -224,7 +229,7 @@ class ThreedWindow(DataDisplayWindow):
             self.add_remove()
 
         elif item.checkState(column) == QtCore.Qt.Unchecked:
-            index = data.toPyObject()
+            index = data
             if index in self.point_scatters:
                 self.point_scatters.pop(index)
                 if index + 9999 in self.point_scatters:
@@ -234,7 +239,7 @@ class ThreedWindow(DataDisplayWindow):
     def selectedItemChanged(self):
         item = self.var_selector.selectedItems()[0]
         data = item.data(0, QtCore.Qt.UserRole)
-        index = data.toPyObject()
+        index = data
         self.cube_index = index
         cube = self.cubes[index]
         print(cube.name())

@@ -168,8 +168,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
     def launch(self):
         cubes = []
         for item in self.var_selector.selectedItems():
-            data = item.data(0, QtCore.Qt.UserRole)
-            cube = data.toPyObject()
+            cube = item.data(0, QtCore.Qt.UserRole)
             # cube = self.cubes[index]
             cubes.append(cube)
 
@@ -272,8 +271,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
     def open(self):
         dlg = QtGui.QFileDialog(self, 'Open Cubes', os.getcwd())
         dlg.setFileMode(QtGui.QFileDialog.ExistingFiles)
-        dlg.setFilter("Cube files (*.nc *.pp?)")
-        dlg.setFilter
+        dlg.setNameFilter("Cube files (*.nc *.pp?)")
         filenames = []
         if dlg.exec_():
             for filename in dlg.selectedFiles():
