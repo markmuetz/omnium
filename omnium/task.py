@@ -185,10 +185,10 @@ class TaskMaster(object):
 
         data_dir, data_type, filename_glob, delete, min_runid, max_runid = \
             self._read_analysis_config(expt, analysis_name)
-        filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
-                                                   os.path.join(data_dir, filename_glob)))
-        done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
-        logger.debug('found files: {}'.format(done_filenames))
+        # N.B. all_filenames will have been set in find_filenames - it just contains
+        # the files that the user has asked for, i.e. no need to filter.
+        done_filenames = [fn for fn in self.all_filenames if fn[-5:] != '.done']
+        logger.debug('using files: {}'.format(done_filenames))
 
         if analyser_cls.single_file:
             self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
