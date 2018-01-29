@@ -2,6 +2,7 @@ import os
 from logging import getLogger
 
 from omnium.syncher import Syncher
+from omnium.omnium_errors import OmniumError
 
 logger = getLogger('om.fetch')
 
@@ -15,7 +16,6 @@ def main(suite, args):
     syncher = Syncher(suite, remote_name=args.remote, verbose=args.verbose)
 
     filenames = args.filenames
-    rel_filenames = []
     rel_dir = os.path.relpath(os.getcwd(), suite.suite_dir)
     rel_filenames = [os.path.join(rel_dir, fn) for fn in sorted(filenames)]
     remote_path = os.path.join(syncher.remote_base_path, suite.name)
@@ -26,4 +26,6 @@ def main(suite, args):
         syncher.sync()
     syncher.fetch(rel_filenames)
     for filename in args.filenames:
+        if suite.check_filename_missing(filename):
+            raise OmniumError('Filename {} not fetched'.format(filename))
         logger.info('Fetched {} from "{}"'.format(filename, syncher.remote_name))
