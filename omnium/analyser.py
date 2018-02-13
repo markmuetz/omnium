@@ -233,7 +233,7 @@ class Analyser(object):
 
         if self.task.run_type == 'cmd':
             # TODO: Needs a bit more finesse.
-            filename = self.task.filenames[0]
+            filename = os.path.basename(self.task.filenames[0]) + name
         else:
             if self.multi_expt:
                 filename = 'atmos.{}.{}'.format(self.analysis_name, name)
