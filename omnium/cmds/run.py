@@ -49,7 +49,9 @@ def main(suite, args):
             absfn = os.path.abspath(fn)
             if not os.path.exists(absfn):
                 raise OmniumError('{} not found'.format(absfn))
-            expts.append(os.path.basename(os.path.dirname(absfn)))
+            expt = os.path.basename(os.path.dirname(absfn))
+            if expt not in expts:
+                expts.append(expt)
     else:
         expts = args.expts
 

@@ -312,7 +312,7 @@ class TaskMaster(object):
         logger.info('Generated {} tasks'.format(len(self.all_tasks)))
 
     def gen_single_analysis_tasks(self, analysis, filenames):
-        logger.debug('generating all tasks for {}'.format(self.run_type))
+        logger.debug('generating single analysis tasks for {}'.format(self.run_type))
         if filenames:
             self._find_filenames(filenames)
         else:
