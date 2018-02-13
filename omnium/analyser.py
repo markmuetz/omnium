@@ -231,12 +231,16 @@ class Analyser(object):
         if not os.path.exists(figdir):
             os.makedirs(figdir)
 
-        if self.multi_expt:
-            filename = 'atmos.{}.{}'.format(self.analysis_name, name)
-        elif self.multi_file:
-            filename = 'atmos.{}.{}'.format(self.analysis_name, name)
+        if self.task.run_type == 'cmd':
+            # TODO: Needs a bit more finesse.
+            filename = self.task.filenames[0]
         else:
-            filename = 'atmos.{}.{}.{}'.format(self.runid, self.analysis_name, name)
+            if self.multi_expt:
+                filename = 'atmos.{}.{}'.format(self.analysis_name, name)
+            elif self.multi_file:
+                filename = 'atmos.{}.{}'.format(self.analysis_name, name)
+            else:
+                filename = 'atmos.{}.{}.{}'.format(self.runid, self.analysis_name, name)
         _figpath = os.path.join(figdir, filename)
         self.append_log('Saving fig to: {}'.format(_figpath))
         return _figpath
