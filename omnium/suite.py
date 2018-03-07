@@ -103,7 +103,7 @@ class Suite(object):
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
         if not os.path.exists(os.path.join(self.suite_dir, '.omnium')):
-            os.makedirs(os.path.join(self.suite_dir, '.omnium'))
+            os.makedirs(os.path.join(self.suite_dir, '.omnium'), exist_ok=True)
 
         if not os.path.exists(self.missing_file_path):
             with open(self.missing_file_path, 'w') as f:
@@ -118,7 +118,7 @@ class Suite(object):
                                              '.omnium/log/{}.log'.format(localhost))
 
         if not os.path.exists(os.path.dirname(self.logging_filename)):
-            os.makedirs(os.path.dirname(self.logging_filename))
+            os.makedirs(os.path.dirname(self.logging_filename), exist_ok=True)
 
     def load_analysers(self):
         omnium_analysers_paths = os.getenv('OMNIUM_ANALYSER_PKGS')
