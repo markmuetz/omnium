@@ -229,8 +229,8 @@ class TaskMaster(object):
                                        done_filenames, delete)
 
     def _gen_suite_tasks(self, analysis_name, analyser_cls):
-        assert analyser_cls.multi_expt
         logger.debug('generating suite tasks for {}'.format(analyser_cls.analysis_name))
+        assert analyser_cls.multi_expt
         filenames = []
         for expt in self.expts:
             data_dir, data_type, filename_glob, delete, min_runid, max_runid =\
