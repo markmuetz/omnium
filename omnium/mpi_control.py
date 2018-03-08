@@ -110,4 +110,4 @@ class MpiSlave(object):
             logger.error(e)
             data = {'command': 'error', 'msg': e.message}
             self.comm.send(data, dest=0, tag=WORKTAG)
-            raise
+            return
