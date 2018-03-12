@@ -125,7 +125,7 @@ class Analyser(object):
         if self.multi_file:
             for filename in self.filenames:
                 self.suite.abort_if_missing(filename)
-            self.cubes = iris.load(self.filenames)
+            self.cubes = iris.load(self.filenames).concatenate()
         else:
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
