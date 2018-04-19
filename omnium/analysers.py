@@ -7,6 +7,7 @@ from logging import getLogger
 from omnium.converter import FF2NC_Converter
 from omnium.deleter import Deleter
 from omnium.omnium_errors import OmniumError
+from omnium.utils import get_git_info
 
 logger = getLogger('om.analysers')
 
@@ -31,6 +32,16 @@ class Analysers(object):
                     pkg = importlib.import_module(analyser_package)
                 except ImportError:
                     logger.error("Package '{}' not found on PYTHONPATH".format(analyser_package))
+
+                pkg_dir = os.path.dirname(pkg.__file__)
+                try:
+                    pkg_hash, pkg_status = get_git_info(pkg_dir)
+                    self.analysis_hash.append(pkg_hash)
+                    self.analysis_status.append(pkg_hash)
+                except:
+                    logger.warning('analysis pkg is not a git repo: {}'.format(pkg_dir))
+                    self.analysis_hash.append('')
+                    self.analysis_status.append('not_a_git_repo')
 
                 for cls in pkg.analysis_classes:
                     if cls not in self.analysis_classes:
