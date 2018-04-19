@@ -37,7 +37,7 @@ class Analysers(object):
                 try:
                     pkg_hash, pkg_status = get_git_info(pkg_dir)
                     self.analysis_hash.append(pkg_hash)
-                    self.analysis_status.append(pkg_hash)
+                    self.analysis_status.append(pkg_status)
                 except:
                     logger.warning('analysis pkg is not a git repo: {}'.format(pkg_dir))
                     self.analysis_hash.append('')
