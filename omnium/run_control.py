@@ -89,7 +89,6 @@ class RunControl(object):
 
         for run_type in ['cmd', 'cycle', 'expt', 'suite']:
             analysis_workflow = OrderedDict()
-
             runcontrol_sec = 'runcontrol_{}'.format(run_type)
             if runcontrol_sec in config:
                 runcontrol = config[runcontrol_sec]
