@@ -153,8 +153,10 @@ class TaskMaster(object):
             for output_filename in task.output_filenames:
                 self.filename_task_map[output_filename] = task
             self.all_tasks.append(task)
-            self.all_filenames.extend(task.output_filenames)
-            self.all_filenames.extend([fn + '.done' for fn in task.output_filenames])
+            # Don't fill up all_filenames if cmd.
+            if self.run_type != 'cmd':
+                self.all_filenames.extend(task.output_filenames)
+                self.all_filenames.extend([fn + '.done' for fn in task.output_filenames])
             if delete:
                 logger.debug('will delete file: {}'.format(filtered_filename))
                 self.all_filenames.remove(filtered_filename)
@@ -193,17 +195,19 @@ class TaskMaster(object):
 
         data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, max_runid =\
             self._read_analysis_config(expt, analysis_name)
-        # N.B. all_filenames will have been set in find_filenames - it just contains
-        # the files that the user has asked for, i.e. no need to filter.
+
         done_filenames = [fn for fn in self.all_filenames if fn[-5:] != '.done']
+        # N.B. you still need to get only the files that are for this expt.
+        filtered_filenames = sorted(fnmatch.filter(done_filenames, os.path.join(data_dir, '*')))
+
         logger.debug('using files: {}'.format(done_filenames))
 
         if analyser_cls.single_file:
             self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
-                                        done_filenames, output_filename, delete, min_runid, max_runid)
+                                        filtered_filenames, output_filename, delete, min_runid, max_runid)
         elif analyser_cls.multi_file:
             self._gen_multi_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
-                                       done_filenames, delete)
+                                       filtered_filenames, delete)
 
     def _gen_cycle_tasks(self, expt, analysis_name, analyser_cls):
         assert analyser_cls.single_file
