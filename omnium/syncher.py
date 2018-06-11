@@ -71,14 +71,19 @@ class Syncher(object):
         logger.debug('found {} remote files'.format(len(lines)))
 
         logger.info('Creating symlinks')
+        count = 0
         for line in lines:
             dirname = os.path.dirname(line)
             if not os.path.exists(dirname):
                 logger.debug('Adding dir: {}'.format(dirname))
                 os.makedirs(dirname)
+                print('{}'.format(dirname))
             if not (os.path.exists(line) or os.path.islink(line)):
                 logger.debug('Adding symlink: {}'.format(line))
                 os.symlink(self.suite.missing_file_path, line)
+                count += 1
+                print('{}'.format(dirname))
+        logger.info('Created {} symlinks'.format(count))
 
     def sync(self):
         "Syncs a suite with files from remote host, must be used within a suite"

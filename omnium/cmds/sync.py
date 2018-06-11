@@ -10,5 +10,5 @@ ARGS = [(['--remote', '-r'], {'help': 'Remote'}),
 
 
 def main(suite, args):
-    syncher = Syncher(suite, args.remote, args.verbose)
+    syncher = Syncher(suite, args.remote, verbose=args.verbose)
     syncher.sync()
