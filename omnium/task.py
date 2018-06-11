@@ -341,9 +341,10 @@ class TaskMaster(object):
             self._find_filenames(filenames)
         else:
             self._scan_data_dirs()
-        enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
+        # N.B. ignores analysis enabled status.
+        all_analysis = self.analysis_workflow.values()
 
-        for analysis_name, analyser_cls, enabled in enabled_analysis:
+        for analysis_name, analyser_cls, enabled in all_analysis:
             if analysis_name == analysis:
                 self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
 
