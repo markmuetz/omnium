@@ -62,7 +62,8 @@ class RunControl(object):
             # TODO: Remove hardcoded value.
             self.atmos_datam_dir[expt] = os.path.join(suite_dir, 'share/data/history', expt)
             # TODO: Make adding extra '_atmos' smart or configurable.
-            self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work', initial_cycle_point, expt)
+            self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work', initial_cycle_point,
+                                                      expt + '_atmos')
 
         self.config = self.suite.app_config
 
