@@ -232,8 +232,7 @@ class Analyser(object):
             os.makedirs(figdir)
 
         if self.task.run_type == 'cmd':
-            # TODO: Needs a bit more finesse.
-            filename = os.path.basename(self.task.filenames[0]) + name
+            filename = self.task.expt + '_' + name
         else:
             if self.multi_expt:
                 filename = 'atmos.{}.{}'.format(self.analysis_name, name)
