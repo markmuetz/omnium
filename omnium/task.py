@@ -136,7 +136,8 @@ class TaskMaster(object):
             if output_filename:
                 runid = 000
             else:
-                runid, output_filename = analyser_cls.gen_output_filename(data_type, filtered_filename)
+                runid, output_filename = analyser_cls.gen_output_filename(data_type,
+                                                                          filtered_filename)
             if not (min_runid <= runid <= max_runid):
                 logger.debug('file {} out of runid range: {} - {}'.format(filtered_filename,
                                                                           min_runid,
@@ -193,8 +194,8 @@ class TaskMaster(object):
         assert analyser_cls.single_file or analyser_cls.multi_file
         logger.debug('generating cmd tasks for {}'.format(analyser_cls.analysis_name))
 
-        data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, max_runid =\
-            self._read_analysis_config(expt, analysis_name)
+        data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
+            max_runid = self._read_analysis_config(expt, analysis_name)
 
         done_filenames = [fn for fn in self.all_filenames if fn[-5:] != '.done']
         # N.B. you still need to get only the files that are for this expt.
@@ -204,7 +205,8 @@ class TaskMaster(object):
 
         if analyser_cls.single_file:
             self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
-                                        filtered_filenames, output_filename, delete, min_runid, max_runid)
+                                        filtered_filenames, output_filename, delete,
+                                        min_runid, max_runid)
         elif analyser_cls.multi_file:
             self._gen_multi_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
                                        filtered_filenames, delete)
@@ -212,8 +214,8 @@ class TaskMaster(object):
     def _gen_cycle_tasks(self, expt, analysis_name, analyser_cls):
         assert analyser_cls.single_file
         logger.debug('generating cycle tasks for {}'.format(analyser_cls.analysis_name))
-        data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, max_runid =\
-            self._read_analysis_config(expt, analysis_name)
+        data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
+            max_runid = self._read_analysis_config(expt, analysis_name)
         delete = delete or analyser_cls.analysis_name == 'deleter'
         if filename_glob:
             filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
@@ -234,8 +236,8 @@ class TaskMaster(object):
     def _gen_expt_tasks(self, expt, analysis_name, analyser_cls):
         assert analyser_cls.single_file or analyser_cls.multi_file
         logger.debug('generating expt tasks for {}'.format(analyser_cls.analysis_name))
-        data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, max_runid =\
-            self._read_analysis_config(expt, analysis_name)
+        data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
+            max_runid = self._read_analysis_config(expt, analysis_name)
         filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                    os.path.join(data_dir, filename_glob)))
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
@@ -243,7 +245,8 @@ class TaskMaster(object):
 
         if analyser_cls.single_file:
             self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
-                                        done_filenames, output_filename, delete, min_runid, max_runid)
+                                        done_filenames, output_filename, delete,
+                                        min_runid, max_runid)
         elif analyser_cls.multi_file:
             self._gen_multi_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
                                        done_filenames, output_filename, delete)
@@ -253,8 +256,8 @@ class TaskMaster(object):
         assert analyser_cls.multi_expt
         filenames = []
         for expt in self.expts:
-            data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, max_runid =\
-                self._read_analysis_config(expt, analysis_name)
+            data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
+                max_runid = self._read_analysis_config(expt, analysis_name)
             filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                        os.path.join(data_dir, filename_glob)))
             done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
@@ -313,7 +316,7 @@ class TaskMaster(object):
         logger.debug('using data_dir: {}'.format(data_dir))
         logger.debug('using filename_glob: {}'.format(filename_glob))
         return data_dir, data_type, filename_glob, filenames, output_filename, \
-               delete, min_runid, max_runid
+            delete, min_runid, max_runid
 
     def gen_tasks_for_analysis(self, analysis_name, analyser_cls, enabled):
         if self.run_type == 'cmd':

@@ -202,10 +202,13 @@ class TestAnalyserInstanceFunction(TestCase):
             mea.load()
 
     @patch('iris.load')
-    def test_load_multi_file(self, mock_load):
+    @patch('iris.cube.CubeList.concatenate')
+    def test_load_multi_file(self, mock_concatenate, mock_load):
         mfa = MultiFileAnalyser(self.suite, task, 'output_dir', None)
-        mock_load.return_value = mfa.filenames
+        mock_concatenate.return_value = mfa.filenames
         mfa.load()
+        print(mfa.cubes)
+        print(mfa.filenames)
         assert mfa.cubes == mfa.filenames
 
     def test_load_multi_file_missing(self):
