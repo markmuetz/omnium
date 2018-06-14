@@ -236,11 +236,12 @@ class Analyser(object):
             filename = self.task.expt + '_' + name
         else:
             if self.multi_expt:
+                # TODO: Use expts to make this name.
                 filename = 'atmos.{}.{}'.format(self.analysis_name, name)
             elif self.multi_file:
-                filename = 'atmos.{}.{}'.format(self.analysis_name, name)
+                filename = self.task.expt + '_' + name
             else:
-                filename = 'atmos.{}.{}.{}'.format(self.runid, self.analysis_name, name)
+                filename = self.task.expt + '_' + name
         _figpath = os.path.join(figdir, filename)
         self.append_log('Saving fig to: {}'.format(_figpath))
         return _figpath
