@@ -19,6 +19,8 @@ class Analyser(object):
     multi_file = False
     multi_expt = False
 
+    settings = None
+
     @classmethod
     def gen_output_filename(cls, data_type, filename):
         split_filename = os.path.basename(filename).split('.')
@@ -53,9 +55,31 @@ class Analyser(object):
             output_filename = '{}.{}.nc'.format(atmos, analysis_name)
         return runid, output_filename
 
+    @classmethod
+    def gen_output_dir(cls, data_dir):
+        omnium_version = 'om_v' + get_version(form='medium')
+        if cls.settings:
+            package = cls.settings.package
+            package_name = cls.settings.package.__name__
+            package_version = package_name + '_v' + get_version(package.__version__, form='medium')
+            version = omnium_version + '_' + package_version
+
+            logger.debug('using settings: {}'.format(cls.settings.get_hash()[:10]))
+            output_dir = os.path.join(data_dir,
+                                      'omnium_output',
+                                      version + '_' + cls.settings.get_hash()[:10])
+        else:
+            version = omnium_version
+            output_dir = os.path.join(data_dir,
+                                      'omnium_output',
+                                      version)
+        return output_dir
+
     def __init__(self, suite, task, results_dir, expt_group=None):
         assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
         assert self.analysis_name
+        if self.settings:
+            logger.debug('using settings: {}'.format(self.settings.get_hash()))
         self.suite = suite
         self.task = task
         self.results_dir = results_dir
@@ -199,6 +223,10 @@ class Analyser(object):
             # iris.save(cubelist, cubelist_filename)
 
         self.append_log('Saved')
+        self.done()
+
+    def done(self):
+        cubelist_filename = os.path.join(self.results_dir, self.output_filename)
         open(cubelist_filename + '.done', 'a').close()
 
     def display(self, interactive=False):

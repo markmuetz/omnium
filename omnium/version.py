@@ -1,11 +1,13 @@
 VERSION = (0, 9, 2, 0, 'alpha')
 
 
-def get_version(form='short'):
+def get_version(version=VERSION, form='short'):
     if form == 'short':
-        return '.'.join([str(v) for v in VERSION[:3]])
+        return '.'.join([str(v) for v in version[:3]])
+    elif form == 'medium':
+        return '.'.join([str(v) for v in version][:4])
     elif form == 'long':
-        return '.'.join([str(v) for v in VERSION][:4]) + '-' + VERSION[4]
+        return '.'.join([str(v) for v in version][:4]) + '-' + version[4]
     else:
         raise ValueError('unrecognised form specifier: {0}'.format(form))
 

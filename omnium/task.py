@@ -40,7 +40,8 @@ class Task(object):
 
 
 class TaskMaster(object):
-    def __init__(self, suite, run_type, analysis_workflow, expts, atmos_datam_dir, atmos_dataw_dir):
+    def __init__(self, suite, run_type, analysis_workflow, expts, atmos_datam_dir, atmos_dataw_dir,
+                 force):
         self.suite = suite
         self.run_type = run_type
         self.config = suite.app_config
@@ -48,6 +49,7 @@ class TaskMaster(object):
         self.expts = expts
         self.atmos_datam_dir = atmos_datam_dir
         self.atmos_dataw_dir = atmos_dataw_dir
+        self.force = force
 
         self.all_tasks = []
         self.pending_tasks = []
@@ -94,6 +96,46 @@ class TaskMaster(object):
     def print_tasks(self):
         for task in self.all_tasks:
             print(task)
+
+    def gen_tasks_for_analysis(self, analysis_name, analyser_cls, enabled):
+        if self.run_type == 'cmd':
+            for expt in self.expts:
+                self._gen_cmd_tasks(expt, analysis_name, analyser_cls)
+        elif self.run_type == 'cycle':
+            for expt in self.expts:
+                self._gen_cycle_tasks(expt, analysis_name, analyser_cls)
+        elif self.run_type == 'expt':
+            for expt in self.expts:
+                self._gen_expt_tasks(expt, analysis_name, analyser_cls)
+        elif self.run_type == 'suite':
+            self._gen_suite_tasks(analysis_name, analyser_cls)
+
+    def gen_all_tasks(self):
+        logger.debug('generating all tasks for {}'.format(self.run_type))
+        self._scan_data_dirs()
+        enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
+
+        for analysis_name, analyser_cls, enabled in enabled_analysis:
+            self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
+
+        self._find_pending()
+        logger.info('Generated {} tasks'.format(len(self.all_tasks)))
+
+    def gen_single_analysis_tasks(self, analysis, filenames):
+        logger.debug('generating single analysis tasks for {}'.format(self.run_type))
+        if filenames:
+            self._find_filenames(filenames)
+        else:
+            self._scan_data_dirs()
+        # N.B. ignores analysis enabled status.
+        all_analysis = self.analysis_workflow.values()
+
+        for analysis_name, analyser_cls, enabled in all_analysis:
+            if analysis_name == analysis:
+                self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
+
+        self._find_pending()
+        logger.info('Generated {} tasks'.format(len(self.all_tasks)))
 
     def _find_pending(self):
         for task in self.all_tasks:
@@ -144,9 +186,10 @@ class TaskMaster(object):
                                                                           max_runid))
                 continue
 
+            omnium_output_dir = analyser_cls.gen_output_dir(data_dir)
             task = Task(len(self.all_tasks), expt, runid, self.run_type, 'analysis',
                         analyser_cls.analysis_name, analysis_name,
-                        [filtered_filename], [os.path.join(data_dir, output_filename)])
+                        [filtered_filename], [os.path.join(omnium_output_dir, output_filename)])
             logger.debug(task)
             if filtered_filename in self.filename_task_map:
                 prev_task = self.filename_task_map[filtered_filename]
@@ -156,8 +199,19 @@ class TaskMaster(object):
             self.all_tasks.append(task)
             # Don't fill up all_filenames if cmd.
             if self.run_type != 'cmd':
-                self.all_filenames.extend(task.output_filenames)
-                self.all_filenames.extend([fn + '.done' for fn in task.output_filenames])
+                # Check output filenames don't exist.
+                for output_filename in task.output_filenames:
+                    if os.path.exists(output_filename):
+                        if not self.force:
+                            msg = 'output file {} already exists'.format(output_filename)
+                            logger.debug(msg)
+                        else:
+                            msg = 'output file {} will be overwritten'.format(output_filename)
+                            logger.debug(msg)
+                    else:
+                        self.all_filenames.extend(output_filename)
+                        self.all_filenames.extend(output_filename + '.done')
+
             if delete:
                 logger.debug('will delete file: {}'.format(filtered_filename))
                 self.all_filenames.remove(filtered_filename)
@@ -175,9 +229,11 @@ class TaskMaster(object):
             runid = 0
         else:
             runid, output_filename = analyser_cls.gen_output_filename(data_type, done_filenames[0])
+
+        omnium_output_dir = analyser_cls.gen_output_dir(data_dir)
         task = Task(len(self.all_tasks), expt, runid, self.run_type, 'analysis',
                     analyser_cls.analysis_name, analysis_name,
-                    done_filenames, [os.path.join(data_dir, output_filename)])
+                    done_filenames, [os.path.join(omnium_output_dir, output_filename)])
         for filtered_filename in done_filenames:
             if filtered_filename in self.filename_task_map:
                 prev_task = self.filename_task_map[filtered_filename]
@@ -186,8 +242,18 @@ class TaskMaster(object):
         for output_filename in task.output_filenames:
             self.filename_task_map[output_filename] = task
         self.all_tasks.append(task)
-        self.all_filenames.extend(task.output_filenames)
-        self.all_filenames.extend([fn + '.done' for fn in task.output_filenames])
+        for output_filename in task.output_filenames:
+            # Check output filenames don't exist.
+            if os.path.exists(output_filename):
+                if not self.force:
+                    msg = 'output file {} already exists'.format(output_filename)
+                    logger.debug(msg)
+                else:
+                    msg = 'output file {} will be overwritten'.format(output_filename)
+                    logger.debug(msg)
+            else:
+                self.all_filenames.extend(output_filename)
+                self.all_filenames.extend(output_filename + '.done')
         logger.debug(task)
 
     def _gen_cmd_tasks(self, expt, analysis_name, analyser_cls):
@@ -317,43 +383,3 @@ class TaskMaster(object):
         logger.debug('using filename_glob: {}'.format(filename_glob))
         return data_dir, data_type, filename_glob, filenames, output_filename, \
             delete, min_runid, max_runid
-
-    def gen_tasks_for_analysis(self, analysis_name, analyser_cls, enabled):
-        if self.run_type == 'cmd':
-            for expt in self.expts:
-                self._gen_cmd_tasks(expt, analysis_name, analyser_cls)
-        elif self.run_type == 'cycle':
-            for expt in self.expts:
-                self._gen_cycle_tasks(expt, analysis_name, analyser_cls)
-        elif self.run_type == 'expt':
-            for expt in self.expts:
-                self._gen_expt_tasks(expt, analysis_name, analyser_cls)
-        elif self.run_type == 'suite':
-            self._gen_suite_tasks(analysis_name, analyser_cls)
-
-    def gen_all_tasks(self):
-        logger.debug('generating all tasks for {}'.format(self.run_type))
-        self._scan_data_dirs()
-        enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
-
-        for analysis_name, analyser_cls, enabled in enabled_analysis:
-            self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
-
-        self._find_pending()
-        logger.info('Generated {} tasks'.format(len(self.all_tasks)))
-
-    def gen_single_analysis_tasks(self, analysis, filenames):
-        logger.debug('generating single analysis tasks for {}'.format(self.run_type))
-        if filenames:
-            self._find_filenames(filenames)
-        else:
-            self._scan_data_dirs()
-        # N.B. ignores analysis enabled status.
-        all_analysis = self.analysis_workflow.values()
-
-        for analysis_name, analyser_cls, enabled in all_analysis:
-            if analysis_name == analysis:
-                self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
-
-        self._find_pending()
-        logger.info('Generated {} tasks'.format(len(self.all_tasks)))

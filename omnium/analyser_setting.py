@@ -5,7 +5,8 @@ import simplejson
 
 
 class AnalyserSetting:
-    def __init__(self, settings=None):
+    def __init__(self, package, settings=None):
+        self.package = package
         if settings:
             for key in settings.keys():
                 assert isinstance(key, str)

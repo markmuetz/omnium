@@ -8,6 +8,8 @@ from omnium.task import Task
 
 task = Task(0, ['S0'], None, 'suite', 'analysis', 'dummy_analysis', 'dummy_analysis',
             ['fn1'], ['fn1.dummy_analysis.nc'])
+task_single_expt = Task(0, 'S0', None, 'suite', 'analysis', 'dummy_analysis', 'dummy_analysis',
+                        ['fn1'], ['fn1.dummy_analysis.nc'])
 multi_expt_task = Task(0, ['S0', 'S1'], None, 'suite', 'analysis', 'dummy_analysis',
                        'dummy_analysis',
                        ['fn1', 'fn1'], ['fn1.dummy_analysis.nc'])
@@ -301,7 +303,7 @@ class TestAnalyserInstanceFunction(TestCase):
     @patch('os.path.exists')
     @patch('os.makedirs')
     def test_figpath(self, mock_makedirs, mock_exists):
-        wa = SingleAnalyser(self.suite, task, 'output_dir', None)
+        wa = SingleAnalyser(self.suite, task_single_expt, 'output_dir', None)
 
         mock_exists.return_value = False
         wa.figpath('steve')

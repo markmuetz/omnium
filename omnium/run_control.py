@@ -66,7 +66,7 @@ class RunControl(object):
                 self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work', initial_cycle_point,
                                                           expt + '_atmos')
             else:
-                self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work', initial_cycle_point, 
+                self.atmos_dataw_dir[expt] = os.path.join(suite_dir, 'work', initial_cycle_point,
                                                           expt)
 
         self.config = self.suite.app_config
@@ -142,12 +142,12 @@ class RunControl(object):
 
     def gen_tasks(self):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
-                                      self.atmos_datam_dir, self.atmos_dataw_dir)
+                                      self.atmos_datam_dir, self.atmos_dataw_dir, self.force)
         self.task_master.gen_all_tasks()
 
     def gen_tasks_for_analysis(self, analysis, filenames):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
-                                      self.atmos_datam_dir, self.atmos_dataw_dir)
+                                      self.atmos_datam_dir, self.atmos_dataw_dir, self.force)
         self.task_master.gen_single_analysis_tasks(analysis, filenames)
 
     def run_all(self):

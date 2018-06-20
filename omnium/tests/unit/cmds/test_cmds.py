@@ -43,7 +43,7 @@ class TestCmds(TestCase):
 
     def test_version_bad_arg(self):
         with self.assertRaises(ValueError):
-            get_version('arg_not_handled')
+            get_version(form='arg_not_handled')
 
     def test_version_run_cmd(self):
         # Quite hard to test if __name__ == '__main__': with source coverage. Use this trick:
