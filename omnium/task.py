@@ -209,8 +209,8 @@ class TaskMaster(object):
                             msg = 'output file {} will be overwritten'.format(output_filename)
                             logger.debug(msg)
                     else:
-                        self.all_filenames.extend(output_filename)
-                        self.all_filenames.extend(output_filename + '.done')
+                        self.all_filenames.append(output_filename)
+                        self.all_filenames.append(output_filename + '.done')
 
             if delete:
                 logger.debug('will delete file: {}'.format(filtered_filename))
@@ -252,8 +252,8 @@ class TaskMaster(object):
                     msg = 'output file {} will be overwritten'.format(output_filename)
                     logger.debug(msg)
             else:
-                self.all_filenames.extend(output_filename)
-                self.all_filenames.extend(output_filename + '.done')
+                self.all_filenames.append(output_filename)
+                self.all_filenames.append(output_filename + '.done')
         logger.debug(task)
 
     def _gen_cmd_tasks(self, expt, analysis_name, analyser_cls):
@@ -284,8 +284,12 @@ class TaskMaster(object):
             max_runid = self._read_analysis_config(expt, analysis_name)
         delete = delete or analyser_cls.analysis_name == 'deleter'
         if filename_glob:
+            # This is a little hacky: check both dirs.
+            omnium_output_dir = analyser_cls.gen_output_dir(data_dir)
             filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                        os.path.join(data_dir, filename_glob)))
+            filtered_filenames.extend(sorted(fnmatch.filter(self.all_filenames,
+                                                            os.path.join(omnium_output_dir, filename_glob))))
         elif filenames:
             filtered_filenames = []
             for fn in filenames:
@@ -304,8 +308,12 @@ class TaskMaster(object):
         logger.debug('generating expt tasks for {}'.format(analyser_cls.analysis_name))
         data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
             max_runid = self._read_analysis_config(expt, analysis_name)
+        omnium_output_dir = analyser_cls.gen_output_dir(data_dir)
+        # This is a little hacky: check both dirs.
         filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                    os.path.join(data_dir, filename_glob)))
+        filtered_filenames.extend(sorted(fnmatch.filter(self.all_filenames,
+                                                        os.path.join(omnium_output_dir, filename_glob))))
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
         logger.debug('found files: {}'.format(done_filenames))
 
