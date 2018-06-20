@@ -40,9 +40,21 @@ setup(
     scripts=[
         'bin/omnium',
         ],
+    python_requires='>=3.6',
     install_requires=[
         'nose',
+        'iris',
+        'simplejson',
+        'numpy',
+        'configparser',
         ],
+    extras_require={
+        # This requirement requires some extra thought: loading mpi4py is tricky on ARCHER.
+        # 'HPC': ['mpi4py'],
+        # For some reason adding 'PyQt5' causes pip to try and collect/install it.
+        # Do not want this to happen. Anyway, having this dep is probably good enough.
+        'viewer': ['pyqtgraph'],
+    },
     package_data={'omnium.data': ['files/vn10.5/STASHmaster*'],
                   'omnium.tests': ['u-ap347/*'],
         },
