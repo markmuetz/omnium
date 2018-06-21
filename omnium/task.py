@@ -112,8 +112,8 @@ class TaskMaster(object):
 
     def gen_all_tasks(self):
         logger.debug('generating all tasks for {}'.format(self.run_type))
-        self._scan_data_dirs()
         enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
+        self._scan_data_dirs(enabled_analysis)
 
         for analysis_name, analyser_cls, enabled in enabled_analysis:
             self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
@@ -123,12 +123,12 @@ class TaskMaster(object):
 
     def gen_single_analysis_tasks(self, analysis, filenames):
         logger.debug('generating single analysis tasks for {}'.format(self.run_type))
+        all_analysis = self.analysis_workflow.values()
         if filenames:
             self._find_filenames(filenames)
         else:
-            self._scan_data_dirs()
+            self._scan_data_dirs(all_analysis)
         # N.B. ignores analysis enabled status.
-        all_analysis = self.analysis_workflow.values()
 
         for analysis_name, analyser_cls, enabled in all_analysis:
             if analysis_name == analysis:
@@ -144,17 +144,25 @@ class TaskMaster(object):
 
         logger.debug('{} pending tasks'.format(len(self.pending_tasks)))
 
-    def _scan_data_dirs(self):
+    def _scan_data_dirs(self, analysis):
         self.all_filenames = []
+
+        dirs_to_scan = []
         for expt in self.expts:
             datam_dir = self.atmos_datam_dir[expt]
             dataw_dir = self.atmos_dataw_dir[expt]
+            dirs_to_scan.extend([datam_dir, dataw_dir])
+            for analysis_name, analyser_cls, enabled in analysis:
+                dirs_to_scan.append(analyser_cls.gen_output_dir(datam_dir))
+                dirs_to_scan.append(analyser_cls.gen_output_dir(dataw_dir))
 
-            datam_filenames = sorted(glob(os.path.join(datam_dir, '*')))
-            dataw_filenames = sorted(glob(os.path.join(dataw_dir, '*')))
-
-            self.all_filenames.extend(datam_filenames)
-            self.all_filenames.extend(dataw_filenames)
+        # Ensure uniqueness.
+        dirs_to_scan = set(dirs_to_scan)
+        for dir in dirs_to_scan:
+            logger.debug('Scanning dir: {}'.format(dir))
+            found_filenames = sorted(glob(os.path.join(dir, '*')))
+            self.all_filenames.extend(found_filenames)
+        self.all_filenames = list(set(self.all_filenames))
 
     def _find_filenames(self, filenames):
         self.all_filenames = []
@@ -310,10 +318,12 @@ class TaskMaster(object):
             max_runid = self._read_analysis_config(expt, analysis_name)
         omnium_output_dir = analyser_cls.gen_output_dir(data_dir)
         # This is a little hacky: check both dirs.
+        logger.debug('using glob: {}'.format(os.path.join(data_dir, filename_glob)))
         filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                    os.path.join(data_dir, filename_glob)))
         filtered_filenames.extend(sorted(fnmatch.filter(self.all_filenames,
                                                         os.path.join(omnium_output_dir, filename_glob))))
+        logger.debug('using glob: {}'.format(os.path.join(omnium_output_dir, filename_glob)))
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
         logger.debug('found files: {}'.format(done_filenames))
 

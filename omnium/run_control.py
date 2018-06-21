@@ -196,6 +196,6 @@ class RunControl(object):
             analyser.save(self.state, self.suite)
             analyser.display(self.interactive)
         else:
-            logger.info('  Analysis already run')
+            logger.info('  Analysis already run: {}'.format(analyser.name))
 
         return analyser
