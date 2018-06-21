@@ -62,7 +62,7 @@ class TaskMaster(object):
             task = self.pending_tasks.pop(0)
             task.status = 'working'
             self.working_tasks.append(task)
-            logger.debug('get working task {}'.format(task.index))
+            logger.debug('get working task {}', task.index)
             return task
         else:
             # Either there are no currently pending tasks with all deps fulfilled,
@@ -75,18 +75,18 @@ class TaskMaster(object):
                 return None
 
     def update_task(self, task_index, task_status):
-        logger.debug('updating task {} to {}'.format(task_index, task_status))
+        logger.debug('updating task {} to {}', task_index, task_status)
         existing_task = self.all_tasks[task_index]
         existing_task.status = task_status
         if task_status == 'done':
             self.working_tasks.remove(existing_task)
             self.completed_tasks.append(existing_task)
-            logger.debug('{} tasks completed'.format(len(self.completed_tasks)))
+            logger.debug('{} tasks completed', len(self.completed_tasks))
 
         for next_task in existing_task.next_tasks:
             if all([pt.status == 'done' for pt in next_task.prev_tasks]):
                 self.pending_tasks.append(next_task)
-                logger.debug('adding pending task {}'.format(next_task.index))
+                logger.debug('adding pending task {}', next_task.index)
 
     def get_all_tasks(self):
         while True:
@@ -111,7 +111,7 @@ class TaskMaster(object):
             self._gen_suite_tasks(analysis_name, analyser_cls)
 
     def gen_all_tasks(self):
-        logger.debug('generating all tasks for {}'.format(self.run_type))
+        logger.debug('generating all tasks for {}', self.run_type)
         enabled_analysis = [a for a in self.analysis_workflow.values() if a[2]]
         self._scan_data_dirs(enabled_analysis)
 
@@ -119,10 +119,10 @@ class TaskMaster(object):
             self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
 
         self._find_pending()
-        logger.info('Generated {} tasks'.format(len(self.all_tasks)))
+        logger.info('Generated {} tasks', len(self.all_tasks))
 
     def gen_single_analysis_tasks(self, analysis, filenames):
-        logger.debug('generating single analysis tasks for {}'.format(self.run_type))
+        logger.debug('generating single analysis tasks for {}', self.run_type)
         all_analysis = self.analysis_workflow.values()
         if filenames:
             self._find_filenames(filenames)
@@ -135,14 +135,14 @@ class TaskMaster(object):
                 self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
 
         self._find_pending()
-        logger.info('Generated {} tasks'.format(len(self.all_tasks)))
+        logger.info('Generated {} tasks', len(self.all_tasks))
 
     def _find_pending(self):
         for task in self.all_tasks:
             if all([pt.status == 'done' for pt in task.prev_tasks]):
                 self.pending_tasks.append(task)
 
-        logger.debug('{} pending tasks'.format(len(self.pending_tasks)))
+        logger.debug('{} pending tasks', len(self.pending_tasks))
 
     def _scan_data_dirs(self, analysis):
         self.all_filenames = []
@@ -159,7 +159,7 @@ class TaskMaster(object):
         # Ensure uniqueness.
         dirs_to_scan = set(dirs_to_scan)
         for dir in dirs_to_scan:
-            logger.debug('Scanning dir: {}'.format(dir))
+            logger.debug('Scanning dir: {}', dir)
             found_filenames = sorted(glob(os.path.join(dir, '*')))
             self.all_filenames.extend(found_filenames)
         self.all_filenames = list(set(self.all_filenames))
@@ -177,7 +177,7 @@ class TaskMaster(object):
                                data_dir, data_type, done_filenames, output_filename, delete,
                                min_runid, max_runid):
         if not done_filenames:
-            logger.debug('no files for {}'.format(analyser_cls.analysis_name))
+            logger.debug('no files for {}', analyser_cls.analysis_name)
             return
 
         logger.debug('single file analysis')
@@ -189,9 +189,8 @@ class TaskMaster(object):
                 runid, output_filename = analyser_cls.gen_output_filename(data_type,
                                                                           filtered_filename)
             if not (min_runid <= runid <= max_runid):
-                logger.debug('file {} out of runid range: {} - {}'.format(filtered_filename,
-                                                                          min_runid,
-                                                                          max_runid))
+                logger.debug('file {} out of runid range: {} - {}',
+                             filtered_filename, min_runid, max_runid)
                 continue
 
             omnium_output_dir = analyser_cls.gen_output_dir(data_dir)
@@ -211,24 +210,24 @@ class TaskMaster(object):
                 for output_filename in task.output_filenames:
                     if os.path.exists(output_filename):
                         if not self.force:
-                            msg = 'output file {} already exists'.format(output_filename)
-                            logger.debug(msg)
+                            msg = 'output file {} already exists'
+                            logger.debug(msg, output_filename)
                         else:
-                            msg = 'output file {} will be overwritten'.format(output_filename)
-                            logger.debug(msg)
+                            msg = 'output file {} will be overwritten'
+                            logger.debug(msg, output_filename)
                     else:
                         self.all_filenames.append(output_filename)
                         self.all_filenames.append(output_filename + '.done')
 
             if delete:
-                logger.debug('will delete file: {}'.format(filtered_filename))
+                logger.debug('will delete file: {}', filtered_filename)
                 self.all_filenames.remove(filtered_filename)
 
     def _gen_multi_file_tasks(self, expt, analyser_cls, analysis_name,
                               data_dir, data_type, done_filenames, output_filename, delete):
         assert not delete
         if not done_filenames:
-            logger.debug('no files for {}'.format(analyser_cls.analysis_name))
+            logger.debug('no files for {}', analyser_cls.analysis_name)
             return
 
         logger.debug('multi file analysis')
@@ -254,11 +253,11 @@ class TaskMaster(object):
             # Check output filenames don't exist.
             if os.path.exists(output_filename):
                 if not self.force:
-                    msg = 'output file {} already exists'.format(output_filename)
-                    logger.debug(msg)
+                    msg = 'output file {} already exists'
+                    logger.debug(msg, output_filename)
                 else:
-                    msg = 'output file {} will be overwritten'.format(output_filename)
-                    logger.debug(msg)
+                    msg = 'output file {} will be overwritten'
+                    logger.debug(msg, output_filename)
             else:
                 self.all_filenames.append(output_filename)
                 self.all_filenames.append(output_filename + '.done')
@@ -266,7 +265,7 @@ class TaskMaster(object):
 
     def _gen_cmd_tasks(self, expt, analysis_name, analyser_cls):
         assert analyser_cls.single_file or analyser_cls.multi_file
-        logger.debug('generating cmd tasks for {}'.format(analyser_cls.analysis_name))
+        logger.debug('generating cmd tasks for {}', analyser_cls.analysis_name)
 
         data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
             max_runid = self._read_analysis_config(expt, analysis_name)
@@ -275,7 +274,7 @@ class TaskMaster(object):
         # N.B. you still need to get only the files that are for this expt.
         filtered_filenames = sorted(fnmatch.filter(done_filenames, os.path.join(data_dir, '*')))
 
-        logger.debug('using files: {}'.format(done_filenames))
+        logger.debug('using files: {}', done_filenames)
 
         if analyser_cls.single_file:
             self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
@@ -287,7 +286,7 @@ class TaskMaster(object):
 
     def _gen_cycle_tasks(self, expt, analysis_name, analyser_cls):
         assert analyser_cls.single_file
-        logger.debug('generating cycle tasks for {}'.format(analyser_cls.analysis_name))
+        logger.debug('generating cycle tasks for {}', analyser_cls.analysis_name)
         data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
             max_runid = self._read_analysis_config(expt, analysis_name)
         delete = delete or analyser_cls.analysis_name == 'deleter'
@@ -297,7 +296,8 @@ class TaskMaster(object):
             filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                        os.path.join(data_dir, filename_glob)))
             filtered_filenames.extend(sorted(fnmatch.filter(self.all_filenames,
-                                                            os.path.join(omnium_output_dir, filename_glob))))
+                                                            os.path.join(omnium_output_dir,
+                                                                         filename_glob))))
         elif filenames:
             filtered_filenames = []
             for fn in filenames:
@@ -306,26 +306,27 @@ class TaskMaster(object):
                 filtered_filenames.extend(fns)
 
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
-        logger.debug('found files: {}'.format(done_filenames))
+        logger.debug('found files: {}', done_filenames)
 
         self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
                                     done_filenames, output_filename, delete, min_runid, max_runid)
 
     def _gen_expt_tasks(self, expt, analysis_name, analyser_cls):
         assert analyser_cls.single_file or analyser_cls.multi_file
-        logger.debug('generating expt tasks for {}'.format(analyser_cls.analysis_name))
+        logger.debug('generating expt tasks for {}', analyser_cls.analysis_name)
         data_dir, data_type, filename_glob, filenames, output_filename, delete, min_runid, \
             max_runid = self._read_analysis_config(expt, analysis_name)
         omnium_output_dir = analyser_cls.gen_output_dir(data_dir)
         # This is a little hacky: check both dirs.
-        logger.debug('using glob: {}'.format(os.path.join(data_dir, filename_glob)))
+        logger.debug('using glob: {}', os.path.join(data_dir, filename_glob))
         filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                    os.path.join(data_dir, filename_glob)))
         filtered_filenames.extend(sorted(fnmatch.filter(self.all_filenames,
-                                                        os.path.join(omnium_output_dir, filename_glob))))
-        logger.debug('using glob: {}'.format(os.path.join(omnium_output_dir, filename_glob)))
+                                                        os.path.join(omnium_output_dir,
+                                                                     filename_glob))))
+        logger.debug('using glob: {}', os.path.join(omnium_output_dir, filename_glob))
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
-        logger.debug('found files: {}'.format(done_filenames))
+        logger.debug('found files: {}', done_filenames)
 
         if analyser_cls.single_file:
             self._gen_single_file_tasks(expt, analyser_cls, analysis_name, data_dir, data_type,
@@ -336,7 +337,7 @@ class TaskMaster(object):
                                        done_filenames, output_filename, delete)
 
     def _gen_suite_tasks(self, analysis_name, analyser_cls):
-        logger.debug('generating suite tasks for {}'.format(analyser_cls.analysis_name))
+        logger.debug('generating suite tasks for {}', analyser_cls.analysis_name)
         assert analyser_cls.multi_expt
         filenames = []
         for expt in self.expts:
@@ -345,13 +346,13 @@ class TaskMaster(object):
             filtered_filenames = sorted(fnmatch.filter(self.all_filenames,
                                                        os.path.join(data_dir, filename_glob)))
             done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.all_filenames]
-            logger.debug('found files: {}'.format(done_filenames))
+            logger.debug('found files: {}', done_filenames)
             assert len(done_filenames) <= 1
             if done_filenames:
                 filenames.append(done_filenames[0])
 
         if not filenames:
-            logger.debug('found no files for {}'.format(analysis_name))
+            logger.debug('found no files for {}', analysis_name)
             return
 
         assert len(filenames) == len(self.expts)
@@ -397,7 +398,7 @@ class TaskMaster(object):
         min_runid = analysis_config.getint('min_runid', 0)
         max_runid = analysis_config.getint('max_runid', int(1e10))
 
-        logger.debug('using data_dir: {}'.format(data_dir))
-        logger.debug('using filename_glob: {}'.format(filename_glob))
+        logger.debug('using data_dir: {}', data_dir)
+        logger.debug('using filename_glob: {}', filename_glob)
         return data_dir, data_type, filename_glob, filenames, output_filename, \
             delete, min_runid, max_runid

@@ -24,12 +24,12 @@ def run_omnium_tests():
 
 
 def run_analysis_tests(analysis):
-    logger.info('Running tests for analysis: {}'.format(analysis))
+    logger.info('Running tests for analysis: {}', analysis)
     pkg = importlib.import_module(analysis)
     pkg_dir = os.path.dirname(pkg.__file__)
     tests_dir = os.path.join(pkg_dir, 'tests')
     if not os.path.exists(tests_dir):
-        logger.info('Tests dir {} does not exist'.format(tests_dir))
+        logger.info('Tests dir {} does not exist', tests_dir)
         return
     os.chdir(tests_dir)
     logger.debug(os.getcwd())

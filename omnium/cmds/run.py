@@ -64,7 +64,7 @@ def main(suite, args):
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
-        logger.debug('Size, rank: {}, {}'.format(size, rank))
+        logger.debug('Size, rank: {}, {}', size, rank)
         run_control.gen_analysis_workflow()
         if rank == 0:
             run_control.gen_tasks()

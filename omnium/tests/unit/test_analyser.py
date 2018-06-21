@@ -5,6 +5,9 @@ from mock import Mock, patch, mock_open
 from omnium import OmniumError
 from omnium.analyser import Analyser
 from omnium.task import Task
+from omnium.setup_logging import setup_logger
+
+setup_logger()
 
 task = Task(0, ['S0'], None, 'suite', 'analysis', 'dummy_analysis', 'dummy_analysis',
             ['fn1'], ['fn1.dummy_analysis.nc'])
@@ -16,6 +19,9 @@ multi_expt_task = Task(0, ['S0', 'S1'], None, 'suite', 'analysis', 'dummy_analys
 
 
 class TestAnalyserInstanceCreation(TestCase):
+    def setUp(self):
+        setup_logger()
+
     def test_abstract(self):
         with self.assertRaises(TypeError):
             Analyser()
@@ -98,6 +104,7 @@ class TestAnalyserInstanceSetup(TestCase):
         self.patcher.start()
         self.suite = Mock()
         self.suite.check_filename_missing = lambda x: False
+        setup_logger()
 
     def tearDown(self):
         self.patcher.stop()
@@ -150,6 +157,8 @@ class TestAnalyserInstanceFunction(TestCase):
 
         self.suite = Mock()
         self.suite.check_filename_missing = lambda x: False
+
+        setup_logger()
 
     def tearDown(self):
         self.mock_make_dirs.stop()

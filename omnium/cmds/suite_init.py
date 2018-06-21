@@ -10,7 +10,7 @@ ARGS = [(['--suite-type', '-t'], {'help': 'type of suite'})]
 
 def main(suite, args):
     if args.suite_type not in Suite.suite_types:
-        logger.error('--suite-type must be one of: {}'.format(Suite.suite_types))
+        logger.error('--suite-type must be one of: {}', Suite.suite_types)
         return 1
     if args.suite_type == 'mirror':
         logger.error('Mirrors must be created by cloning')

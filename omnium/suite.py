@@ -64,7 +64,7 @@ class Suite(object):
         self.is_in_suite = True
         self.suite_dir = suite_dir
         self.name = os.path.basename(suite_dir)
-        logger.debug('in suite: {}'.format(self.suite_dir))
+        logger.debug('in suite: {}', self.suite_dir)
 
         # Check to see if it's already been initialized.
         config_filename = os.path.join(self.suite_dir, '.omnium/suite.conf')
@@ -87,8 +87,8 @@ class Suite(object):
                 omnium_app_conf_path = 'app/omnium/rose-app.conf'
                 src = os.path.join(cylc_suite_run_dir, omnium_app_conf_path)
                 dst = os.path.join(suite_dir, omnium_app_conf_path)
-                logger.debug('Copying omnium conf from {}'.format(src))
-                logger.debug('                      to {}'.format(dst))
+                logger.debug('Copying omnium conf from {}', src)
+                logger.debug('                      to {}', dst)
                 shutil.copyfile(src, dst)
 
         # Check for omnium app.
@@ -142,7 +142,7 @@ class Suite(object):
             if suite_name:
                 if os.path.exists(suite_name):
                     raise OmniumError('dir {} already exists'.format(suite_name))
-                logger.debug('creating in {}'.format(os.path.abspath(suite_name)))
+                logger.debug('creating in {}', os.path.abspath(suite_name))
                 # TODO: sanitize.
                 os.makedirs(suite_name)
                 os.chdir(suite_name)

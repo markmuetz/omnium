@@ -64,7 +64,7 @@ class Analyser(object):
             package_version = package_name + '_v' + get_version(package.__version__, form='medium')
             version = omnium_version + '_' + package_version
 
-            logger.debug('using settings: {}'.format(cls.settings.get_hash()[:10]))
+            logger.debug('using settings: {}', cls.settings.get_hash()[:10])
             output_dir = os.path.join(data_dir,
                                       'omnium_output',
                                       version + '_' + cls.settings.get_hash()[:10])
@@ -79,7 +79,7 @@ class Analyser(object):
         assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
         assert self.analysis_name
         if self.settings:
-            logger.debug('using settings: {}'.format(self.settings.get_hash()))
+            logger.debug('using settings: {}', self.settings.get_hash())
         self.suite = suite
         self.task = task
         self.results_dir = results_dir
@@ -109,11 +109,11 @@ class Analyser(object):
 
         self.output_filename = task.output_filenames[0]
 
-        logger.debug('single_file: {}'.format(self.single_file))
-        logger.debug('multi_file: {}'.format(self.multi_file))
-        logger.debug('multi_expt: {}'.format(self.multi_expt))
+        logger.debug('single_file: {}', self.single_file)
+        logger.debug('multi_file: {}', self.multi_file)
+        logger.debug('multi_expt: {}', self.multi_expt)
 
-        logger.debug('output_filename: {}'.format(self.output_filename))
+        logger.debug('output_filename: {}', self.output_filename)
         self.results = OrderedDict()
         self.force = False
         # N.B. there is only one results_dir, even for multi_expt
@@ -123,7 +123,7 @@ class Analyser(object):
 
         # Need to make sure results dir exists before first call to self.append_log.
         if not os.path.exists(self.results_dir):
-            logger.debug('creating results_dir: {}'.format(self.results_dir))
+            logger.debug('creating results_dir: {}', self.results_dir)
             os.makedirs(self.results_dir)
 
     def set_config(self, config):
@@ -140,7 +140,7 @@ class Analyser(object):
         return os.path.exists(self.logname) and not self.suite.check_filename_missing(self.logname)
 
     def append_log(self, message):
-        logger.debug('{}: {}'.format(self.analysis_name, message))
+        logger.debug('{}: {}', self.analysis_name, message)
         with open(self.logname, 'a') as f:
             f.write('{}: {}\n'.format(dt.datetime.now(), message))
 
@@ -155,11 +155,11 @@ class Analyser(object):
             if self.multi_expt:
                 self.expt_cubes = OrderedDict()
                 for expt, filename in zip(self.expts, self.filenames):
-                    logger.debug('loading fn:{}'.format(filename))
+                    logger.debug('loading fn:{}', filename)
                     self.suite.abort_if_missing(filename)
                     self.expt_cubes[expt] = iris.load(filename)
             else:
-                logger.debug('loading {}'.format(self.filename))
+                logger.debug('loading {}', self.filename)
                 self.suite.abort_if_missing(self.filename)
                 self.cubes = iris.load(self.filename)
 
@@ -191,9 +191,9 @@ class Analyser(object):
 
         cubelist_filename = os.path.join(self.results_dir, self.output_filename)
         for cube_id, cube in self.results.items():
-            logger.debug('saving cube: {}'.format(cube.name()))
-            logger.debug('omnium_cube_id: {}'.format(cube_id))
-            logger.debug('cube shape: {}'.format(cube.shape))
+            logger.debug('saving cube: {}', cube.name())
+            logger.debug('omnium_cube_id: {}', cube_id)
+            logger.debug('cube shape: {}', cube.shape)
 
             cube.attributes['omnium_vn'] = get_version('long')
             cube.attributes['omnium_cube_id'] = cube_id
@@ -212,7 +212,7 @@ class Analyser(object):
         if not len(cubelist):
             logger.warning('No results to save')
         else:
-            logger.debug('saving to {}'.format(cubelist_filename))
+            logger.debug('saving to {}', cubelist_filename)
             # logger.debug('Not using zlib')
             # TODO: Make this a setting somewhere.
             # Use default compression: complevel 4.
@@ -244,7 +244,7 @@ class Analyser(object):
 
     def save_text(self, name, text):
         filepath = self.figpath(name)
-        logger.debug('Saving text to: {}'.format(filepath))
+        logger.debug('Saving text to: {}', filepath)
         for line in text.split('\n'):
             logger.debug(line)
 

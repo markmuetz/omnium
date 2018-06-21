@@ -18,7 +18,7 @@ class Deleter(Analyser):
 
     def save(self, state=None, suite=None):
         self.messages = ['archer_analysis delete ' + self.analysis_name]
-        logger.info('Delete: {}'.format(self.filename))
+        logger.info('Delete: {}', self.filename)
         os.remove(self.filename)
         self.messages.append('Deleted original')
 

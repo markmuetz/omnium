@@ -39,9 +39,9 @@ class Syncher(object):
         self.remote = suite.suite_config['remote "{}"'.format(remote_name)]
         self.remote_host = self.remote['host']
         self.remote_base_path = self.remote['base_path']
-        logger.debug('remote_name: {}'.format(self.remote_name))
-        logger.debug('remote_host: {}'.format(self.remote_host))
-        logger.debug('remote_base_path: {}'.format(self.remote_base_path))
+        logger.debug('remote_name: {}', self.remote_name)
+        logger.debug('remote_host: {}', self.remote_host)
+        logger.debug('remote_base_path: {}', self.remote_base_path)
 
     def clone(self):
         includes = ['*/', '*.conf', '*.py', '*.sh', '*.info', 'suite*rc*', 'log*Z', 'log*.tar.gz']
@@ -68,22 +68,22 @@ class Syncher(object):
         sp.call(cmd, shell=True)
         with open(self.index_file_fmt.format(self.remote_name), 'r') as f:
             lines = [l.strip() for l in f.readlines()]
-        logger.debug('found {} remote files'.format(len(lines)))
+        logger.debug('found {} remote files', len(lines))
 
         logger.info('Creating symlinks')
         count = 0
         for line in lines:
             dirname = os.path.dirname(line)
             if not os.path.exists(dirname):
-                logger.debug('Adding dir: {}'.format(dirname))
+                logger.debug('Adding dir: {}', dirname)
                 os.makedirs(dirname)
                 print('{}/'.format(dirname))
             if not (os.path.exists(line) or os.path.islink(line)):
-                logger.debug('Adding symlink: {}'.format(line))
+                logger.debug('Adding symlink: {}', line)
                 os.symlink(self.suite.missing_file_path, line)
                 count += 1
                 print('{}'.format(line))
-        logger.info('Created {} symlinks'.format(count))
+        logger.info('Created {} symlinks', count)
 
     def sync(self):
         "Syncs a suite with files from remote host, must be used within a suite"
@@ -92,15 +92,15 @@ class Syncher(object):
         if self.suite.suite_config['settings']['suite_type'] != 'mirror':
             raise OmniumError('Sync can only be used with a suite that is a mirror')
 
-        logger.info("Sync'ing suite mirror: {}".format(self.suite.name))
-        logger.debug('cd to {}'.format(self.suite.suite_dir))
+        logger.info("Sync'ing suite mirror: {}", self.suite.name)
+        logger.debug('cd to {}', self.suite.suite_dir)
 
         cwd = os.getcwd()
         os.chdir(self.suite.suite_dir)
 
         self._sync()
 
-        logger.debug('cd back to {}'.format(cwd))
+        logger.debug('cd back to {}', cwd)
         os.chdir(cwd)
 
         logger.info("Sync'd")
@@ -124,7 +124,7 @@ class Syncher(object):
 
         remote_index_file = self.index_file_fmt.format(self.remote_name)
         if not os.path.exists(remote_index_file):
-            logger.info('No remote index for "{}", syncing'.format(self.remote_name))
+            logger.info('No remote index for "{}", syncing', self.remote_name)
             self.sync()
 
         with open(remote_index_file, 'r') as f:
@@ -140,7 +140,7 @@ class Syncher(object):
             else:
                 dot_rel_filename = rel_filename
             if dot_rel_filename not in remote_index:
-                logger.debug('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
+                logger.debug('File not in "{}" index: {}', self.remote_name, rel_filename)
                 rel_filenames.remove(rel_filename)
 
         if not rel_filenames:
@@ -165,7 +165,7 @@ class Syncher(object):
 
         remote_index_file = self.index_file_fmt.format(self.remote_name)
         if not os.path.exists(remote_index_file):
-            logger.info('No remote index for "{}", syncing'.format(self.remote_name))
+            logger.info('No remote index for "{}", syncing', self.remote_name)
             self.sync()
 
         with open(remote_index_file, 'r') as f:
@@ -180,7 +180,7 @@ class Syncher(object):
             else:
                 dot_rel_filename = rel_filename
             if dot_rel_filename not in remote_index:
-                logger.debug('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
+                logger.debug('File not in "{}" index: {}', self.remote_name, rel_filename)
                 rel_filenames.remove(rel_filename)
 
         if not rel_filenames:
@@ -208,7 +208,7 @@ class Syncher(object):
 
         remote_index_file = self.index_file_fmt.format(self.remote_name)
         if not os.path.exists(remote_index_file):
-            logger.info('No remote index for "{}", syncing'.format(self.remote_name))
+            logger.info('No remote index for "{}", syncing', self.remote_name)
             self.sync()
 
         with open(remote_index_file, 'r') as f:
@@ -220,7 +220,7 @@ class Syncher(object):
         if rel_filename[:2] != './':
             rel_filename = './' + rel_filename
         if rel_filename not in remote_index:
-            logger.warning('File not in "{}" index: {}'.format(self.remote_name, rel_filename))
+            logger.warning('File not in "{}" index: {}', self.remote_name, rel_filename)
             return
 
         remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)

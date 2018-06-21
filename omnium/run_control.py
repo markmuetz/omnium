@@ -75,10 +75,10 @@ class RunControl(object):
         for expt in self.expts:
             data_dir = self.atmos_datam_dir[expt]
             if not os.path.exists(data_dir):
-                logger.warning('Dir does not exist: {}'.format(data_dir))
+                logger.warning('Dir does not exist: {}', data_dir)
             data_dir = self.atmos_dataw_dir[expt]
             if not os.path.exists(data_dir):
-                logger.warning('Dir does not exist: {}'.format(data_dir))
+                logger.warning('Dir does not exist: {}', data_dir)
 
     def print_setup(self):
         for attr in ['run_type', 'expts', 'atmos_datam_dir', 'atmos_dataw_dir']:
@@ -98,12 +98,12 @@ class RunControl(object):
             if runcontrol_sec in config:
                 runcontrol = config[runcontrol_sec]
             else:
-                logger.info('No runcontrol for {}'.format(run_type))
+                logger.info('No runcontrol for {}', run_type)
                 continue
 
             for ordered_analysis, enabled_str in sorted(runcontrol.items()):
                 analysis = ordered_analysis[3:]
-                logger.debug('analysis: {}'.format(analysis))
+                logger.debug('analysis: {}', analysis)
                 enabled = enabled_str == 'True'
                 # N.B. even if analyser not enabled in config, want to make sure it
                 # can still be run by e.g. run_analysis.
@@ -111,7 +111,7 @@ class RunControl(object):
                     analyser_config = config[analysis]
                     if 'analysis' in analyser_config:
                         analysis_name = analyser_config['analysis']
-                        logger.debug('renamed analysis: {}'.format(analysis_name))
+                        logger.debug('renamed analysis: {}', analysis_name)
                     else:
                         analysis_name = analysis
                 else:
@@ -127,7 +127,7 @@ class RunControl(object):
                 self.full_analysis_workflow[analysis_name] = (analysis, analyser_cls, enabled)
                 analysis_workflow[analysis_name] = (analysis, analyser_cls, enabled)
 
-            logger.debug('{}: {}'.format(run_type, analysis_workflow.keys()))
+            logger.debug('{}: {}', run_type, analysis_workflow.keys())
             if run_type == self.run_type:
                 if run_type != 'cmd':
                     self.analysis_workflow = analysis_workflow
@@ -138,7 +138,7 @@ class RunControl(object):
 
         for analyser_name in self.analysis_classes.keys():
             if analyser_name not in self.full_analysis_workflow:
-                logger.debug('analyser_cls found but has no config: {}'.format(analyser_name))
+                logger.debug('analyser_cls found but has no config: {}', analyser_name)
 
     def gen_tasks(self):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
@@ -175,9 +175,9 @@ class RunControl(object):
         print_filenames = os.path.basename(task.filenames[0])
         if len(task.filenames) > 1:
             print_filenames += '...' + os.path.basename(task.filenames[-1])
-        logger.info('Running task {}: {} - {}:{}'.format(task.index, task.name, task.expt,
-                                                         print_filenames))
-        logger.debug('running: {}'.format(task))
+        logger.info('Running task {}: {} - {}:{}',
+                    task.index, task.name, task.expt, print_filenames)
+        logger.debug('running: {}', task)
         analyser_cls = self.analysis_classes[task.name]
 
         results_dir = os.path.dirname(task.output_filenames[0])
@@ -196,6 +196,6 @@ class RunControl(object):
             analyser.save(self.state, self.suite)
             analyser.display(self.interactive)
         else:
-            logger.info('  Analysis already run: {}'.format(analyser.name))
+            logger.info('  Analysis already run: {}', analyser.analysis_name)
 
         return analyser

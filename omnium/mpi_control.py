@@ -14,7 +14,7 @@ class MpiMaster(object):
         self.comm = comm
         self.rank = rank
         self.size = size
-        logger.info('Initialized MPI master: {}/{}'.format(rank, size))
+        logger.info('Initialized MPI master: {}/{}', rank, size)
 
     def run(self):
         task_master = self.run_control.task_master
@@ -31,7 +31,7 @@ class MpiMaster(object):
                 if not task:
                     # There are tasks with unmet dependencies.
                     waiting_dests.append(dest)
-                    logger.debug('appended waiting dests: {}'.format(waiting_dests))
+                    logger.debug('appended waiting dests: {}', waiting_dests)
             except StopIteration:
                 logger.debug('All tasks sent')
                 break
@@ -40,10 +40,10 @@ class MpiMaster(object):
             if need_to_block:
                 # Block until notified of completion.
                 rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
-                logger.info('Data received from {}'.format(status.Get_source()))
-                logger.debug('data: {}'.format(rdata))
+                logger.info('Data received from {}', status.Get_source())
+                logger.debug('data: {}', rdata)
                 if rdata['command'] == 'error':
-                    logger.error('Rank {} raised error'.format(status.Get_source()))
+                    logger.error('Rank {} raised error', status.Get_source())
                     logger.error(rdata['msg'])
                     raise Exception('Unrecoverable error')
                 received_task = rdata['task']  # reconstituted via pickle.
@@ -52,32 +52,32 @@ class MpiMaster(object):
             if task:
                 if waiting_dests:
                     # Clear backlog of waiting dests.
-                    logger.debug('pop waiting dests: {}'.format(waiting_dests))
+                    logger.debug('pop waiting dests: {}', waiting_dests)
                     dest = waiting_dests.pop()
                 else:
                     dest = status.Get_source()
 
                 data = {'command': 'run_task', 'task': task}
-                logger.info('Sending data to {}'.format(dest))
-                logger.debug('data: {}'.format(data))
+                logger.info('Sending data to {}', dest)
+                logger.debug('data: {}', data)
                 self.comm.send(data, dest=dest, tag=WORKTAG)
 
         # We are done! Listen for final data responses.
         for dest in range(1, self.size - len(waiting_dests)):
             rdata = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
             if rdata['command'] == 'error':
-                logger.error('Rank {} raised error'.format(status.Get_source()))
+                logger.error('Rank {} raised error', status.Get_source())
                 logger.error(rdata['msg'])
                 raise Exception('Unrecoverable error')
             received_task = rdata['task']  # reconstituted via pickle.
             task_master.update_task(received_task.index, received_task.status)
-            logger.info('Final data received from {}'.format(status.Get_source()))
-            logger.debug('data: {}'.format(rdata))
+            logger.info('Final data received from {}', status.Get_source())
+            logger.debug('data: {}', rdata)
 
         # Send all slaves a die command.
         for dest in range(1, self.size):
             data = {'command': 'die'}
-            logger.info('Sending die to {}'.format(dest))
+            logger.info('Sending die to {}', dest)
             self.comm.send(data, dest=dest, tag=DIETAG)
 
         logger.info('Finished')
@@ -89,7 +89,7 @@ class MpiSlave(object):
         self.comm = comm
         self.rank = rank
         self.size = size
-        logger.info('Initialized MPI slave: {}/{}'.format(rank, size))
+        logger.info('Initialized MPI slave: {}/{}', rank, size)
 
     def listen(self):
         try:
@@ -97,7 +97,7 @@ class MpiSlave(object):
             while True:
                 logger.debug('Waiting for data')
                 data = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-                logger.debug('Received data: {}'.format(data))
+                logger.debug('Received data: {}', data)
                 if status.Get_tag() == DIETAG:
                     break
                 else:

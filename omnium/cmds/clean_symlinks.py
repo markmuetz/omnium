@@ -17,7 +17,7 @@ def main(suite, args):
             full_filename = os.path.join(root, filename)
             if os.path.islink(full_filename):
                 if os.path.realpath(full_filename) == suite.missing_file_path:
-                    logger.debug('removing link: {}'.format(full_filename))
+                    logger.debug('removing link: {}', full_filename)
                     total += 1
                     if not args.dry_run:
                         os.remove(full_filename)
@@ -26,7 +26,7 @@ def main(suite, args):
 
     if args.dry_run:
         logger.info('Dry run, no links were harmed.')
-        logger.info('Would have removed {} symlinks'.format(total))
+        logger.info('Would have removed {} symlinks', total)
     else:
         logger.info('Dry run, no links were harmed.')
-        logger.info('Removed {} symlinks'.format(total))
+        logger.info('Removed {} symlinks', total)

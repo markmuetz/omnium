@@ -4,6 +4,7 @@ import shutil
 from glob import glob
 
 from omnium.omnium_cmd import main as omnium_main
+from omnium.setup_logging import setup_logger
 
 SCRATCH_DIR = '_function_suite_interaction_scratch'
 
@@ -22,6 +23,8 @@ def setup():
         shutil.rmtree(SCRATCH_DIR)
     os.makedirs(SCRATCH_DIR)
     os.chdir(SCRATCH_DIR)
+
+    setup_logger()
 
 
 def teardown():

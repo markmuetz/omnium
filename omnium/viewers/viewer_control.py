@@ -197,7 +197,7 @@ class ViewerControlWindow(QtGui.QMainWindow):
     def addCube(self, parent, cube):
         cube_name = ' '.join(cube.name().split())
         if cube.ndim < 2:
-            logger.info('Cube {} only has {} dim(s) - not adding'.format(cube_name, cube.ndim))
+            logger.info('Cube {} only has {} dim(s) - not adding', cube_name, cube.ndim)
             return
 
         nt = str(cube.shape[0])

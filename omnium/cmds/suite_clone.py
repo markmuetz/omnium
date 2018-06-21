@@ -15,7 +15,7 @@ RUN_OUTSIDE_SUITE = True
 
 
 def main(suite, args):
-    logger.info('Cloning into {}'.format(args.suite[0]))
+    logger.info('Cloning into {}', args.suite[0])
     suite.init(args.suite[0], 'mirror', args.host_name, args.host, args.base_path)
     syncher = Syncher(suite, args.local, args.host_name, args.verbose)
     syncher.clone()

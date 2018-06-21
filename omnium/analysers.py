@@ -31,7 +31,7 @@ class Analysers(object):
                 try:
                     pkg = importlib.import_module(analyser_package)
                 except ImportError:
-                    logger.error("Package '{}' not found on PYTHONPATH".format(analyser_package))
+                    logger.error("Package '{}' not found on PYTHONPATH", analyser_package)
 
                 pkg_dir = os.path.dirname(pkg.__file__)
                 try:
@@ -39,7 +39,7 @@ class Analysers(object):
                     self.analysis_hash.append(pkg_hash)
                     self.analysis_status.append(pkg_status)
                 except:
-                    logger.warning('analysis pkg is not a git repo: {}'.format(pkg_dir))
+                    logger.warning('analysis pkg is not a git repo: {}', pkg_dir)
                     self.analysis_hash.append('')
                     self.analysis_status.append('not_a_git_repo')
 
@@ -49,7 +49,7 @@ class Analysers(object):
                         self.analysis_groups[cls.analysis_name] = \
                             os.path.basename(analyser_package)
                     else:
-                        logger.warning('Multiple analysis classes named: {}'.format(cls))
+                        logger.warning('Multiple analysis classes named: {}', cls)
 
         self.analysis_classes[FF2NC_Converter.analysis_name] = FF2NC_Converter
         self.analysis_groups[FF2NC_Converter.analysis_name] = 'omnium'

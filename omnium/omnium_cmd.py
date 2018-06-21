@@ -42,17 +42,17 @@ def main(argv, import_log_msg=''):
     logger = setup_logger(debug, colour, warn_stderr)
 
     if args.suite_dir:
-        logger.debug('orig dir: {}'.format(os.getcwd()))
+        logger.debug('orig dir: {}', os.getcwd())
         os.chdir(args.suite_dir)
     elif cylc_control:
         suite_base_dir = os.getenv('OMNIUM_BASE_SUITE_DIR')
         cylc_suite_name = os.getenv('CYLC_SUITE_NAME')
 
-        logger.debug('orig dir: {}'.format(os.getcwd()))
+        logger.debug('orig dir: {}', os.getcwd())
         suite_dir = os.path.join(suite_base_dir, cylc_suite_name)
         os.chdir(suite_dir)
 
-    logger.debug('start dir: {}'.format(os.getcwd()))
+    logger.debug('start dir: {}', os.getcwd())
     suite = Suite(os.getcwd(), cylc_control)
     if not suite.is_in_suite:
         if not getattr(cmd, 'RUN_OUTSIDE_SUITE', False):
@@ -72,20 +72,20 @@ def main(argv, import_log_msg=''):
         logger.info('running omnium_dev')
         import omnium
         logger.info(omnium)
-    logger.debug('omnium import: {}'.format(import_log_msg))
+    logger.debug('omnium import: {}', import_log_msg)
     logger.debug(' '.join(argv))
     logger.debug(args.cmd_name)
-    logger.debug('cylc_control: {}'.format(cylc_control))
+    logger.debug('cylc_control: {}', cylc_control)
 
     state = State()
-    logger.debug('omnium git_hash, status: {}, {}'.format(state.git_hash, state.git_status))
+    logger.debug('omnium git_hash, status: {}, {}', state.git_hash, state.git_status)
     if not args.throw_exceptions:
         logger.debug('Catching all exceptions')
         try:
             # dispatch on arg
             return cmd.main(suite, args)
         except Exception as e:
-            logger.exception('{}'.format(e))
+            logger.exception('{}', e)
             raise
     else:
         return cmd.main(suite, args)

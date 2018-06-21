@@ -47,12 +47,12 @@ class Stash(OrderedDict):
                 section = cube.attributes['STASH'].section
                 item = cube.attributes['STASH'].item
                 if section not in self:
-                    logger.warning('Section {} not found in current STASHMASTER'.format(section))
+                    logger.warning('Section {} not found in current STASHMASTER', section)
                     return
                 if item not in self[section]:
-                    logger.warning('Section {}, Item {} not found in current STASHMASTER'
-                                   .format(section, item))
+                    logger.warning('Section {}, Item {} not found in current STASHMASTER',
+                                   section, item)
                     return
                 name = self[section][item]
-                logger.info('Renaming {}->{}'.format(cube.name(), name))
+                logger.info('Renaming {}->{}', cube.name(), name)
                 cube.rename(name)

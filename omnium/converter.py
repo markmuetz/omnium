@@ -33,7 +33,7 @@ class FF2NC_Converter(Analyser):
             match = re.match(pattern, base_filename)
 
             if match:
-                logger.debug('matched {} with {}'.format(base_filename, pattern))
+                logger.debug('matched {} with {}', base_filename, pattern)
                 break
 
         if not match:
@@ -55,7 +55,7 @@ class FF2NC_Converter(Analyser):
         # to reload the data.
         converted_cubes = iris.load(converted_filename)
         for cube in self.cubes:
-            logger.debug('Verify {}'.format(cube.name()))
+            logger.debug('Verify {}', cube.name())
             stash = cube.attributes['STASH']
             conv_cube = get_cube(converted_cubes, stash.section, stash.item)
 
@@ -67,8 +67,8 @@ class FF2NC_Converter(Analyser):
             for cslice, conv_cslice in zip(cube_it, conv_cube_it):
                 if not np.all(cslice.data == conv_cslice.data):
                     logger.error('Cubes not equal')
-                    logger.error('Cube: {}'.format(cslice.name()))
-                    logger.error('Time: {}'.format(cslice.coord('time')))
+                    logger.error('Cube: {}', cslice.name())
+                    logger.error('Time: {}', cslice.coord('time'))
                     raise OmniumError('Mismatch in data between cubes')
         logger.info('Verified')
 
@@ -81,18 +81,18 @@ class FF2NC_Converter(Analyser):
     def save(self, state=None, suite=None):
         self.messages = ['archer_analysis convert ' + self.analysis_name]
         converted_filename = self.task.output_filenames[0]
-        logger.info('Convert: {} -> {}'.format(self.filename, converted_filename))
+        logger.info('Convert: {} -> {}', self.filename, converted_filename)
 
         if os.path.exists(converted_filename):
             if self.force:
-                logger.info('Deleting: {}'.format(converted_filename))
-                self.messages.append('Deleting: {}'.format(converted_filename))
+                logger.info('Deleting: {}', converted_filename)
+                self.messages.append('Deleting: {}', converted_filename)
                 os.remove(converted_filename)
             elif not os.path.exists(converted_filename + '.done'):
                 # Could have been a problem creating file *or*
                 # could still be being written.
                 logger.info('Already converted but:')
-                logger.warning('No .done file: {}'.format(converted_filename))
+                logger.warning('No .done file: {}', converted_filename)
                 return converted_filename
             else:
                 logger.info('Already converted')
@@ -100,13 +100,13 @@ class FF2NC_Converter(Analyser):
 
         self.cubes = iris.load(self.filename)
 
-        self.messages.append('Original filename: {}'.format(self.filename))
-        self.messages.append('New filename: {}'.format(converted_filename))
+        self.messages.append('Original filename: {}', self.filename)
+        self.messages.append('New filename: {}', converted_filename)
 
         if len(self.cubes) == 0:
-            logger.warning('{} contains no data'.format(self.filename))
+            logger.warning('{} contains no data', self.filename)
         else:
-            logger.debug('Saving data to:{} (zlib={})'.format(converted_filename, self.zlib))
+            logger.debug('Saving data to:{} (zlib={})', converted_filename, self.zlib)
             # Use default compression: complevel 4.
             iris.save(self.cubes, converted_filename, zlib=self.zlib)
 
@@ -114,7 +114,7 @@ class FF2NC_Converter(Analyser):
             self.do_verify(converted_filename)
 
         if self.delete:
-            logger.info('Delete: {}'.format(self.filename))
+            logger.info('Delete: {}', self.filename)
             os.remove(self.filename)
             self.messages.append('Deleted original')
 

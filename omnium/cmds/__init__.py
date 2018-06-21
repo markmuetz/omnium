@@ -31,5 +31,5 @@ for command in commands:
     try:
         modules[command] = importlib.import_module('omnium.' + command_name)
     except ImportError as e:
-        logger.warning('Cannot load module {}'.format(command_name))
+        logger.warning('Cannot load module {}', command_name)
         logger.warning(e)
