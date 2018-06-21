@@ -31,6 +31,9 @@ class ColourConsoleFormatter(logging.Formatter):
         # Save the original format configured by the user
         # when the logger formatter was instantiated
         format_orig = self._fmt
+        # Fix colour formatting for new versions of logging.
+        if hasattr(self, '_style'):
+            style_format_orig = self._style._fmt
 
         # Replace the original format with one customized by logging level
         if record.levelno == logging.DEBUG:
@@ -41,12 +44,16 @@ class ColourConsoleFormatter(logging.Formatter):
             self._fmt = ColourConsoleFormatter.warn_fmt
         elif record.levelno == logging.ERROR:
             self._fmt = ColourConsoleFormatter.err_fmt
+        if hasattr(self, '_style'):
+            self._style._fmt = self._fmt
 
         # Call the original formatter class to do the grunt work
         result = logging.Formatter.format(self, record)
 
         # Restore the original format configured by the user
         self._fmt = format_orig
+        if hasattr(self, '_style'):
+            self._style._fmt = style_format_orig
 
         return result
 
