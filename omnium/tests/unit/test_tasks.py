@@ -28,7 +28,6 @@ class TestTask(TestCase):
         assert t0 in t1.prev_tasks
 
 
-
 class TestTaskMaster(TestCase):
     def setUp(self):
         self.suite = Mock()
@@ -104,8 +103,10 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster.get_next_pending')
     def test_get_all_tasks2(self, mock_get_next_pending):
         task_master = TaskMaster(*self.suite_args['basic'])
+
         def r():
             raise StopIteration
+
         mock_get_next_pending.side_effect = r
 
         with self.assertRaises(StopIteration):
@@ -141,7 +142,7 @@ class TestTaskMaster(TestCase):
                                          call('expt2', 'mock_analysis', analysis_class)])
 
     @patch('omnium.TaskMaster._gen_expt_tasks')
-    def test_gen_tasks_for_analysis3(self,mock_gen_expt):
+    def test_gen_tasks_for_analysis3(self, mock_gen_expt):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master.expts = ['expt1', 'expt2']
         analysis_class = Mock()
@@ -239,8 +240,8 @@ class TestTaskMaster(TestCase):
         mock_analysis_cls = Mock()
         analysis = [('mock_analysis', mock_analysis_cls, True)]
         mock_analysis_cls.gen_output_dir = lambda x: x + '/mock_analysis_dir'
-
         fns = ['fn1', 'fn2']
+
         def mock_glob_fn(arg):
             print(arg)
             return fns
@@ -254,8 +255,10 @@ class TestTaskMaster(TestCase):
     @patch('os.path.abspath')
     def test_find_filenames(self, mock_abspath, mock_exists):
         task_master = TaskMaster(*self.suite_args['basic'])
+
         def mock_exists_fn(fn):
             return True
+
         mock_exists.side_effect = mock_exists_fn
         mock_abspath.side_effect = lambda x: '/' + x
         fns = ['fn1', 'fn2']
@@ -267,8 +270,10 @@ class TestTaskMaster(TestCase):
     @patch('os.path.abspath')
     def test_find_filenames_no_done(self, mock_abspath, mock_exists):
         task_master = TaskMaster(*self.suite_args['basic'])
+
         def mock_exists_fn(fn):
             return fn[-5:] != '.done'
+
         mock_exists.side_effect = mock_exists_fn
         mock_abspath.side_effect = lambda x: '/' + x
         fns = ['fn1', 'fn2']
@@ -280,8 +285,10 @@ class TestTaskMaster(TestCase):
     @patch('os.path.abspath')
     def test_find_filenames_not_there(self, mock_abspath, mock_exists):
         task_master = TaskMaster(*self.suite_args['basic'])
+
         def mock_exists_fn(fn):
             return False
+
         mock_exists.side_effect = mock_exists_fn
         mock_abspath.side_effect = lambda x: '/' + x
         fns = ['fn1', 'fn2']
