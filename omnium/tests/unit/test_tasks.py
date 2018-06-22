@@ -128,8 +128,8 @@ class TestTaskMaster(TestCase):
 
         task_master.run_type = 'cmd'
         task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
-        mock_gen_cmd.assert_has_calls([call('expt1', 'mock_analysis', analysis_class),
-                                       call('expt2', 'mock_analysis', analysis_class)])
+        mock_gen_cmd.assert_has_calls([call('mock_analysis', analysis_class),
+                                       call('mock_analysis', analysis_class)])
 
     @patch('omnium.TaskMaster._gen_cycle_tasks')
     def test_gen_tasks_for_analysis2(self, mock_gen_cycle):
@@ -263,7 +263,7 @@ class TestTaskMaster(TestCase):
         mock_abspath.side_effect = lambda x: '/' + x
         fns = ['fn1', 'fn2']
         task_master._find_filenames(fns)
-        output_fns = ['/' + f for f in fns] + ['/' + f + '.done' for f in fns]
+        output_fns = ['/' + f for f in fns]
         assert(set(task_master.all_filenames) == set(output_fns))
 
     @patch('os.path.exists')

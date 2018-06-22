@@ -76,12 +76,16 @@ def main(suite, args):
             slave.listen()
     else:
         run_control.gen_analysis_workflow()
-        if args.print_only:
+
+        if args.all:
             run_control.gen_tasks()
-            run_control.print_tasks()
-        elif args.all:
-            run_control.gen_tasks()
-            run_control.run_all()
+            if args.print_only:
+                run_control.print_tasks()
+            else:
+                run_control.run_all()
         elif args.analysis:
             run_control.gen_tasks_for_analysis(args.analysis, args.filenames)
-            run_control.run_single_analysis(args.analysis)
+            if args.print_only:
+                run_control.print_tasks()
+            else:
+                run_control.run_single_analysis(args.analysis)
