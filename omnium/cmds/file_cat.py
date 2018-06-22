@@ -1,3 +1,4 @@
+"""`cat`s a file from a remote suite"""
 import os
 from logging import getLogger
 

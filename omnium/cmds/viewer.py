@@ -1,3 +1,4 @@
+"""Launch omnium viewer for looking at UM output files"""
 import sys
 
 ARGS = [(['filenames'], {'nargs': '*'}),

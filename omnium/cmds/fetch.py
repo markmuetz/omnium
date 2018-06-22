@@ -1,3 +1,4 @@
+"""Fetches a file, files or dir from remote suite"""
 import os
 from logging import getLogger
 

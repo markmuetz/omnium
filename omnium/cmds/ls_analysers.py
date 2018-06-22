@@ -1,3 +1,4 @@
+"""Returns information on currently installed analysers"""
 import os
 
 from omnium.analysers import Analysers

@@ -1,3 +1,4 @@
+"""Remove all symlinks in suite-dir"""
 import os
 from logging import getLogger
 
@@ -28,5 +29,4 @@ def main(suite, args):
         logger.info('Dry run, no links were harmed.')
         logger.info('Would have removed {} symlinks', total)
     else:
-        logger.info('Dry run, no links were harmed.')
         logger.info('Removed {} symlinks', total)

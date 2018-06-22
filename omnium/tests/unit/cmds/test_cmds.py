@@ -8,7 +8,18 @@ from omnium.converter import FF2NC_Converter
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
 from omnium.viewers.viewer_control import ViewerControlWindow
+from omnium.cmds import modules
 from pyqtgraph.Qt import QtGui
+
+
+def test_src_generator():
+    for command_module in modules.values():
+        yield _test_module_docstring, command_module
+
+
+def _test_module_docstring(command_module):
+    print(command_module)
+    assert command_module.__doc__, 'Docstring for {} empty'.format(command_module)
 
 
 class TestCmds(TestCase):

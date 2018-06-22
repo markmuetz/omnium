@@ -1,3 +1,4 @@
+"""Sends a file or files to remote suite"""
 import os
 from logging import getLogger
 

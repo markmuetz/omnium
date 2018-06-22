@@ -62,12 +62,6 @@ def test_ls_analysers():
     omnium_main(['omnium', 'ls-analysers', '--long'])
 
 
-def test_cat_log():
-    omnium_main(['omnium', 'cat-log'])
-    omnium_main(['omnium', 'cat-log', '--search', 'data'])
-    omnium_main(['omnium', 'cat-log', '--level', 'WARNING'])
-
-
 def test_file_info():
     omnium_main(['omnium', 'file-info', 'share/data/history/S0/atmos.000.pp1.csv'])
     omnium_main(['omnium', 'file-info', '--long', 'share/data/history/S0/atmos.000.pp1.csv'])

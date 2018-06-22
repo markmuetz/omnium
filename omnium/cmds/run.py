@@ -1,3 +1,4 @@
+"""Runs specified analysis on files"""
 import os
 from logging import getLogger
 
