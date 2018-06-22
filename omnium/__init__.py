@@ -9,6 +9,7 @@ from .omnium_cmd import main as omnium_main
 from .stash import Stash
 from .omnium_errors import OmniumError
 from .analyser_setting import AnalyserSetting
+from .task import TaskMaster
 
 
 def init():

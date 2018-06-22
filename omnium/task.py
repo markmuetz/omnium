@@ -1,6 +1,6 @@
 import fnmatch
 import os
-from glob import glob
+import glob
 from logging import getLogger
 
 from omnium.omnium_errors import OmniumError
@@ -60,6 +60,7 @@ class TaskMaster(object):
     def get_next_pending(self):
         if self.pending_tasks:
             task = self.pending_tasks.pop(0)
+            assert task.status == 'pending'
             task.status = 'working'
             self.working_tasks.append(task)
             logger.debug('get working task {}', task.index)
@@ -85,6 +86,7 @@ class TaskMaster(object):
 
         for next_task in existing_task.next_tasks:
             if all([pt.status == 'done' for pt in next_task.prev_tasks]):
+                next_task.status = 'pending'
                 self.pending_tasks.append(next_task)
                 logger.debug('adding pending task {}', next_task.index)
 
@@ -97,7 +99,7 @@ class TaskMaster(object):
         for task in self.all_tasks:
             print(task)
 
-    def gen_tasks_for_analysis(self, analysis_name, analyser_cls, enabled):
+    def gen_tasks_for_analysis(self, analysis_name, analyser_cls):
         if self.run_type == 'cmd':
             for expt in self.expts:
                 self._gen_cmd_tasks(expt, analysis_name, analyser_cls)
@@ -116,7 +118,7 @@ class TaskMaster(object):
         self._scan_data_dirs(enabled_analysis)
 
         for analysis_name, analyser_cls, enabled in enabled_analysis:
-            self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
+            self.gen_tasks_for_analysis(analysis_name, analyser_cls)
 
         self._find_pending()
         logger.info('Generated {} tasks', len(self.all_tasks))
@@ -132,7 +134,7 @@ class TaskMaster(object):
 
         for analysis_name, analyser_cls, enabled in all_analysis:
             if analysis_name == analysis:
-                self.gen_tasks_for_analysis(analysis_name, analyser_cls, enabled)
+                self.gen_tasks_for_analysis(analysis_name, analyser_cls)
 
         self._find_pending()
         logger.info('Generated {} tasks', len(self.all_tasks))
@@ -160,15 +162,15 @@ class TaskMaster(object):
         dirs_to_scan = set(dirs_to_scan)
         for dir in dirs_to_scan:
             logger.debug('Scanning dir: {}', dir)
-            found_filenames = sorted(glob(os.path.join(dir, '*')))
+            found_filenames = sorted(glob.glob(os.path.join(dir, '*')))
             self.all_filenames.extend(found_filenames)
-        self.all_filenames = list(set(self.all_filenames))
+        self.all_filenames = sorted(list(set(self.all_filenames)))
 
     def _find_filenames(self, filenames):
         self.all_filenames = []
         for filename in filenames:
             if not os.path.exists(filename):
-                raise Exception('{} does not exist'.format(filename))
+                raise OmniumError('{} does not exist'.format(filename))
             self.all_filenames.append(os.path.abspath(filename))
             if os.path.exists(os.path.abspath(filename) + '.done'):
                 self.all_filenames.append(os.path.abspath(filename) + '.done')
