@@ -86,7 +86,7 @@ class FF2NC_Converter(Analyser):
         if os.path.exists(converted_filename):
             if self.force:
                 logger.info('Deleting: {}', converted_filename)
-                self.messages.append('Deleting: {}', converted_filename)
+                self.messages.append('Deleting: {}'.format(converted_filename))
                 os.remove(converted_filename)
             elif not os.path.exists(converted_filename + '.done'):
                 # Could have been a problem creating file *or*
@@ -100,8 +100,8 @@ class FF2NC_Converter(Analyser):
 
         self.cubes = iris.load(self.filename)
 
-        self.messages.append('Original filename: {}', self.filename)
-        self.messages.append('New filename: {}', converted_filename)
+        self.messages.append('Original filename: {}'.format(self.filename))
+        self.messages.append('New filename: {}'.format(converted_filename))
 
         if len(self.cubes) == 0:
             logger.warning('{} contains no data', self.filename)
