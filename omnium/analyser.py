@@ -126,16 +126,6 @@ class Analyser(object):
             logger.debug('creating results_dir: {}', self.results_dir)
             os.makedirs(self.results_dir)
 
-    def set_config(self, config):
-        logger.debug(config)
-        for item in config.items():
-            logger.debug(item)
-        self._config = config
-        self.force = self._config.getboolean('force', False)
-        self.delete = self._config.getboolean('delete', False)
-        self.min_runid = self._config.getint('min_runid', 0)
-        self.max_runid = self._config.getint('max_runid', int(1e10))
-
     def already_analysed(self):
         return os.path.exists(self.logname) and not self.suite.check_filename_missing(self.logname)
 

@@ -7,6 +7,8 @@ from omnium.omnium_errors import OmniumError
 
 logger = getLogger('om.task')
 
+# TODO: Take into account config for analysis no longer exists!
+
 
 class Task(object):
     def __init__(self, index, expt, runid, run_type, task_type, name, config_name,
@@ -386,7 +388,8 @@ class TaskMaster(object):
         logger.debug('using data_dir: {}', data_dir)
         return data_dir
 
-    def _read_analysis_config(self, analysis_name):
+    def _obs_read_analysis_config(self, analysis_name):
+        # TODO: delete.
         analysis_config = self.config[analysis_name]
         data_type = analysis_config['data_type']
         analysis_config = self.config[analysis_name]

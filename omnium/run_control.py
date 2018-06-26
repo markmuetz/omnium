@@ -107,15 +107,18 @@ class RunControl(object):
                 enabled = enabled_str == 'True'
                 # N.B. even if analyser not enabled in config, want to make sure it
                 # can still be run by e.g. run_analysis.
-                if config.has_section(analysis):
-                    analyser_config = config[analysis]
-                    if 'analysis' in analyser_config:
-                        analysis_name = analyser_config['analysis']
-                        logger.debug('renamed analysis: {}', analysis_name)
-                    else:
-                        analysis_name = analysis
-                else:
-                    raise OmniumError('NO CONFIG FOR ANALYSIS')
+                analysis_name = analysis
+
+                # TODO: delete.
+                #if config.has_section(analysis):
+                #    analyser_config = config[analysis]
+                #    if 'analysis' in analyser_config:
+                #        analysis_name = analyser_config['analysis']
+                #        logger.debug('renamed analysis: {}', analysis_name)
+                #    else:
+                #        analysis_name = analysis
+                #else:
+                #    raise OmniumError('NO CONFIG FOR ANALYSIS')
 
                 if analysis_name not in self.analysis_classes:
                     raise OmniumError('COULD NOT FIND ANALYSER: {}'.format(analysis_name))
@@ -184,7 +187,6 @@ class RunControl(object):
         expt_group = None
 
         analyser = analyser_cls(self.suite, task, results_dir, expt_group)
-        analyser.set_config(self.config[task.config_name])
 
         if self.display_only:
             logger.info('  Display results only')
