@@ -15,7 +15,7 @@ logger = getLogger('om.analysers')
 class Analysers(object):
     def __init__(self, analyser_packages):
         self.analyser_packages = analyser_packages
-        self.analyser_packages_settings = {}
+        self.analysis_packages_settings = {}
         self.analysis_classes = OrderedDict()
         self.analysis_hash = []
         self.analysis_status = []
@@ -34,7 +34,7 @@ class Analysers(object):
                 except ImportError:
                     logger.error("Package '{}' not found on PYTHONPATH", analyser_package)
 
-                self.analyser_packages_settings[analyser_package] = pkg.analyser_settings
+                self.analysis_packages_settings[analyser_package] = pkg.analysis_settings
                 pkg_dir = os.path.dirname(pkg.__file__)
                 try:
                     pkg_hash, pkg_status = get_git_info(pkg_dir)

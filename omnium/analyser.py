@@ -18,6 +18,9 @@ class Analyser(object):
     single_file = False
     multi_file = False
     multi_expt = False
+    uses_runid = False
+    min_runid = 0
+    max_runid = int(1e10)
 
     settings = None
 
@@ -213,11 +216,16 @@ class Analyser(object):
             # iris.save(cubelist, cubelist_filename)
 
         self.append_log('Saved')
-        self.done()
 
     def done(self):
-        cubelist_filename = os.path.join(self.results_dir, self.output_filename)
-        open(cubelist_filename + '.done', 'a').close()
+        missing_filenames = []
+        for output_filename in self.task.output_filenames:
+            if not os.path.exists(output_filename):
+                missing_filenames.append(output_filename)
+        if missing_filenames:
+            raise OmniumError('Some output filenames not produced: {}'.format(missing_filenames))
+        for output_filename in self.task.output_filenames:
+            open(output_filename + '.done', 'a').close()
 
     def display(self, interactive=False):
         if hasattr(self, 'display_results'):
