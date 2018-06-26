@@ -46,15 +46,41 @@ class TestAnalyserSetting(TestCase):
         setting2 = AnalyserSetting(omnium)
         setting_json = setting.to_json()
         setting2.from_json(setting_json)
-        assert setting._settings == setting2._settings
+        assert setting == setting2
 
     def test_to_from_json_with_slice(self):
         setting = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 'sheep'})
         setting2 = AnalyserSetting(omnium)
         setting_json = setting.to_json()
         setting2.from_json(setting_json)
-        assert setting._settings == setting2._settings
+        assert setting == setting2
 
     def test_get_hash(self):
         setting = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 'sheep'})
         assert setting.get_hash()
+
+    def test_eq1(self):
+        setting1 = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 'sheep'})
+        setting2 = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 'sheep'})
+        assert setting1 == setting2
+
+    def test_eq2(self):
+        setting1 = AnalyserSetting(omnium, {'b': 'sheep', 'sl': slice(1, 20, 3)})
+        setting2 = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 'sheep'})
+        assert setting1 == setting2
+
+    def test_ne1(self):
+        import sys
+        setting1 = AnalyserSetting(sys, {'sl': slice(1, 20, 3), 'b': 'sheep'})
+        setting2 = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 'sheep'})
+        assert setting1 != setting2
+
+    def test_ne2(self):
+        setting1 = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 3})
+        setting2 = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 'sheep'})
+        assert setting1 != setting2
+
+    def test_ne3(self):
+        setting1 = AnalyserSetting(omnium, {'sl': slice(1, 20, 4), 'b': 3})
+        setting2 = AnalyserSetting(omnium, {'sl': slice(1, 20, 3), 'b': 3})
+        assert setting1 != setting2

@@ -1,4 +1,3 @@
-import copy
 import hashlib
 from typing import Any, Dict
 from types import ModuleType
@@ -16,10 +15,16 @@ class AnalyserSetting:
             # Check settings are all serializable.
             self.to_json()
         else:
-            self._settings = None
+            self._settings = {}
 
-    def __getattr__(self, item: str):
+    def __getattr__(self, item: str) -> Any:
         return self._settings[item]
+
+    def __eq__(self, other: 'AnalyserSetting') -> bool:
+        return self.get_hash() == other.get_hash()
+
+    def __ne__(self, other: 'AnalyserSetting') -> bool:
+        return not self == other
 
     def load(self, loc: str) -> None:
         self.from_json(open(loc, 'r').read())
@@ -27,12 +32,15 @@ class AnalyserSetting:
     def save(self, loc) -> None:
         open(loc, 'w').write(self.to_json())
 
-    def to_json(self):
-        serializable_settings = copy.copy(self._settings)
-        for k, v in serializable_settings.items():
+    def to_json(self) -> str:
+        serializable_settings = {}
+        for k, v in sorted(self._settings.items(), key=lambda x: x[0]):
             if isinstance(v, slice):
                 # repr comes in handy!
                 serializable_settings[k] = 'REPR:' + repr(v)
+            else:
+                serializable_settings[k] = v
+
         return simplejson.dumps(serializable_settings)
 
     def from_json(self, json_str: str) -> None:
@@ -43,4 +51,4 @@ class AnalyserSetting:
         self._settings = serializable_settings
 
     def get_hash(self) -> str:
-        return hashlib.sha1(self.to_json().encode()).hexdigest()
+        return hashlib.sha1(self.package.__name__.encode() + self.to_json().encode()).hexdigest()
