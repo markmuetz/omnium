@@ -14,10 +14,7 @@ ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
         (['--force', '-f'], {'help': 'Force run', 'action': 'store_true'}),
         (['--production', '-p'], {'help': 'Run in production mode', 'action': 'store_true'}),
         (['--print-only', '-o'], {'help': 'Print only', 'action': 'store_true'}),
-        (['--mpi'], {'help': 'Run using mpi', 'action': 'store_true'}),
-        (['--display-only', '-d'], {'help': 'Display only (must have been run previously)',
-                                    'action': 'store_true'}),
-        (['--interactive', '-i'], {'help': 'Run interactively', 'action': 'store_true'})]
+        (['--mpi'], {'help': 'Run using mpi', 'action': 'store_true'})]
 
 
 def get_logging_filename(suite, args):
@@ -56,8 +53,7 @@ def main(suite, args):
     else:
         expts = args.expts
 
-    run_control = RunControl(suite, args.run_type, expts, production, args.force,
-                             args.display_only, args.interactive)
+    run_control = RunControl(suite, args.run_type, expts, production, args.force)
     if args.mpi:
         # Note this will raise an import error if not installed.
         from mpi4py import MPI
