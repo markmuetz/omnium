@@ -147,7 +147,7 @@ class Suite(object):
                 os.makedirs(suite_name)
                 os.chdir(suite_name)
             elif not os.path.exists('rose-suite.info'):
-                raise OmniumInfo('Could not find "rose-suite.info" in current dir')
+                raise OmniumError('Could not find "rose-suite.info" in current dir')
 
         self.suite_config = ConfigParser()
         self.suite_config.add_section('settings')

@@ -55,7 +55,7 @@ class TestTaskMaster(TestCase):
         task_master = TaskMaster(*self.suite_args['basic'])
         task = Mock()
         task.status = 'working'
-        task_master.pending_tasks = [task]
+        task_master._pending_tasks = [task]
         with self.assertRaises(AssertionError):
             task_master.get_next_pending()
 
@@ -63,7 +63,7 @@ class TestTaskMaster(TestCase):
         task_master = TaskMaster(*self.suite_args['basic'])
         task = Mock()
         task.status = 'pending'
-        task_master.pending_tasks = [task]
+        task_master._pending_tasks = [task]
         assert task_master.get_next_pending() is task
         assert task.status == 'working'
 
@@ -84,13 +84,13 @@ class TestTaskMaster(TestCase):
         task1.prev_tasks = [task]
         task2.prev_tasks = [task]
         task.status = 'working'
-        task_master.working_tasks = [task]
+        task_master._working_tasks = [task]
         task.next_tasks = [task1, task2]
         task_master.all_tasks = [task]
         task_master.update_task(0, 'done')
         assert task.status == 'done'
-        assert task1.status == 'pending' and task1 in task_master.pending_tasks
-        assert task2.status == 'pending' and task2 in task_master.pending_tasks
+        assert task1.status == 'pending' and task1 in task_master._pending_tasks
+        assert task2.status == 'pending' and task2 in task_master._pending_tasks
 
     @patch('omnium.TaskMaster.get_next_pending')
     def test_get_all_tasks1(self, mock_get_next_pending):
@@ -123,10 +123,10 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster._gen_cmd_tasks')
     def test_gen_tasks_for_analysis1(self, mock_gen_cmd):
         task_master = TaskMaster(*self.suite_args['basic'])
-        task_master.expts = ['expt1', 'expt2']
+        task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
 
-        task_master.run_type = 'cmd'
+        task_master._run_type = 'cmd'
         task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
         mock_gen_cmd.assert_has_calls([call('mock_analysis', analysis_class),
                                        call('mock_analysis', analysis_class)])
@@ -134,9 +134,9 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster._gen_cycle_tasks')
     def test_gen_tasks_for_analysis2(self, mock_gen_cycle):
         task_master = TaskMaster(*self.suite_args['basic'])
-        task_master.expts = ['expt1', 'expt2']
+        task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
-        task_master.run_type = 'cycle'
+        task_master._run_type = 'cycle'
         task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
         mock_gen_cycle.assert_has_calls([call('expt1', 'mock_analysis', analysis_class),
                                          call('expt2', 'mock_analysis', analysis_class)])
@@ -144,9 +144,9 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster._gen_expt_tasks')
     def test_gen_tasks_for_analysis3(self, mock_gen_expt):
         task_master = TaskMaster(*self.suite_args['basic'])
-        task_master.expts = ['expt1', 'expt2']
+        task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
-        task_master.run_type = 'expt'
+        task_master._run_type = 'expt'
         task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
         mock_gen_expt.assert_has_calls([call('expt1', 'mock_analysis', analysis_class),
                                         call('expt2', 'mock_analysis', analysis_class)])
@@ -154,9 +154,9 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster._gen_suite_tasks')
     def test_gen_tasks_for_analysis4(self, mock_gen_suite):
         task_master = TaskMaster(*self.suite_args['basic'])
-        task_master.expts = ['expt1', 'expt2']
+        task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
-        task_master.run_type = 'suite'
+        task_master._run_type = 'suite'
         task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
         mock_gen_suite.assert_has_calls([call('mock_analysis', analysis_class)])
 
@@ -164,13 +164,13 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster._scan_data_dirs')
     def test_gen_all_tasks(self, mock_scan, mock_gen):
         task_master = TaskMaster(*self.suite_args['basic'])
-        task_master.expts = ['expt1', 'expt2']
-        task_master.analysis_workflow = Mock()
+        task_master._expts = ['expt1', 'expt2']
+        task_master._analysis_workflow = Mock()
 
         analysis_class1 = Mock()
         analysis_class2 = Mock()
 
-        task_master.analysis_workflow.values.return_value = [
+        task_master._analysis_workflow.values.return_value = [
             ('mock_analysis1', analysis_class1, True),
             ('mock_analysis2', analysis_class2, False),
         ]
@@ -183,8 +183,8 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster._scan_data_dirs')
     def test_single_analysis_task(self, mock_scan, mock_find, mock_gen):
         task_master = TaskMaster(*self.suite_args['basic'])
-        task_master.expts = ['expt1', 'expt2']
-        task_master.analysis_workflow = Mock()
+        task_master._expts = ['expt1', 'expt2']
+        task_master._analysis_workflow = Mock()
 
         analysis_class1 = Mock()
         analysis_class2 = Mock()
@@ -193,7 +193,7 @@ class TestTaskMaster(TestCase):
             ('mock_analysis2', analysis_class2, False),
         ]
 
-        task_master.analysis_workflow.values.return_value = all_analysis
+        task_master._analysis_workflow.values.return_value = all_analysis
 
         task_master.gen_single_analysis_tasks('mock_analysis2', [])
         mock_gen.assert_called_with('mock_analysis2', analysis_class2)
@@ -218,10 +218,10 @@ class TestTaskMaster(TestCase):
         task2.next_tasks = [task4]
         task_master.all_tasks = [task1, task2, task3, task4]
         task_master._find_pending()
-        assert task1 in task_master.pending_tasks
-        assert task2 in task_master.pending_tasks
-        assert task3 not in task_master.pending_tasks
-        assert task4 not in task_master.pending_tasks
+        assert task1 in task_master._pending_tasks
+        assert task2 in task_master._pending_tasks
+        assert task3 not in task_master._pending_tasks
+        assert task4 not in task_master._pending_tasks
 
     @patch('glob.glob')
     def test_scan_dirs_empty(self, mock_glob):

@@ -11,9 +11,8 @@ from omnium.version import get_version
 logger = getLogger('om.analyser')
 
 
-class Analyser(object):
-    __metaclass__ = abc.ABCMeta
-
+class Analyser(abc.ABC):
+    analysis_name = None
     # One of these must be overridden by base class.
     single_file = False
     multi_file = False
@@ -24,92 +23,13 @@ class Analyser(object):
 
     settings = None
 
-    @classmethod
-    def gen_output_filename(cls, data_type, filename):
-        split_filename = os.path.basename(filename).split('.')
-        atmos = split_filename[0]
-        analysis_name = cls.analysis_name
-        multi_file = cls.multi_file
-        runid = 0
-        if data_type == 'datam':
-            if len(split_filename) >= 3:
-                try:
-                    runid = int(split_filename[1])
-                except:
-                    runid = 0
-
-                if multi_file:
-                    # TODO: v hacky nipping off last 3 chars.
-                    # self.output_filename = '{}.{}.nc'.format(runid[:-3], self.analysis_name)
-                    output_filename = '{}.{}.nc'.format(atmos, analysis_name)
-                else:
-                    output_filename = '{}.{:03}.{}.nc'.format(atmos, runid, analysis_name)
-            elif len(split_filename) <= 2:
-                logger.debug('analysing dump')
-                # It's a dump. Should have a better way of telling though.
-                if multi_file:
-                    # TODO: hacky - nip off final 024, e.g. atmosa_da024 -> atmosa_da.
-                    dump_without_time_hours = split_filename[0][:-3]
-                    output_filename = '{}.{}.nc'.format(dump_without_time_hours,
-                                                        analysis_name)
-                else:
-                    output_filename = '{}.{}.nc'.format(split_filename[0], analysis_name)
-        elif data_type == 'dataw':
-            output_filename = '{}.{}.nc'.format(atmos, analysis_name)
-        return runid, output_filename
-
-    @classmethod
-    def gen_output_dir(cls, data_dir):
-        omnium_version = 'om_v' + get_version(form='medium')
-        if cls.settings:
-            package = cls.settings.package
-            package_name = cls.settings.package.__name__
-            package_version = package_name + '_v' + get_version(package.__version__, form='medium')
-            version = omnium_version + '_' + package_version
-
-            logger.debug('using settings: {}', cls.settings.get_hash()[:10])
-            output_dir = os.path.join(data_dir,
-                                      'omnium_output',
-                                      version + '_' + cls.settings.get_hash()[:10])
-        else:
-            version = omnium_version
-            output_dir = os.path.join(data_dir,
-                                      'omnium_output',
-                                      version)
-        return output_dir
-
-    def __init__(self, suite, task, results_dir, expt_group=None):
+    def __init__(self, suite, task):
         assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
         assert self.analysis_name
         if self.settings:
             logger.debug('using settings: {}', self.settings.get_hash())
         self.suite = suite
         self.task = task
-        self.results_dir = results_dir
-        self.expt_group = expt_group
-        if self.multi_expt:
-            self.expt = None
-            self.expts = task.expts
-        else:
-            self.expt = task.expt
-            self.expts = None
-
-        if self.multi_file:
-            self.filenames = task.filenames
-            self.filename = None
-        else:
-            if self.multi_expt:
-                self.filenames = task.filenames
-                self.filename = None
-            else:
-                # assert len(task.filenames) == 1
-                self.filename = task.filenames[0]
-                split_filename = self.filename.split()
-                try:
-                    self.runid = int(split_filename[1])
-                except:
-                    self.runid = None
-
         self.output_filename = task.output_filenames[0]
 
         logger.debug('single_file: {}', self.single_file)
@@ -119,70 +39,61 @@ class Analyser(object):
         logger.debug('output_filename: {}', self.output_filename)
         self.results = OrderedDict()
         self.force = False
-        # N.B. there is only one results_dir, even for multi_expt
-        self.logname = os.path.join(self.results_dir, self.output_filename + '.analysed')
+        # N.B. there is only one output_dir, even for multi_expt
+        logdir = os.path.dirname(self.output_filename)
+        self.logname = os.path.join(logdir, self.output_filename + '.analysed')
         if self.suite and self.suite.check_filename_missing(self.logname):
             os.remove(self.logname)
 
-        # Need to make sure results dir exists before first call to self.append_log.
-        if not os.path.exists(self.results_dir):
-            logger.debug('creating results_dir: {}', self.results_dir)
-            os.makedirs(self.results_dir)
+        # Need to make sure output dirs exists before first call to self.append_log.
+        for output_dir in [os.path.dirname(fn) for fn in self.task.output_filenames]:
+            if not os.path.exists(output_dir):
+                logger.debug('creating output_dir: {}', output_dir)
+                os.makedirs(output_dir)
 
     def already_analysed(self):
-        return os.path.exists(self.logname) and not self.suite.check_filename_missing(self.logname)
+        missing_filenames = []
+        for output_filename in self.task.output_filenames:
+            done_filename = output_filename + '.done'
+            if (not os.path.exists(done_filename)
+                and not self.suite.check_filename_missing(done_filename)):
+                missing_filenames.append(output_filename)
+        return missing_filenames == []
 
     def append_log(self, message):
         logger.debug('{}: {}', self.analysis_name, message)
         with open(self.logname, 'a') as f:
             f.write('{}: {}\n'.format(dt.datetime.now(), message))
 
-    def load(self):
-        self.append_log('Loading')
+    def load_cubes(self):
+        self.append_log('Loading cubes')
+
         if self.multi_file:
-            for filename in self.filenames:
+            filenames = self.task.filenames
+            for filename in filenames:
                 self.suite.abort_if_missing(filename)
-            cubes = iris.load(self.filenames)
+            cubes = iris.load(filenames)
             self.cubes = iris.cube.CubeList.concatenate(cubes)
         else:
             if self.multi_expt:
+                filenames = self.task.filenames
                 self.expt_cubes = OrderedDict()
-                for expt, filename in zip(self.expts, self.filenames):
+                for expt, filename in zip(self.task.expts, filenames):
                     logger.debug('loading fn:{}', filename)
                     self.suite.abort_if_missing(filename)
                     self.expt_cubes[expt] = iris.load(filename)
             else:
-                logger.debug('loading {}', self.filename)
-                self.suite.abort_if_missing(self.filename)
-                self.cubes = iris.load(self.filename)
+                filename = self.task.filenames[0]
+                logger.debug('loading {}', filename)
+                self.suite.abort_if_missing(filename)
+                self.cubes = iris.load(filename)
 
-        self.append_log('Loaded')
+        self.append_log('Loaded cubes')
 
-    def load_results(self):
-        cubelist_filename = os.path.join(self.results_dir, self.output_filename)
-        if not os.path.exists(cubelist_filename):
-            raise OmniumError('Results file does not exist')
-        self.append_log('Loading results: {}'.format(cubelist_filename))
-        cubes = iris.load(cubelist_filename)
-        for cube in cubes:
-            omnium_cube_id = cube.attributes['omnium_cube_id']
-            self.results[omnium_cube_id] = cube
-        self.append_log('Loaded results')
+    def save_results_cubes(self, state=None, suite=None):
+        self.append_log('Saving cubes')
 
-    def run(self, interactive=False):
-        self.append_log('Analysing')
-        if interactive:
-            logger.info('Running interactively')
-            import ipdb
-            ipdb.runcall(self.run_analysis)
-        else:
-            self.run_analysis()
-        self.append_log('Analysed')
-
-    def save(self, state=None, suite=None):
-        self.append_log('Saving')
-
-        cubelist_filename = os.path.join(self.results_dir, self.output_filename)
+        cubelist_filename = self.output_filename
         for cube_id, cube in self.results.items():
             logger.debug('saving cube: {}', cube.name())
             logger.debug('omnium_cube_id: {}', cube_id)
@@ -215,9 +126,32 @@ class Analyser(object):
             iris.save(cubelist, cubelist_filename, zlib=True)
             # iris.save(cubelist, cubelist_filename)
 
+        self.append_log('Saved cubes')
+
+    def analysis_load(self):
+        self.append_log('Loading')
+        self.load()
+        self.append_log('Loaded')
+
+    def analysis_run(self):
+        self.append_log('Analysing')
+        self.run()
+        self.append_log('Analysed')
+
+    def analysis_save(self, state, suite):
+        self.append_log('Saving')
+        self.save(state, suite)
         self.append_log('Saved')
 
-    def done(self):
+    def analysis_display(self):
+        if hasattr(self, 'display_results'):
+            self.append_log('Displaying results')
+            self.display_results()
+            self.append_log('Displayed')
+        else:
+            self.append_log('No results display')
+
+    def analysis_done(self):
         missing_filenames = []
         for output_filename in self.task.output_filenames:
             if not os.path.exists(output_filename):
@@ -226,52 +160,33 @@ class Analyser(object):
             raise OmniumError('Some output filenames not produced: {}'.format(missing_filenames))
         for output_filename in self.task.output_filenames:
             open(output_filename + '.done', 'a').close()
-
-    def display(self, interactive=False):
-        if hasattr(self, 'display_results'):
-            self.append_log('Displaying results')
-            if interactive:
-                logger.info('Running interactively')
-                import ipdb
-                ipdb.runcall(self.display_results)
-            else:
-                self.display_results()
-            self.append_log('Displayed')
-        else:
-            self.append_log('No results display')
+        self.append_log('Done')
 
     def save_text(self, name, text):
-        filepath = self.figpath(name)
-        logger.debug('Saving text to: {}', filepath)
+        file_path = self.file_path(name)
+        logger.debug('Saving text to: {}', file_path)
         for line in text.split('\n'):
             logger.debug(line)
 
-        filepath = self.figpath(name)
-        with open(filepath, 'w') as f:
+        with open(file_path, 'w') as f:
             f.write(text)
 
-    def figpath(self, name):
-        figdir = os.path.join(self.results_dir, 'figs')
-        if self.expt_group and self.multi_expt:
-            figdir = os.path.join(figdir, self.expt_group)
+    def file_path(self, name):
+        file_path_dir = os.path.basename(self.output_filename)
 
-        if not os.path.exists(figdir):
-            os.makedirs(figdir)
+        if not os.path.exists(file_path_dir):
+            os.makedirs(file_path_dir)
 
-        if self.task.run_type == 'cmd':
-            filename = self.task.expt + '_' + name
-        else:
-            if self.multi_expt:
-                # TODO: Use expts to make this name.
-                filename = 'atmos.{}.{}'.format(self.analysis_name, name)
-            elif self.multi_file:
-                filename = self.task.expt + '_' + name
-            else:
-                filename = self.task.expt + '_' + name
-        _figpath = os.path.join(figdir, filename)
-        self.append_log('Saving fig to: {}'.format(_figpath))
-        return _figpath
+        return os.path.join(file_path_dir, name)
 
     @abc.abstractmethod
-    def run_analysis(self):
+    def load(self):
+        return
+
+    @abc.abstractmethod
+    def run(self):
+        return
+
+    @abc.abstractmethod
+    def save(self, state, suite):
         return

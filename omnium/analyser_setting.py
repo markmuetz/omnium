@@ -18,6 +18,8 @@ class AnalyserSetting:
             self._settings = {}
 
     def __getattr__(self, item: str) -> Any:
+        if len(item) >= 2 and item[:2] == '__':
+            return None
         return self._settings[item]
 
     def __eq__(self, other: 'AnalyserSetting') -> bool:
