@@ -223,6 +223,7 @@ class TaskMaster(object):
             for analysis_name, analyser_cls, enabled in analysis:
                 dir_vars = {'expt': expt,
                             'version_dir': self._get_version_dir(analyser_cls.settings)}
+                # TODO: this *might* miss some files if it is not def'd using '{input_dir}/...'
                 input_dir = os.path.join(self._suite.suite_dir,
                                          analyser_cls.input_dir.format(**dir_vars))
                 dirs_to_scan.append(input_dir)
@@ -374,7 +375,6 @@ class TaskMaster(object):
         package_name = settings.package.__name__
         package_version = package_name + '_v' + get_version(package.__version__, form='medium')
         version = omnium_version + '_' + package_version
-        logger.debug('using settings: {}', settings.get_hash()[:10])
         version_dir = version + '_' + settings.get_hash()[:10]
 
         return version_dir
