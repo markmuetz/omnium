@@ -172,7 +172,7 @@ class Analyser(abc.ABC):
             f.write(text)
 
     def file_path(self, name):
-        file_path_dir = os.path.basename(self.output_filename)
+        file_path_dir = os.path.dirname(self.output_filename)
 
         if not os.path.exists(file_path_dir):
             os.makedirs(file_path_dir)
