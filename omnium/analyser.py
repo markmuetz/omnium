@@ -55,8 +55,8 @@ class Analyser(abc.ABC):
         missing_filenames = []
         for output_filename in self.task.output_filenames:
             done_filename = output_filename + '.done'
-            if (not os.path.exists(done_filename)
-                and not self.suite.check_filename_missing(done_filename)):
+            not_missing = not self.suite.check_filename_missing(done_filename)
+            if (not os.path.exists(done_filename) and not_missing):
                 missing_filenames.append(output_filename)
         return missing_filenames == []
 

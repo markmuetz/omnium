@@ -9,19 +9,19 @@ from omnium.setup_logging import setup_logger
 
 class TestTask(TestCase):
     def test_task_init(self):
-        t0 = Task(0, 'S0', None, 'cycle', 'analysis', 'cloud_analysis', 'cloud_analysis',
+        t0 = Task(0, 'S0', None, 'cycle', 'analysis', 'cloud_analysis',
                   ['atmos.pp1.nc'], ['atmos.cloud_analysis.nc'])
         repr(t0)
 
     def test_task_init_suite(self):
-        t0 = Task(0, 'S0', None, 'suite', 'analysis', 'cloud_analysis', 'cloud_analysis',
+        t0 = Task(0, 'S0', None, 'suite', 'analysis', 'cloud_analysis',
                   ['atmos.pp1.nc'], ['atmos.cloud_analysis.nc'])
         repr(t0)
 
     def test_task_chain(self):
-        t0 = Task(0, 'S0', None, 'suite', 'analysis', 'cloud_analysis', 'cloud_analysis',
+        t0 = Task(0, 'S0', None, 'suite', 'analysis', 'cloud_analysis',
                   ['atmos.pp1.nc'], ['atmos.cloud_analysis.nc'])
-        t1 = Task(1, 'S0', None, 'cycle', 'analysis', 'cloud_analysis', 'cloud_analysis',
+        t1 = Task(1, 'S0', None, 'cycle', 'analysis', 'cloud_analysis',
                   ['atmos.pp1.nc'], ['atmos.cloud_analysis.nc'])
         t0.add_next(t1)
         assert t1 in t0.next_tasks
@@ -33,8 +33,7 @@ class TestTaskMaster(TestCase):
         self.suite = Mock()
         self.analysis_workflow = Mock()
         self.suite_args = {
-            'basic': [self.suite, 'cmd', self.analysis_workflow, ['expt1'],
-                      {'expt1': 'atmos/datam/dir'}, {'expt1': 'atmos/dataw/dir'}, True],
+            'basic': [self.suite, 'cmd', self.analysis_workflow, ['expt1'], True],
         }
         setup_logger()
 
@@ -120,45 +119,45 @@ class TestTaskMaster(TestCase):
         task_master.print_tasks()
         mock_print.assert_called_with(task)
 
-    @patch('omnium.TaskMaster._gen_cmd_tasks')
+    @patch('omnium.TaskMaster.gen_cmd_tasks')
     def test_gen_tasks_for_analysis1(self, mock_gen_cmd):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
 
         task_master._run_type = 'cmd'
-        task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
-        mock_gen_cmd.assert_has_calls([call('mock_analysis', analysis_class),
-                                       call('mock_analysis', analysis_class)])
+        task_master.gen_tasks_for_analysis(analysis_class)
+        mock_gen_cmd.assert_has_calls([call(analysis_class),
+                                       call(analysis_class)])
 
-    @patch('omnium.TaskMaster._gen_cycle_tasks')
+    @patch('omnium.TaskMaster.gen_cycle_tasks')
     def test_gen_tasks_for_analysis2(self, mock_gen_cycle):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
         task_master._run_type = 'cycle'
-        task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
-        mock_gen_cycle.assert_has_calls([call('expt1', 'mock_analysis', analysis_class),
-                                         call('expt2', 'mock_analysis', analysis_class)])
+        task_master.gen_tasks_for_analysis(analysis_class)
+        mock_gen_cycle.assert_has_calls([call('expt1', analysis_class),
+                                         call('expt2', analysis_class)])
 
-    @patch('omnium.TaskMaster._gen_expt_tasks')
+    @patch('omnium.TaskMaster.gen_expt_tasks')
     def test_gen_tasks_for_analysis3(self, mock_gen_expt):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
         task_master._run_type = 'expt'
-        task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
-        mock_gen_expt.assert_has_calls([call('expt1', 'mock_analysis', analysis_class),
-                                        call('expt2', 'mock_analysis', analysis_class)])
+        task_master.gen_tasks_for_analysis(analysis_class)
+        mock_gen_expt.assert_has_calls([call('expt1', analysis_class),
+                                        call('expt2', analysis_class)])
 
-    @patch('omnium.TaskMaster._gen_suite_tasks')
+    @patch('omnium.TaskMaster.gen_suite_tasks')
     def test_gen_tasks_for_analysis4(self, mock_gen_suite):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
         task_master._run_type = 'suite'
-        task_master.gen_tasks_for_analysis('mock_analysis', analysis_class)
-        mock_gen_suite.assert_has_calls([call('mock_analysis', analysis_class)])
+        task_master.gen_tasks_for_analysis(analysis_class)
+        mock_gen_suite.assert_has_calls([call(analysis_class)])
 
     @patch('omnium.TaskMaster.gen_tasks_for_analysis')
     @patch('omnium.TaskMaster._scan_data_dirs')
@@ -176,7 +175,7 @@ class TestTaskMaster(TestCase):
         ]
         task_master.gen_all_tasks()
         mock_scan.assert_called_with([('mock_analysis1', analysis_class1, True)])
-        mock_gen.assert_called_with('mock_analysis1', analysis_class1)
+        mock_gen.assert_called_with(analysis_class1)
 
     @patch('omnium.TaskMaster.gen_tasks_for_analysis')
     @patch('omnium.TaskMaster._find_filenames')
@@ -196,7 +195,7 @@ class TestTaskMaster(TestCase):
         task_master._analysis_workflow.values.return_value = all_analysis
 
         task_master.gen_single_analysis_tasks('mock_analysis2', [])
-        mock_gen.assert_called_with('mock_analysis2', analysis_class2)
+        mock_gen.assert_called_with(analysis_class2)
         mock_scan.assert_called_with(all_analysis)
 
         task_master.gen_single_analysis_tasks('mock_analysis2', ['fn'])
@@ -227,17 +226,28 @@ class TestTaskMaster(TestCase):
     def test_scan_dirs_empty(self, mock_glob):
         task_master = TaskMaster(*self.suite_args['basic'])
         mock_analysis_cls = Mock()
+        mock_analysis_cls.input_dir.format.return_value = '/mock_dir'
+        mock_analysis_cls.settings.get_hash.return_value = 'abcdefghijklmnop'
+        mock_analysis_cls.settings.package = Mock()
+        mock_analysis_cls.settings.package.__name__ = 'pkg_name'
+        mock_analysis_cls.settings.package.__version__ = 'v_-99'
         analysis = [('mock_analysis', mock_analysis_cls, True)]
-        mock_analysis_cls.gen_output_dir = lambda x: x + '/mock_dir'
+
+        self.suite.suite_dir = 'suite_dir'
 
         mock_glob.return_value = []
         task_master._scan_data_dirs(analysis)
-        assert task_master.all_filenames == []
+        assert task_master.virtual_dir == []
 
     @patch('glob.glob')
     def test_scan_dirs_finds_some(self, mock_glob):
         task_master = TaskMaster(*self.suite_args['basic'])
         mock_analysis_cls = Mock()
+        mock_analysis_cls.input_dir.format.return_value = '/mock_dir'
+        mock_analysis_cls.settings.get_hash.return_value = 'abcdefghijklmnop'
+        mock_analysis_cls.settings.package = Mock()
+        mock_analysis_cls.settings.package.__name__ = 'pkg_name'
+        mock_analysis_cls.settings.package.__version__ = 'v_-99'
         analysis = [('mock_analysis', mock_analysis_cls, True)]
         mock_analysis_cls.gen_output_dir = lambda x: x + '/mock_analysis_dir'
         fns = ['fn1', 'fn2']
@@ -246,10 +256,12 @@ class TestTaskMaster(TestCase):
             print(arg)
             return fns
 
+        self.suite.suite_dir = 'suite_dir'
+
         mock_glob.side_effect = mock_glob_fn
         task_master._scan_data_dirs(analysis)
-        assert mock_glob.call_count == 4
-        assert task_master.all_filenames == fns
+        assert mock_glob.call_count == 1
+        assert task_master.virtual_dir == fns
 
     @patch('os.path.exists')
     @patch('os.path.abspath')
@@ -264,7 +276,7 @@ class TestTaskMaster(TestCase):
         fns = ['fn1', 'fn2']
         task_master._find_filenames(fns)
         output_fns = ['/' + f for f in fns]
-        assert(set(task_master.all_filenames) == set(output_fns))
+        assert(set(task_master.virtual_dir) == set(output_fns))
 
     @patch('os.path.exists')
     @patch('os.path.abspath')
@@ -279,7 +291,7 @@ class TestTaskMaster(TestCase):
         fns = ['fn1', 'fn2']
         task_master._find_filenames(fns)
         output_fns = ['/' + f for f in fns]
-        assert(set(task_master.all_filenames) == set(output_fns))
+        assert(set(task_master.virtual_dir) == set(output_fns))
 
     @patch('os.path.exists')
     @patch('os.path.abspath')

@@ -12,41 +12,16 @@ logger = getLogger('om.converters')
 
 
 class FF2NC_Converter(Analyser):
+    # TODO: obs.
     analysis_name = 'ff2nc_converter'
     standard_patterns = ['.*\.pp\d', '^atmosa_da(?P<ts>\d{3}$)']
     out_ext = '.nc'
     single_file = True
 
-    @classmethod
-    def gen_output_filename(cls, data_type, filename):
-        split_filename = os.path.basename(filename).split('.')
-        runid = 0
-        if len(split_filename) >= 3:
-            try:
-                runid = int(split_filename[1])
-            except:
-                runid = 0
-        dirname = os.path.dirname(filename)
-        base_filename = os.path.basename(filename)
-
-        for pattern in cls.standard_patterns:
-            match = re.match(pattern, base_filename)
-
-            if match:
-                logger.debug('matched {} with {}', base_filename, pattern)
-                break
-
-        if not match:
-            raise OmniumError('Filename not standard: {}'.format(base_filename))
-
-        newname = base_filename + '.nc'
-        return runid, newname
-
-    def set_config(self, config):
-        super(FF2NC_Converter, self).set_config(config)
-        self.delete = config.getboolean('delete', False)
-        self.zlib = config.getboolean('zlib', True)
-        self.verify = config.getboolean('verify', False)
+    def set_opts(self, delete, zlib):
+        self.delete = delete
+        self.zlib = zlib
+        self.verify = False
 
     def do_verify(self, converted_filename):
         logger.info('Verifying')
@@ -75,7 +50,7 @@ class FF2NC_Converter(Analyser):
     def load(self):
         pass
 
-    def run_analysis(self):
+    def run(self):
         pass
 
     def save(self, state=None, suite=None):

@@ -58,7 +58,6 @@ class TaskMaster(object):
         self._working_tasks = []
         self._completed_tasks = []
 
-
     def get_next_pending(self):
         if self._pending_tasks:
             task = self._pending_tasks.pop(0)
@@ -126,7 +125,7 @@ class TaskMaster(object):
         self._find_pending()
         logger.info('Generated {} tasks', len(self.all_tasks))
 
-    def gen_single_analysis_tasks(self, analysis, filenames):
+    def gen_single_analysis_tasks(self, analysis_name, filenames):
         logger.debug('generating single analysis tasks for {}', self._run_type)
         all_analysis = self._analysis_workflow.values()
         if filenames:
@@ -135,8 +134,8 @@ class TaskMaster(object):
             self._scan_data_dirs(all_analysis)
         # N.B. ignores analysis enabled status.
 
-        for analysis_name, analyser_cls, enabled in all_analysis:
-            if analysis_name == analysis:
+        for search_analysis_name, analyser_cls, enabled in all_analysis:
+            if analysis_name == search_analysis_name:
                 self.gen_tasks_for_analysis(analyser_cls)
 
         self._find_pending()
