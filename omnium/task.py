@@ -42,9 +42,10 @@ class Task(object):
 class TaskMaster(object):
     def __init__(self, suite, run_type, analysis_workflow, expts, force):
         self.all_tasks = []
-        """All tasks that have been generated"""
+        """All tasks that have been generated in runable order."""
         self.virtual_dir = []
-        """Virtual directory that mirrors real input dirs."""
+        """Virtual directory that initially mirrors real input dirs, and is filled up
+        with files that will be created by each task."""
 
         self._suite = suite
         self._run_type = run_type
@@ -156,9 +157,7 @@ class TaskMaster(object):
         assert analyser_cls.single_file
         logger.debug('generating cycle tasks for {}', analyser_cls.analysis_name)
 
-        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls.settings)}
-        input_dir = analyser_cls.input_dir.format(**dir_vars)
-        done_filenames = self._find_done_filenames(analyser_cls, input_dir)
+        done_filenames = self._find_done_filenames(expt, analyser_cls)
 
         self._gen_single_file_tasks(expt, analyser_cls, done_filenames)
 
@@ -166,9 +165,7 @@ class TaskMaster(object):
         assert analyser_cls.single_file or analyser_cls.multi_file
         logger.debug('generating expt tasks for {}', analyser_cls.analysis_name)
 
-        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls.settings)}
-        input_dir = analyser_cls.input_dir.format(**dir_vars)
-        done_filenames = self._find_done_filenames(analyser_cls, input_dir)
+        done_filenames = self._find_done_filenames(expt, analyser_cls)
 
         if analyser_cls.single_file:
             self._gen_single_file_tasks(expt, analyser_cls, done_filenames)
@@ -180,9 +177,7 @@ class TaskMaster(object):
         assert analyser_cls.multi_expt
         filenames = []
         for expt in self._expts:
-            dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls.settings)}
-            input_dir = analyser_cls.input_dir.format(**dir_vars)
-            done_filenames = self._find_done_filenames(analyser_cls, input_dir)
+            done_filenames = self._find_done_filenames(expt, analyser_cls)
             assert len(done_filenames) <= 1
             if done_filenames:
                 filenames.append(done_filenames[0])
@@ -193,6 +188,9 @@ class TaskMaster(object):
 
         assert len(filenames) == len(self._expts)
 
+        # N.B. output filename for suite tasks cannot contain {expt} - this will raise an error if
+        # it does.
+        dir_vars = {'version_dir': self._get_version_dir(analyser_cls.settings)}
         output_filenames = self._gen_output_filenames(analyser_cls, dir_vars)
         runid = None
         task = Task(len(self.all_tasks), self._expts, runid, 'suite', 'analysis',
@@ -296,10 +294,10 @@ class TaskMaster(object):
 
     def _gen_output_filenames(self, analyser_cls, dir_vars):
         output_filenames = []
+        dir_vars['output_dir'] = analyser_cls.output_dir.format(**dir_vars)
         for output_filename in analyser_cls.output_filenames:
             output_filenames.append(os.path.join(self._suite.suite_dir,
-                                                 analyser_cls.output_dir.format(**dir_vars),
-                                                 output_filename))
+                                                 output_filename.format(**dir_vars)))
         return output_filenames
 
     def _gen_multi_file_tasks(self, expt, analyser_cls, done_filenames):
@@ -338,11 +336,15 @@ class TaskMaster(object):
                 self.virtual_dir.append(output_filename + '.done')
         logger.debug(task)
 
-    def _find_done_filenames(self, analyser_cls, input_dir):
+    def _find_done_filenames(self, expt, analyser_cls):
+        dir_vars = {'version_dir': self._get_version_dir(analyser_cls.settings)}
+        if expt:
+            dir_vars['expt'] = expt
+        dir_vars['input_dir'] = analyser_cls.input_dir.format(**dir_vars)
+
         if hasattr(analyser_cls, 'input_filename_glob'):
             filename_glob = os.path.join(self._suite.suite_dir,
-                                         input_dir,
-                                         analyser_cls.input_filename_glob)
+                                         analyser_cls.input_filename_glob.format(**dir_vars))
             filtered_filenames = sorted(fnmatch.filter(self.virtual_dir, filename_glob))
         elif hasattr(analyser_cls, 'input_filenames') or hasattr(analyser_cls, 'input_filename'):
             if hasattr(analyser_cls, 'input_filename'):
@@ -352,7 +354,7 @@ class TaskMaster(object):
 
             filtered_filenames = []
             for fn in input_filenames:
-                filename = os.path.join(self._suite.suite_dir, input_dir, fn)
+                filename = os.path.join(self._suite.suite_dir, fn.format(**dir_vars))
                 fns = sorted(fnmatch.filter(self.virtual_dir, filename))
                 filtered_filenames.extend(fns)
             if len(input_filenames) != len(filtered_filenames):
@@ -365,7 +367,8 @@ class TaskMaster(object):
         logger.debug('found files: {}', done_filenames)
         return done_filenames
 
-    def _get_version_dir(self, settings):
+    @staticmethod
+    def _get_version_dir(settings):
         omnium_version = 'om_v' + get_version(form='medium')
         package = settings.package
         package_name = settings.package.__name__
