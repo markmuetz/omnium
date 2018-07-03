@@ -80,7 +80,8 @@ class Syncher(object):
                 print('{}/'.format(dirname))
             if not (os.path.exists(line) or os.path.islink(line)):
                 logger.debug('Adding symlink: {}', line)
-                os.symlink(self.suite.missing_file_path, line)
+                rel_path = os.path.relpath(self.suite.missing_file_path, os.path.dirname(line))
+                os.symlink(rel_path, line)
                 count += 1
                 print('{}'.format(line))
         logger.info('Created {} symlinks', count)

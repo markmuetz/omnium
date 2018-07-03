@@ -11,7 +11,8 @@ logger = getLogger('om.run_ctrl')
 
 
 class RunControl(object):
-    def __init__(self, suite, run_type, expts, production=False, force=False):
+    def __init__(self, suite, run_type, expts,
+                 production=False, force=False, no_run_if_started=False):
         self.suite = suite
         self.production = production
 
@@ -19,10 +20,10 @@ class RunControl(object):
         if self.run_type in ['cmd', 'suite']:
             self.expts = expts
         else:
-            assert len(expts) == 1
             self.expts = expts
 
         self.force = force
+        self.no_run_if_started = no_run_if_started
 
         self.analysis_workflow = OrderedDict()
         self.full_analysis_workflow = OrderedDict()
@@ -103,14 +104,18 @@ class RunControl(object):
     def run_all(self):
         logger.debug('running all analysis')
 
+        run_count = 0
         for task in self.task_master.get_all_tasks():
             if not task:
                 # Should not be reached, when called like this should sequentially hand out tasks
                 # until there are no more left.
                 raise Exception('Task not issued by TaskMaster')
+            run_count += 1
             self.run_task(task)
             task.status = 'done'
             self.task_master.update_task(task.index, task.status)
+        if not run_count:
+            logger.warn('No tasks were run')
 
     def run_single_analysis(self, analysis_name):
         all_tasks = self.task_master.all_tasks
@@ -132,13 +137,20 @@ class RunControl(object):
 
         analyser = analyser_cls(self.suite, task)
 
-        if not analyser.already_analysed() or analyser.force or self.force:
+        run_analysis = not analyser.already_analysed()
+        if self.no_run_if_started and analyser.already_started_analysing():
+            run_analysis = False
+        if analyser.force or self.force:
+            run_analysis = True
+
+        if run_analysis:
             analyser.analysis_load()
             analyser.analysis_run()
             analyser.analysis_save(self.state, self.suite)
             analyser.analysis_display()
             analyser.analysis_done()
+            logger.info('Task run: {}', analyser.analysis_name)
         else:
-            logger.info('  Analysis already run: {}', analyser.analysis_name)
+            logger.info('Task already run: {}', analyser.analysis_name)
 
         return analyser

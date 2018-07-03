@@ -17,6 +17,10 @@ class FF2NC_Converter(Analyser):
     standard_patterns = ['.*\.pp\d', '^atmosa_da(?P<ts>\d{3}$)']
     out_ext = '.nc'
     single_file = True
+    input_dir = 'dummy'
+    input_filename = 'dummy'
+    output_dir = 'dummy'
+    output_filenames = ['dummy']
 
     def set_opts(self, delete, zlib):
         self.delete = delete

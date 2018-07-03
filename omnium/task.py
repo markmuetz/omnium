@@ -189,7 +189,8 @@ class TaskMaster(object):
 
         # N.B. output filename for suite tasks cannot contain {expt} - this will raise an error if
         # it does.
-        dir_vars = {'version_dir': self._get_version_dir(analyser_cls.settings)}
+        dir_vars = {'version_dir': self._get_version_dir(analyser_cls.settings),
+                    'expts': '_'.join(self._expts)}
         output_filenames = self._gen_output_filenames(analyser_cls, dir_vars)
         runid = None
         task = Task(len(self.all_tasks), self._expts, runid, 'suite', 'analysis',
@@ -342,12 +343,12 @@ class TaskMaster(object):
             dir_vars['expt'] = expt
         dir_vars['input_dir'] = analyser_cls.input_dir.format(**dir_vars)
 
-        if hasattr(analyser_cls, 'input_filename_glob'):
+        if analyser_cls.input_filename_glob:
             filename_glob = os.path.join(self._suite.suite_dir,
                                          analyser_cls.input_filename_glob.format(**dir_vars))
             filtered_filenames = sorted(fnmatch.filter(self.virtual_dir, filename_glob))
-        elif hasattr(analyser_cls, 'input_filenames') or hasattr(analyser_cls, 'input_filename'):
-            if hasattr(analyser_cls, 'input_filename'):
+        elif analyser_cls.input_filenames or analyser_cls.input_filename:
+            if analyser_cls.input_filename:
                 input_filenames = [analyser_cls.input_filename]
             else:
                 input_filenames = analyser_cls.input_filenames
@@ -361,8 +362,9 @@ class TaskMaster(object):
                 raise OmniumError('Could not find all filenames for {}'
                                   .format(analyser_cls.analysis_name))
         else:
-            raise OmniumError('analyser_cls must have one of: '
-                              'input_filename_glob, input_filenames, input_filename')
+            raise OmniumError('{} must have one of these set: '
+                              'input_filename_glob, input_filenames, input_filename'
+                              .format(analyser_cls))
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.virtual_dir]
         logger.debug('found files: {}', done_filenames)
         return done_filenames

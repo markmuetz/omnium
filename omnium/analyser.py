@@ -3,6 +3,7 @@ import datetime as dt
 import os
 from collections import OrderedDict
 from logging import getLogger
+import re
 
 import iris
 from omnium.omnium_errors import OmniumError
@@ -17,15 +18,58 @@ class Analyser(abc.ABC):
     single_file = False
     multi_file = False
     multi_expt = False
+
+    input_dir = None
+
+    # One of these must be overridden by base class.
+    input_filename_glob = None
+    input_filename = None
+    input_filenames = None
+
+    output_dir = None
+    output_filenames = None
+
     uses_runid = False
     min_runid = 0
     max_runid = int(1e10)
+    runid_pattern = None
 
     settings = None
+
+    @abc.abstractmethod
+    def load(self):
+        return
+
+    @abc.abstractmethod
+    def run(self):
+        return
+
+    @abc.abstractmethod
+    def save(self, state, suite):
+        return
+
+    @classmethod
+    def get_runid(cls, filename):
+        assert cls.uses_runid and cls.runid_pattern
+        filename = os.path.basename(filename)
+        match = re.match(cls.runid_pattern, filename)
+        if match:
+            return int(match['runid'])
+        else:
+            raise OmniumError('Could not find runid in {} using {}', filename, cls.runid_pattern)
 
     def __init__(self, suite, task):
         assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
         assert self.analysis_name
+        if self.uses_runid:
+            assert self.runid_pattern
+        assert self.input_dir
+        assert sum([self.input_filename_glob is not None,
+                    self.input_filename is not None,
+                    self.input_filenames is not None]) == 1
+        assert self.output_dir
+        assert self.output_filenames
+
         if self.settings:
             logger.debug('using settings: {}', self.settings.get_hash())
         self.suite = suite
@@ -41,7 +85,7 @@ class Analyser(abc.ABC):
         self.force = False
         # N.B. there is only one output_dir, even for multi_expt
         logdir = os.path.dirname(self.output_filename)
-        self.logname = os.path.join(logdir, self.output_filename + '.analysed')
+        self.logname = os.path.join(logdir, self.output_filename + '.log')
         if self.suite and self.suite.check_filename_missing(self.logname):
             os.remove(self.logname)
 
@@ -50,6 +94,10 @@ class Analyser(abc.ABC):
             if not os.path.exists(output_dir):
                 logger.debug('creating output_dir: {}', output_dir)
                 os.makedirs(output_dir)
+
+    def already_started_analysing(self):
+        missing = self.suite.check_filename_missing(self.logname)
+        return os.path.exists(self.logname) or missing
 
     def already_analysed(self):
         missing_filenames = []
@@ -159,6 +207,7 @@ class Analyser(abc.ABC):
         if missing_filenames:
             raise OmniumError('Some output filenames not produced: {}'.format(missing_filenames))
         for output_filename in self.task.output_filenames:
+            logger.info('Created filename: {}', output_filename)
             open(output_filename + '.done', 'a').close()
         self.append_log('Done')
 
@@ -175,18 +224,9 @@ class Analyser(abc.ABC):
         file_path_dir = os.path.dirname(self.output_filename)
 
         if not os.path.exists(file_path_dir):
+            logger.debug('making dir: {}', file_path_dir)
             os.makedirs(file_path_dir)
 
-        return os.path.join(file_path_dir, name)
-
-    @abc.abstractmethod
-    def load(self):
-        return
-
-    @abc.abstractmethod
-    def run(self):
-        return
-
-    @abc.abstractmethod
-    def save(self, state, suite):
-        return
+        filename = os.path.join(file_path_dir, name)
+        logger.debug('using filename: {}', filename)
+        return filename

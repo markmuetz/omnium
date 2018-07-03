@@ -70,10 +70,10 @@ class TestAnalyserInstanceCreation(TestCase):
         class WorkingAnalyser(Analyser):
             analysis_name = 'working_analyser'
             single_file = True
-            input_dir = ''
-            input_filename = ''
-            output_dir = ''
-            output_filename = ''
+            input_dir = '/input/dir'
+            input_filename = 'file.name'
+            output_dir = '/output/dir'
+            output_filenames = ['out.file.name']
             settings = ''
 
             def load(self):
@@ -98,6 +98,11 @@ class TestAnalyserInstanceCreation(TestCase):
 class SingleAnalyser(Analyser):
     analysis_name = 'working_analyser'
     single_file = True
+    input_dir = '/input/dir'
+    input_filename = 'file.name'
+    output_dir = '/output/dir'
+    output_filenames = ['out.file.name']
+    settings = ''
 
     def load(self):
         self.load_cubes()
@@ -112,6 +117,11 @@ class SingleAnalyser(Analyser):
 class MultiExptAnalyser(Analyser):
     analysis_name = 'working_analyser'
     multi_expt = True
+    input_dir = '/input/dir'
+    input_filename = 'file.name'
+    output_dir = '/output/dir'
+    output_filenames = ['out.file.name']
+    settings = ''
 
     def load(self):
         self.load_cubes()
@@ -126,6 +136,11 @@ class MultiExptAnalyser(Analyser):
 class MultiFileAnalyser(Analyser):
     analysis_name = 'working_analyser'
     multi_file = True
+    input_dir = '/input/dir'
+    input_filename = 'file.name'
+    output_dir = '/output/dir'
+    output_filenames = ['out.file.name']
+    settings = ''
 
     def load(self):
         self.load_cubes()
