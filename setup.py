@@ -15,7 +15,6 @@ def read(fname):
     except:
         return ''
 
-
 setup(
     name='omnium',
     version=get_version(),
@@ -43,6 +42,8 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'nose',
+        'mock',
+        # N.B. there can be problems with iris 2.1.0 and pip not recognizing it's been installed
         'iris',
         'simplejson',
         'numpy',
@@ -53,7 +54,7 @@ setup(
         # 'HPC': ['mpi4py'],
         # For some reason adding 'PyQt5' causes pip to try and collect/install it.
         # Do not want this to happen. Anyway, having this dep is probably good enough.
-        'viewer': ['pyqtgraph'],
+        'viewer': ['pyopengl', 'pyqtgraph'],
     },
     package_data={'omnium.data': ['files/vn10.5/STASHmaster*'],
                   'omnium.tests': ['u-ap347/*'],
