@@ -11,7 +11,7 @@ logger = getLogger('om.run_ctrl')
 
 
 class RunControl(object):
-    def __init__(self, suite, run_type, expts,
+    def __init__(self, suite, run_type, expts, settings_name,
                  production=False, force=False, no_run_if_started=False):
         self.suite = suite
         self.production = production
@@ -22,6 +22,7 @@ class RunControl(object):
         else:
             self.expts = expts
 
+        self.settings_name = settings_name
         self.force = force
         self.no_run_if_started = no_run_if_started
 
@@ -93,12 +94,12 @@ class RunControl(object):
 
     def gen_tasks(self):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
-                                      self.force)
+                                      self.settings_name, self.force)
         self.task_master.gen_all_tasks()
 
     def gen_tasks_for_analysis(self, analysis_name, filenames):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
-                                      self.force)
+                                      self.settings_name, self.force)
         self.task_master.gen_single_analysis_tasks(analysis_name, filenames)
 
     def run_all(self):
@@ -135,7 +136,8 @@ class RunControl(object):
         logger.debug('running: {}', task)
         analyser_cls = self.analysis_classes[task.analysis_name]
 
-        analyser = analyser_cls(self.suite, task)
+        settings = self.suite.analysers.get_settings(analyser_cls, self.settings_name)
+        analyser = analyser_cls(self.suite, task, settings)
 
         run_analysis = not analyser.already_analysed()
         if self.no_run_if_started and analyser.already_started_analysing():

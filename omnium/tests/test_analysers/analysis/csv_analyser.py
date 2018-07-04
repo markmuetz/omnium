@@ -2,8 +2,6 @@ import csv
 
 from omnium.analyser import Analyser
 
-from .analysis_settings import analysis_settings
-
 
 class CsvAnalyser(Analyser):
     analysis_name = 'csv_analysis'
@@ -12,8 +10,6 @@ class CsvAnalyser(Analyser):
     input_filename = '{input_dir}/atmos.000.pp1.csv'
     output_dir = 'share/data/history/{expt}'
     output_filenames = ['{output_dir}/atmos.000.pp1.csv.out']
-
-    settings = analysis_settings
 
     def load(self):
         with open(self.task.filenames[0], 'r') as f:

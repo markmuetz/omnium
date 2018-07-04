@@ -22,6 +22,8 @@ class Analysers(object):
         self.analysis_groups = OrderedDict()
         self.have_found = False
 
+        self._cls_to_pkg = {}
+
     def find_all(self):
         if self.have_found:
             raise OmniumError('Should only call find_all once')
@@ -46,8 +48,8 @@ class Analysers(object):
                     self.analysis_status.append('not_a_git_repo')
 
                 for cls in pkg.analysis_classes:
-                    self.analyser_packages
                     if cls not in self.analysis_classes:
+                        self._cls_to_pkg[cls] = analyser_package
                         self.analysis_classes[cls.analysis_name] = cls
                         self.analysis_groups[cls.analysis_name] = \
                             os.path.basename(analyser_package)
@@ -60,3 +62,11 @@ class Analysers(object):
         self.analysis_classes[Deleter.analysis_name] = Deleter
         self.analysis_groups[Deleter.analysis_name] = 'omnium'
         self.have_found = True
+
+    def get_settings(self, analyser_cls, settings_name):
+        analyser_package = self._cls_to_pkg[analyser_cls]
+        settings_dict = self.analysis_packages_settings[analyser_package]
+        if settings_name not in settings_dict:
+            raise OmniumError('Settings {} not defined in {}, choices are {}'
+                              .format(settings_name, analyser_package, settings_dict.keys()))
+        return settings_dict[settings_name]

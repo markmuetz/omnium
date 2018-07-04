@@ -32,8 +32,9 @@ class TestTaskMaster(TestCase):
     def setUp(self):
         self.suite = Mock()
         self.analysis_workflow = Mock()
+        self.settings = Mock()
         self.suite_args = {
-            'basic': [self.suite, 'cmd', self.analysis_workflow, ['expt1'], True],
+            'basic': [self.suite, 'cmd', self.analysis_workflow, ['expt1'], self.settings, True],
         }
         setup_logger()
 
@@ -222,15 +223,18 @@ class TestTaskMaster(TestCase):
         assert task3 not in task_master._pending_tasks
         assert task4 not in task_master._pending_tasks
 
+    @patch('omnium.task.TaskMaster._get_package_version')
     @patch('glob.glob')
-    def test_scan_dirs_empty(self, mock_glob):
+    def test_scan_dirs_empty(self, mock_glob, mock_get_package_version):
         task_master = TaskMaster(*self.suite_args['basic'])
         mock_analysis_cls = Mock()
         mock_analysis_cls.input_dir.format.return_value = '/mock_dir'
-        mock_analysis_cls.settings.get_hash.return_value = 'abcdefghijklmnop'
-        mock_analysis_cls.settings.package = Mock()
-        mock_analysis_cls.settings.package.__name__ = 'pkg_name'
-        mock_analysis_cls.settings.package.__version__ = 'v_-99'
+
+        mock_settings = Mock()
+        mock_settings.get_hash.return_value = 'abcdefghijklmnop'
+        mock_settings.package = Mock()
+        self.suite.analysers.get_settings.return_value = mock_settings
+        mock_get_package_version.return_value = 'pkg_name_v_-99'
         analysis = [('mock_analysis', mock_analysis_cls, True)]
 
         self.suite.suite_dir = 'suite_dir'
@@ -239,15 +243,19 @@ class TestTaskMaster(TestCase):
         task_master._scan_data_dirs(analysis)
         assert task_master.virtual_dir == []
 
+    @patch('omnium.task.TaskMaster._get_package_version')
     @patch('glob.glob')
-    def test_scan_dirs_finds_some(self, mock_glob):
+    def test_scan_dirs_finds_some(self, mock_glob, mock_get_package_version):
         task_master = TaskMaster(*self.suite_args['basic'])
         mock_analysis_cls = Mock()
         mock_analysis_cls.input_dir.format.return_value = '/mock_dir'
-        mock_analysis_cls.settings.get_hash.return_value = 'abcdefghijklmnop'
-        mock_analysis_cls.settings.package = Mock()
-        mock_analysis_cls.settings.package.__name__ = 'pkg_name'
-        mock_analysis_cls.settings.package.__version__ = 'v_-99'
+
+        mock_settings = Mock()
+        mock_settings.get_hash.return_value = 'abcdefghijklmnop'
+        mock_settings.package = Mock()
+        self.suite.analysers.get_settings.return_value = mock_settings
+        mock_get_package_version.return_value = 'pkg_name_v_-99'
+
         analysis = [('mock_analysis', mock_analysis_cls, True)]
         mock_analysis_cls.gen_output_dir = lambda x: x + '/mock_analysis_dir'
         fns = ['fn1', 'fn2']

@@ -14,8 +14,10 @@ ARGS = [(['--analysis', '-a'], {'help': 'Analysis to run'}),
         (['--force', '-f'], {'help': 'Force run', 'action': 'store_true'}),
         (['--production', '-p'], {'help': 'Run in production mode', 'action': 'store_true'}),
         (['--print-only', '-o'], {'help': 'Print only', 'action': 'store_true'}),
-        (['--no-run-if-started', '-s'], {'help': 'Only run if no outfile log',
-                                         'action': 'store_true'}),
+        (['--no-run-if-started'], {'help': 'Only run if no outfile log',
+                                   'action': 'store_true'}),
+        (['--settings', '-s'], {'help': 'Settings to use',
+                                'default': 'default'}),
         (['--mpi'], {'help': 'Run using mpi', 'action': 'store_true'})]
 
 
@@ -54,7 +56,7 @@ def main(suite, args):
     else:
         expts = args.expts
 
-    run_control = RunControl(suite, args.run_type, expts, production,
+    run_control = RunControl(suite, args.run_type, expts, args.settings, production,
                              args.force, args.no_run_if_started)
     if args.mpi:
         # Note this will raise an import error if not installed.

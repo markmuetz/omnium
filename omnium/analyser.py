@@ -34,8 +34,6 @@ class Analyser(abc.ABC):
     max_runid = int(1e10)
     runid_pattern = None
 
-    settings = None
-
     @abc.abstractmethod
     def load(self):
         return
@@ -58,7 +56,7 @@ class Analyser(abc.ABC):
         else:
             raise OmniumError('Could not find runid in {} using {}', filename, cls.runid_pattern)
 
-    def __init__(self, suite, task):
+    def __init__(self, suite, task, settings):
         assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
         assert self.analysis_name
         if self.uses_runid:
@@ -70,6 +68,7 @@ class Analyser(abc.ABC):
         assert self.output_dir
         assert self.output_filenames
 
+        self.settings = settings
         if self.settings:
             logger.debug('using settings: {}', self.settings.get_hash())
         self.suite = suite

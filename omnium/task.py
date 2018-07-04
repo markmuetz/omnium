@@ -40,7 +40,7 @@ class Task(object):
 
 
 class TaskMaster(object):
-    def __init__(self, suite, run_type, analysis_workflow, expts, force):
+    def __init__(self, suite, run_type, analysis_workflow, expts, settings_name, force):
         self.all_tasks = []
         """All tasks that have been generated in runable order."""
         self.virtual_dir = []
@@ -51,6 +51,7 @@ class TaskMaster(object):
         self._run_type = run_type
         self._analysis_workflow = analysis_workflow
         self._expts = expts
+        self._settings_name = settings_name
         self._force = force
 
         self._pending_tasks = []
@@ -189,7 +190,7 @@ class TaskMaster(object):
 
         # N.B. output filename for suite tasks cannot contain {expt} - this will raise an error if
         # it does.
-        dir_vars = {'version_dir': self._get_version_dir(analyser_cls.settings),
+        dir_vars = {'version_dir': self._get_version_dir(analyser_cls),
                     'expts': '_'.join(self._expts)}
         output_filenames = self._gen_output_filenames(analyser_cls, dir_vars)
         runid = None
@@ -222,7 +223,7 @@ class TaskMaster(object):
         for expt in self._expts:
             for analysis_name, analyser_cls, enabled in analysis:
                 dir_vars = {'expt': expt,
-                            'version_dir': self._get_version_dir(analyser_cls.settings)}
+                            'version_dir': self._get_version_dir(analyser_cls)}
                 # TODO: this *might* miss some files if it is not def'd using '{input_dir}/...'
                 input_dir = os.path.join(self._suite.suite_dir,
                                          analyser_cls.input_dir.format(**dir_vars))
@@ -243,7 +244,7 @@ class TaskMaster(object):
             self.virtual_dir.append(os.path.abspath(filename))
 
     def _gen_single_file_tasks(self, expt, analyser_cls, done_filenames):
-        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls.settings)}
+        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls)}
 
         if not done_filenames:
             logger.debug('no files for {}', analyser_cls.analysis_name)
@@ -302,7 +303,7 @@ class TaskMaster(object):
         return output_filenames
 
     def _gen_multi_file_tasks(self, expt, analyser_cls, done_filenames):
-        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls.settings)}
+        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls)}
         if not done_filenames:
             logger.debug('no files for {}', analyser_cls.analysis_name)
             return
@@ -338,7 +339,7 @@ class TaskMaster(object):
         logger.debug(task)
 
     def _find_done_filenames(self, expt, analyser_cls):
-        dir_vars = {'version_dir': self._get_version_dir(analyser_cls.settings)}
+        dir_vars = {'version_dir': self._get_version_dir(analyser_cls)}
         if expt:
             dir_vars['expt'] = expt
         dir_vars['input_dir'] = analyser_cls.input_dir.format(**dir_vars)
@@ -369,13 +370,16 @@ class TaskMaster(object):
         logger.debug('found files: {}', done_filenames)
         return done_filenames
 
-    @staticmethod
-    def _get_version_dir(settings):
+    def _get_version_dir(self, analyser_cls):
+        settings = self._suite.analysers.get_settings(analyser_cls, self._settings_name)
         omnium_version = 'om_v' + get_version(form='medium')
         package = settings.package
-        package_name = settings.package.__name__
-        package_version = package_name + '_v' + get_version(package.__version__, form='medium')
+        package_version = self._get_package_version(package)
         version = omnium_version + '_' + package_version
         version_dir = version + '_' + settings.get_hash()[:10]
 
         return version_dir
+
+    @staticmethod
+    def _get_package_version(package):
+        return package.__name__ + '_v' + get_version(package.__version__, form='medium')

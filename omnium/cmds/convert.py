@@ -21,6 +21,6 @@ def main(suite, args):
         output_filename = filename + '.nc'
         task = Task(i, None, None, None, 'converter', 'ff2nc_convert',
                     [os.path.join(cwd, filename)], [os.path.join(cwd, output_filename)])
-        converter = FF2NC_Converter(suite, task)
+        converter = FF2NC_Converter(suite, task, None)
         converter.set_opts(args.delete, args.zlib)
         converter.save(None, suite)

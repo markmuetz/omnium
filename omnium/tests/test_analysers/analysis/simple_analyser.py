@@ -1,5 +1,4 @@
 from omnium.analyser import Analyser
-from .analysis_settings import analysis_settings
 
 
 class SimpleAnalyser(Analyser):
@@ -9,7 +8,6 @@ class SimpleAnalyser(Analyser):
     input_filename = 'a.file'
     output_dir = '/a/dir'
     output_filename = 'an.output.file'
-    settings = analysis_settings
 
     def load(self):
         pass
