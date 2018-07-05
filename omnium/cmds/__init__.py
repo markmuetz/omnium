@@ -11,6 +11,7 @@ commands = [
     'file-cat',
     'ls-analysers',
     'run',
+    'remote-cmd',
     'shell',
     'stash',
     'suite-clone',

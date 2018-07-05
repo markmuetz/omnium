@@ -18,6 +18,7 @@ class Syncher(object):
                     '> .omnium/{remote_name}.file_index.txt {ignore_stderr}')
     info_cmd_fmt = ('ssh {host} "cd {path} && ls -lh {rel_filenames}"')
     cat_cmd_fmt = ('ssh {host} "cd {path} && cat {rel_filename}"')
+    remote_cmd_fmt = ('ssh {host} "cd {path} && {cmd}"')
     # 1st --exclude: must come *before* includes or e.g. .omnium/suite.conf will be downloaded.
     # 2nd --exclude: makes sure that only the filetypes asked for are downloaded.
     clone_cmd_fmt = ("rsync -zuar{verbose} --exclude '.omnium/' {progress} {include} "
@@ -201,6 +202,15 @@ class Syncher(object):
         output = sp.check_output(cmd, shell=True)
         logger.debug(output)
         return output.decode('utf-8').split('\n')[:-1]
+
+    def run_cmd(self, rel_dir, remote_cmd):
+        path = os.path.join(self.remote_base_path, self.suite.name, rel_dir)
+        cmd = self.remote_cmd_fmt.format(path=path,
+                                         host=self.remote_host,
+                                         cmd=remote_cmd)
+        logger.debug(cmd)
+        output = sp.check_output(cmd, shell=True)
+        return path, output
 
     def file_cat(self, rel_filename):
         # TODO: rm duplication between this, file_info and fetch
