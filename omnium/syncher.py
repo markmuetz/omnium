@@ -82,7 +82,8 @@ class Syncher(object):
             if not (os.path.exists(line) or os.path.islink(line)):
                 logger.debug('Adding symlink: {}', line)
                 rel_path = os.path.relpath(self.suite.missing_file_path, os.path.dirname(line))
-                os.symlink(rel_path, line)
+                # os.symlink(rel_path, line)
+                open(line + '.lnk', 'w').write('missing_file')
                 count += 1
                 print('{}'.format(line))
         logger.info('Created {} symlinks', count)
@@ -141,6 +142,8 @@ class Syncher(object):
                 dot_rel_filename = './' + rel_filename
             else:
                 dot_rel_filename = rel_filename
+            if dot_rel_filename[-4:] == '.lnk':
+                dot_rel_filename = dot_rel_filename[:-4]
             if dot_rel_filename not in remote_index:
                 logger.debug('File not in "{}" index: {}', self.remote_name, rel_filename)
                 rel_filenames.remove(rel_filename)
