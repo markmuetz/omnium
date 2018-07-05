@@ -3,6 +3,7 @@ import datetime as dt
 import os
 from collections import OrderedDict
 from logging import getLogger
+import re
 
 import iris
 from omnium.omnium_errors import OmniumError
@@ -11,44 +12,29 @@ from omnium.version import get_version
 logger = getLogger('om.analyser')
 
 
-class Analyser(object):
-    __metaclass__ = abc.ABCMeta
-
+class Analyser(abc.ABC):
+    analysis_name = None
     # One of these must be overridden by base class.
     single_file = False
     multi_file = False
     multi_expt = False
+
+    input_dir = None
+
+    # One of these must be overridden by base class.
+    input_filename_glob = None
+    input_filename = None
+    input_filenames = None
+
+    output_dir = None
+    output_filenames = None
+
     uses_runid = False
     min_runid = 0
     max_runid = int(1e10)
+    runid_pattern = None
 
     settings = None
-
-    def __init__(self, suite, task):
-        assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
-        assert self.analysis_name
-        if self.settings:
-            logger.debug('using settings: {}', self.settings.get_hash())
-        self.suite = suite
-        self.task = task
-
-        logger.debug('single_file: {}', self.single_file)
-        logger.debug('multi_file: {}', self.multi_file)
-        logger.debug('multi_expt: {}', self.multi_expt)
-
-        logger.debug('output_filenames: {}', self.output_filenames)
-        self.cube_results = OrderedDict()
-        self.force = False
-        # N.B. there is only one results_dir, even for multi_expt
-        self.logname = os.path.join(self.task.output_filenames[0] + '.analysed')
-        if self.suite and self.suite.check_filename_missing(self.logname):
-            os.remove(self.logname)
-
-        # Need to make sure results dir exists before first call to self.append_log.
-        for results_dir in [os.path.dirname(f) for f in self.task.output_filenames]:
-            if not os.path.exists(results_dir):
-                logger.debug('creating results_dir: {}', results_dir)
-                os.makedirs(results_dir)
 
     @abc.abstractmethod
     def load(self):
@@ -59,8 +45,136 @@ class Analyser(object):
         return
 
     @abc.abstractmethod
-    def save(self, state=None, suite=None):
+    def save(self, state, suite):
         return
+
+    @classmethod
+    def get_runid(cls, filename):
+        assert cls.uses_runid and cls.runid_pattern
+        filename = os.path.basename(filename)
+        match = re.match(cls.runid_pattern, filename)
+        if match:
+            return int(match['runid'])
+        else:
+            raise OmniumError('Could not find runid in {} using {}', filename, cls.runid_pattern)
+
+    def __init__(self, suite, task):
+        assert sum([self.single_file, self.multi_file, self.multi_expt]) == 1
+        assert self.analysis_name
+        if self.uses_runid:
+            assert self.runid_pattern
+        assert self.input_dir
+        assert sum([self.input_filename_glob is not None,
+                    self.input_filename is not None,
+                    self.input_filenames is not None]) == 1
+        assert self.output_dir
+        assert self.output_filenames
+
+        if self.settings:
+            logger.debug('using settings: {}', self.settings.get_hash())
+        self.suite = suite
+        self.task = task
+        self.output_filename = task.output_filenames[0]
+
+        logger.debug('single_file: {}', self.single_file)
+        logger.debug('multi_file: {}', self.multi_file)
+        logger.debug('multi_expt: {}', self.multi_expt)
+
+        logger.debug('output_filename: {}', self.output_filename)
+        self.results = OrderedDict()
+        self.force = False
+        # N.B. there is only one output_dir, even for multi_expt
+        logdir = os.path.dirname(self.output_filename)
+        self.logname = os.path.join(logdir, self.output_filename + '.log')
+        if self.suite and self.suite.check_filename_missing(self.logname):
+            os.remove(self.logname)
+
+        # Need to make sure output dirs exists before first call to self.append_log.
+        for output_dir in [os.path.dirname(fn) for fn in self.task.output_filenames]:
+            if not os.path.exists(output_dir):
+                logger.debug('creating output_dir: {}', output_dir)
+                os.makedirs(output_dir)
+
+    def already_started_analysing(self):
+        missing = self.suite.check_filename_missing(self.logname)
+        return os.path.exists(self.logname) or missing
+
+    def already_analysed(self):
+        missing_filenames = []
+        for output_filename in self.task.output_filenames:
+            done_filename = output_filename + '.done'
+            not_missing = not self.suite.check_filename_missing(done_filename)
+            if (not os.path.exists(done_filename) and not_missing):
+                missing_filenames.append(output_filename)
+        return missing_filenames == []
+
+    def append_log(self, message):
+        logger.debug('{}: {}', self.analysis_name, message)
+        with open(self.logname, 'a') as f:
+            f.write('{}: {}\n'.format(dt.datetime.now(), message))
+
+    def load_cubes(self):
+        self.append_log('Loading cubes')
+
+        if self.multi_file:
+            filenames = self.task.filenames
+            for filename in filenames:
+                self.suite.abort_if_missing(filename)
+            cubes = iris.load(filenames)
+            self.cubes = iris.cube.CubeList.concatenate(cubes)
+        else:
+            if self.multi_expt:
+                filenames = self.task.filenames
+                self.expt_cubes = OrderedDict()
+                for expt, filename in zip(self.task.expts, filenames):
+                    logger.debug('loading fn:{}', filename)
+                    self.suite.abort_if_missing(filename)
+                    self.expt_cubes[expt] = iris.load(filename)
+            else:
+                filename = self.task.filenames[0]
+                logger.debug('loading {}', filename)
+                self.suite.abort_if_missing(filename)
+                self.cubes = iris.load(filename)
+
+        self.append_log('Loaded cubes')
+
+    def save_results_cubes(self, state=None, suite=None):
+        self.append_log('Saving cubes')
+
+        cubelist_filename = self.output_filename
+        for cube_id, cube in self.results.items():
+            logger.debug('saving cube: {}', cube.name())
+            logger.debug('omnium_cube_id: {}', cube_id)
+            logger.debug('cube shape: {}', cube.shape)
+
+            cube.attributes['omnium_vn'] = get_version('long')
+            cube.attributes['omnium_cube_id'] = cube_id
+
+            if state:
+                cube.attributes['omnium_git_hash'] = state.git_hash
+                cube.attributes['omnium_git_status'] = state.git_status
+            if suite:
+                hash_str = ':'.join([h.decode() for h in suite.analysis_hash])
+                cube.attributes['omnium_analysers_git_hash'] = hash_str
+                cube.attributes['omnium_analysers_git_status'] = ':'.join(suite.analysis_status)
+
+            cube.attributes['omnium_process'] = self.analysis_name
+
+        cubelist = iris.cube.CubeList(list(self.results.values()))
+        if not len(cubelist):
+            logger.warning('No results to save')
+        else:
+            logger.debug('saving to {}', cubelist_filename)
+            # logger.debug('Not using zlib')
+            # TODO: Make this a setting somewhere.
+            # Use default compression: complevel 4.
+            if os.path.exists(cubelist_filename) and os.path.islink(cubelist_filename):
+                logger.debug('Removing symlink')
+                os.remove(cubelist_filename)
+            iris.save(cubelist, cubelist_filename, zlib=True)
+            # iris.save(cubelist, cubelist_filename)
+
+        self.append_log('Saved cubes')
 
     def analysis_load(self):
         self.append_log('Loading')
@@ -72,7 +186,7 @@ class Analyser(object):
         self.run()
         self.append_log('Analysed')
 
-    def analysis_save(self, state=None, suite=None):
+    def analysis_save(self, state, suite):
         self.append_log('Saving')
         self.save(state, suite)
         self.append_log('Saved')
@@ -93,89 +207,26 @@ class Analyser(object):
         if missing_filenames:
             raise OmniumError('Some output filenames not produced: {}'.format(missing_filenames))
         for output_filename in self.task.output_filenames:
+            logger.info('Created filename: {}', output_filename)
             open(output_filename + '.done', 'a').close()
-
-    def already_analysed(self):
-        return os.path.exists(self.logname) and not self.suite.check_filename_missing(self.logname)
-
-    def append_log(self, message):
-        logger.debug('{}: {}', self.analysis_name, message)
-        with open(self.logname, 'a') as f:
-            f.write('{}: {}\n'.format(dt.datetime.now(), message))
-
-    def load_cubes(self):
-        self.append_log('Loading')
-
-        if self.multi_file:
-            filenames = self.task.filenames
-            for filename in filenames:
-                self.suite.abort_if_missing(filename)
-            cubes = iris.load(filenames)
-            self.cubes = iris.cube.CubeList.concatenate(cubes)
-
-        else:
-            if self.multi_expt:
-                filenames = self.task.filenames
-                self.expt_cubes = OrderedDict()
-                for expt, filename in zip(self.expts, filenames):
-                    logger.debug('loading fn:{}', filename)
-                    self.suite.abort_if_missing(filename)
-                    self.expt_cubes[expt] = iris.load(filename)
-            else:
-                # assert len(task.filenames) == 1
-                filename = self.task.filenames[0]
-                logger.debug('loading {}', filename)
-                self.suite.abort_if_missing(filename)
-                self.cubes = iris.load(filename)
-
-        self.append_log('Loaded')
+        self.append_log('Done')
 
     def save_text(self, name, text):
-        filepath = self.display_path(name)
-        logger.debug('Saving text to: {}', filepath)
+        file_path = self.file_path(name)
+        logger.debug('Saving text to: {}', file_path)
         for line in text.split('\n'):
             logger.debug(line)
 
-        with open(filepath, 'w') as f:
+        with open(file_path, 'w') as f:
             f.write(text)
 
-    def save_cube_results(self, cubelist_filename, state=None, suite=None):
-        self.append_log('Saving cubelist'.format(cubelist_filename))
+    def file_path(self, name):
+        file_path_dir = os.path.dirname(self.output_filename)
 
-        for cube_id, cube in self.cube_results.items():
-            logger.debug('saving cube: {}', cube.name())
-            logger.debug('omnium_cube_id: {}', cube_id)
-            logger.debug('cube shape: {}', cube.shape)
+        if not os.path.exists(file_path_dir):
+            logger.debug('making dir: {}', file_path_dir)
+            os.makedirs(file_path_dir)
 
-            cube.attributes['omnium_vn'] = get_version('long')
-            cube.attributes['omnium_cube_id'] = cube_id
-
-            if state:
-                cube.attributes['omnium_git_hash'] = state.git_hash
-                cube.attributes['omnium_git_status'] = state.git_status
-            if suite:
-                hash_str = ':'.join([h.decode() for h in suite.analysis_hash])
-                cube.attributes['omnium_analysers_git_hash'] = hash_str
-                cube.attributes['omnium_analysers_git_status'] = ':'.join(suite.analysis_status)
-
-            cube.attributes['omnium_process'] = self.analysis_name
-
-        cubelist = iris.cube.CubeList(list(self.cube_results.values()))
-        if not len(cubelist):
-            logger.warning('No cube_results to save')
-        else:
-            logger.debug('saving to {}', cubelist_filename)
-            # logger.debug('Not using zlib')
-            # TODO: Make this a setting somewhere.
-            # Use default compression: complevel 4.
-            if os.path.exists(cubelist_filename) and os.path.islink(cubelist_filename):
-                logger.debug('Removing symlink')
-                os.remove(cubelist_filename)
-            iris.save(cubelist, cubelist_filename, zlib=True)
-            # iris.save(cubelist, cubelist_filename)
-
-        self.append_log('Saved cubelist'.format(cubelist_filename))
-
-    def display_path(self, name):
-        output_dir = os.path.dirname(self.task.output_filenames[0])
-        return os.path.join(self.suite.suite_dir, output_dir, name)
+        filename = os.path.join(file_path_dir, name)
+        logger.debug('using filename: {}', filename)
+        return filename

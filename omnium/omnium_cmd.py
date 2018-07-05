@@ -65,7 +65,6 @@ def main(argv, import_log_msg=''):
             logging_filename = suite.logging_filename
 
         add_file_logging(logging_filename)
-    logger.debug(args)
     suite.load_analysers()
 
     if omnium_dev:
@@ -74,6 +73,7 @@ def main(argv, import_log_msg=''):
         logger.info(omnium)
     logger.debug('omnium import: {}', import_log_msg)
     logger.debug(' '.join(argv))
+    logger.debug(args)
     logger.debug(args.cmd_name)
     logger.debug('cylc_control: {}', cylc_control)
 

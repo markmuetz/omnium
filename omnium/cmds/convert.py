@@ -2,7 +2,6 @@
 import os
 from logging import getLogger
 
-from configparser import ConfigParser
 from omnium.task import Task
 
 logger = getLogger('om.convert')
@@ -17,16 +16,11 @@ RUN_OUTSIDE_SUITE = True
 def main(suite, args):
     from omnium.converter import FF2NC_Converter
     cwd = os.getcwd()
-    cp = ConfigParser()
-    cp.add_section('convert')
-    cp.set('convert', 'delete', str(args.delete))
-    cp.set('convert', 'force', str(args.force))
-    cp.set('convert', 'zlib', str(args.zlib))
-
     for i, filename in enumerate(args.filenames):
+
         output_filename = filename + '.nc'
-        task = Task(i, None, None, None, 'converter', 'ff2nc_convert', 'ff2nc_convert',
-                    [filename], [output_filename])
-        converter = FF2NC_Converter(suite, task, cwd, None)
-        converter.set_config(cp['convert'])
+        task = Task(i, None, None, None, 'converter', 'ff2nc_convert',
+                    [os.path.join(cwd, filename)], [os.path.join(cwd, output_filename)])
+        converter = FF2NC_Converter(suite, task)
+        converter.set_opts(args.delete, args.zlib)
         converter.save(None, suite)
