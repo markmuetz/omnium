@@ -142,11 +142,18 @@ class Syncher(object):
                 dot_rel_filename = './' + rel_filename
             else:
                 dot_rel_filename = rel_filename
-            if dot_rel_filename[-4:] == '.lnk':
-                dot_rel_filename = dot_rel_filename[:-4]
+            logger.debug(dot_rel_filename)
+            if os.name == 'nt':
+                if rel_filename[-4:] == '.lnk':
+                    rel_filename = rel_filename[:-4]
+                if dot_rel_filename[-4:] == '.lnk':
+                    dot_rel_filename = dot_rel_filename[:-4]
+                rel_filename.replace('\\', '/')
+                dot_rel_filename.replace('\\', '/')
+
             if dot_rel_filename not in remote_index:
                 logger.debug('File not in "{}" index: {}', self.remote_name, rel_filename)
-                rel_filenames.remove(rel_filename)
+                # rel_filenames.remove(rel_filename)
 
         if not rel_filenames:
             logger.warning('No files to fetch')
@@ -155,6 +162,9 @@ class Syncher(object):
         remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
         # The '.' is important: it tells rsync what to use as its relative path.
         remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
+        if os.name == 'nt':
+            remote_rel_filenames = [fn.replace('\\', '/') for fn in remote_rel_filenames]
+            remote_rel_filenames = [fn[:-4] if fn[-4:] == '.lnk' else fn for fn in remote_rel_filenames]
         cmd = self.fetch_cmd_fmt.format(verbose=self.verbose,
                                         progress=self.progress,
                                         rel_filenames=' :'.join(remote_rel_filenames),
