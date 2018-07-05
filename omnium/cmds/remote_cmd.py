@@ -26,4 +26,3 @@ def main(suite, args):
     print(remote_path)
     print('')
     print(output.decode())
-
