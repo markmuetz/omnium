@@ -47,9 +47,6 @@ class ViewerControlWindow(QtGui.QMainWindow):
         self.time_slider_changed.connect(self.time_slider.setValue)
 
         self.timer = QtCore.QTimer(self)
-        # TODO: Remove.
-        # Works for Qt4.
-        # self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.fwd)
         self.timer.timeout.connect(self.fwd)
 
         if state:

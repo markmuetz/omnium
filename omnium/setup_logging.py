@@ -31,7 +31,8 @@ class BraceFormatter(logging.Formatter):
         # record.args is:
         #     extra args, or:
         # kwargs dict:.
-
+        record_args_orig = record.args
+        record_msg_orig = record.msg
         # replace record.msg with a BraceMessage and set record.args to ()
         if isinstance(record.args, dict):
             args = []
@@ -44,6 +45,10 @@ class BraceFormatter(logging.Formatter):
         # str(...) gets called on the BraceMessage.
         record.msg = BraceMessage(record.msg, *args, **kwargs)
         result = logging.Formatter.format(self, record)
+
+        # Leave everything as we found it.
+        record.args = record_args_orig
+        record.msg = record_msg_orig
 
         return result
 

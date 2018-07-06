@@ -58,35 +58,6 @@ class Syncher(object):
         logger.debug(cmd)
         sp.call(cmd, shell=True)
 
-    def _sync(self):
-        path = os.path.join(self.remote_base_path, self.suite.name)
-        ignore_stderr = '2>.omnium/sync.errlog'
-        cmd = self.sync_cmd_fmt.format(host=self.remote_host,
-                                       path=path,
-                                       remote_name=self.remote_name,
-                                       ignore_stderr=ignore_stderr)
-        logger.debug(cmd)
-        sp.call(cmd, shell=True)
-        with open(self.index_file_fmt.format(self.remote_name), 'r') as f:
-            lines = [l.strip() for l in f.readlines()]
-        logger.debug('found {} remote files', len(lines))
-
-        logger.info('Creating symlinks')
-        count = 0
-        for line in lines:
-            dirname = os.path.dirname(line)
-            if not os.path.exists(dirname):
-                logger.debug('Adding dir: {}', dirname)
-                os.makedirs(dirname)
-                print('{}/'.format(dirname))
-            if not (os.path.exists(line) or os.path.islink(line)):
-                logger.debug('Adding symlink: {}', line)
-                rel_path = os.path.relpath(self.suite.missing_file_path, os.path.dirname(line))
-                os.symlink(rel_path, line)
-                count += 1
-                print('{}'.format(line))
-        logger.info('Created {} symlinks', count)
-
     def sync(self):
         "Syncs a suite with files from remote host, must be used within a suite"
         if not self.suite.is_in_suite:
@@ -124,6 +95,59 @@ class Syncher(object):
         cwd = os.getcwd()
         os.chdir(self.suite.suite_dir)
 
+        remote_rel_filenames = self._find_remote_rel_filenames(rel_filenames)
+
+        cmd = self.fetch_cmd_fmt.format(verbose=self.verbose,
+                                        progress=self.progress,
+                                        rel_filenames=' :'.join(remote_rel_filenames),
+                                        host=self.remote_host)
+        logger.debug(cmd)
+
+        sp.call(cmd, shell=True)
+        os.chdir(cwd)
+
+    def file_info(self, rel_filenames):
+        os.chdir(self.suite.suite_dir)
+
+        remote_rel_filenames = self._find_remote_rel_filenames(rel_filenames)
+
+        path = os.path.join(self.remote_base_path, self.suite.name)
+        cmd = self.info_cmd_fmt.format(path=path,
+                                       rel_filenames=' '.join(remote_rel_filenames),
+                                       host=self.remote_host)
+        logger.debug(cmd)
+
+        output = sp.check_output(cmd, shell=True)
+        logger.debug(output)
+        return output.decode('utf-8').split('\n')[:-1]
+
+    def file_cat(self, rel_filename):
+        os.chdir(self.suite.suite_dir)
+
+        remote_rel_filenames = self._find_remote_rel_filenames([rel_filename])
+        assert len(remote_rel_filenames) == 1
+        remote_rel_filename = remote_rel_filenames[0]
+
+        path = os.path.join(self.remote_base_path, self.suite.name)
+        cmd = self.cat_cmd_fmt.format(path=path,
+                                      rel_filename=remote_rel_filename,
+                                      host=self.remote_host)
+        logger.debug(cmd)
+
+        output = sp.check_output(cmd, shell=True)
+        logger.debug(output)
+        return output
+
+    def run_cmd(self, rel_dir, remote_cmd):
+        path = os.path.join(self.remote_base_path, self.suite.name, rel_dir)
+        cmd = self.remote_cmd_fmt.format(path=path,
+                                         host=self.remote_host,
+                                         cmd=remote_cmd)
+        logger.debug(cmd)
+        output = sp.check_output(cmd, shell=True)
+        return path, output
+
+    def _find_remote_rel_filenames(self, rel_filenames):
         remote_index_file = self.index_file_fmt.format(self.remote_name)
         if not os.path.exists(remote_index_file):
             logger.info('No remote index for "{}", syncing', self.remote_name)
@@ -152,97 +176,33 @@ class Syncher(object):
         remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
         # The '.' is important: it tells rsync what to use as its relative path.
         remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
-        cmd = self.fetch_cmd_fmt.format(verbose=self.verbose,
-                                        progress=self.progress,
-                                        rel_filenames=' :'.join(remote_rel_filenames),
-                                        host=self.remote_host)
-        logger.debug(cmd)
+        return remote_rel_filenames
 
+    def _sync(self):
+        path = os.path.join(self.remote_base_path, self.suite.name)
+        ignore_stderr = '2>.omnium/sync.errlog'
+        cmd = self.sync_cmd_fmt.format(host=self.remote_host,
+                                       path=path,
+                                       remote_name=self.remote_name,
+                                       ignore_stderr=ignore_stderr)
+        logger.debug(cmd)
         sp.call(cmd, shell=True)
-        os.chdir(cwd)
+        with open(self.index_file_fmt.format(self.remote_name), 'r') as f:
+            lines = [l.strip() for l in f.readlines()]
+        logger.debug('found {} remote files', len(lines))
 
-    def file_info(self, rel_filenames):
-        cwd = os.getcwd()
-        os.chdir(self.suite.suite_dir)
-
-        remote_index_file = self.index_file_fmt.format(self.remote_name)
-        if not os.path.exists(remote_index_file):
-            logger.info('No remote index for "{}", syncing', self.remote_name)
-            self.sync()
-
-        with open(remote_index_file, 'r') as f:
-            remote_index = OrderedDict([(l.strip(), 1) for l in f.readlines()])
-
-        for rel_filename in rel_filenames:
-            if os.path.isdir(rel_filename):
-                continue
-
-            if rel_filename[:2] != './':
-                dot_rel_filename = './' + rel_filename
-            else:
-                dot_rel_filename = rel_filename
-            if dot_rel_filename not in remote_index:
-                logger.debug('File not in "{}" index: {}', self.remote_name, rel_filename)
-                rel_filenames.remove(rel_filename)
-
-        if not rel_filenames:
-            logger.warning('No files to fetch')
-            return
-
-        remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
-        # The '.' is important: it tells rsync what to use as its relative path.
-        remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
-
-        path = os.path.join(self.remote_base_path, self.suite.name)
-        cmd = self.info_cmd_fmt.format(path=path,
-                                       rel_filenames=' '.join(rel_filenames),
-                                       host=self.remote_host)
-        logger.debug(cmd)
-
-        output = sp.check_output(cmd, shell=True)
-        logger.debug(output)
-        return output.decode('utf-8').split('\n')[:-1]
-
-    def run_cmd(self, rel_dir, remote_cmd):
-        path = os.path.join(self.remote_base_path, self.suite.name, rel_dir)
-        cmd = self.remote_cmd_fmt.format(path=path,
-                                         host=self.remote_host,
-                                         cmd=remote_cmd)
-        logger.debug(cmd)
-        output = sp.check_output(cmd, shell=True)
-        return path, output
-
-    def file_cat(self, rel_filename):
-        # TODO: rm duplication between this, file_info and fetch
-        cwd = os.getcwd()
-        os.chdir(self.suite.suite_dir)
-
-        remote_index_file = self.index_file_fmt.format(self.remote_name)
-        if not os.path.exists(remote_index_file):
-            logger.info('No remote index for "{}", syncing', self.remote_name)
-            self.sync()
-
-        with open(remote_index_file, 'r') as f:
-            remote_index = OrderedDict([(l.strip(), 1) for l in f.readlines()])
-
-        if os.path.isdir(rel_filename):
-            return ''
-
-        if rel_filename[:2] != './':
-            rel_filename = './' + rel_filename
-        if rel_filename not in remote_index:
-            logger.warning('File not in "{}" index: {}', self.remote_name, rel_filename)
-            return
-
-        remote_suite_path = os.path.join(self.remote_base_path, self.suite.name)
-        # The '.' is important: it tells rsync what to use as its relative path.
-        # remote_rel_filenames = [os.path.join(remote_suite_path, '.', fn) for fn in rel_filenames]
-        path = os.path.join(self.remote_base_path, self.suite.name)
-        cmd = self.cat_cmd_fmt.format(path=path,
-                                      rel_filename=rel_filename,
-                                      host=self.remote_host)
-        logger.debug(cmd)
-
-        output = sp.check_output(cmd, shell=True)
-        logger.debug(output)
-        return output
+        logger.info('Creating symlinks')
+        count = 0
+        for line in lines:
+            dirname = os.path.dirname(line)
+            if not os.path.exists(dirname):
+                logger.debug('Adding dir: {}', dirname)
+                os.makedirs(dirname)
+                print('{}/'.format(dirname))
+            if not (os.path.exists(line) or os.path.islink(line)):
+                logger.debug('Adding symlink: {}', line)
+                rel_path = os.path.relpath(self.suite.missing_file_path, os.path.dirname(line))
+                os.symlink(rel_path, line)
+                count += 1
+                print('{}'.format(line))
+        logger.info('Created {} symlinks', count)

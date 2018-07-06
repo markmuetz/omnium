@@ -51,7 +51,6 @@ class Suite(object):
         return False
 
     def load(self, cwd):
-        # TODO: MAJOR: logic of this and init need to be tidied up.
         # Distinguish between .omnium and rose-suite.conf existing.
         # Set up accordingly etc.
         suite_dir = cwd
@@ -75,21 +74,6 @@ class Suite(object):
                 self.suite_config.read_file(f)
             logger.debug('loaded suite config')
             self.settings = self.suite_config['settings']
-
-        # TODO: Delete or reinstate.
-        if False and self.cylc_control:
-            cylc_suite_run_dir = os.getenv('CYLC_SUITE_RUN_DIR')
-            # Problem can arise if different name used for same path.
-            # e.g. /fs2 or /work ...
-            if suite_dir != cylc_suite_run_dir:
-                # Being run through cylc, but *not in* the
-                # TODO: HACKY!
-                omnium_app_conf_path = 'app/omnium/rose-app.conf'
-                src = os.path.join(cylc_suite_run_dir, omnium_app_conf_path)
-                dst = os.path.join(suite_dir, omnium_app_conf_path)
-                logger.debug('Copying omnium conf from {}', src)
-                logger.debug('                      to {}', dst)
-                shutil.copyfile(src, dst)
 
         # Check for omnium app.
         if os.path.exists(os.path.join(self.suite_dir, 'app/omnium/rose-app.conf')):
@@ -143,7 +127,6 @@ class Suite(object):
                 if os.path.exists(suite_name):
                     raise OmniumError('dir {} already exists'.format(suite_name))
                 logger.debug('creating in {}', os.path.abspath(suite_name))
-                # TODO: sanitize.
                 os.makedirs(suite_name)
                 os.chdir(suite_name)
             elif not os.path.exists('rose-suite.info'):

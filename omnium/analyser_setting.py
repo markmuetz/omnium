@@ -26,6 +26,9 @@ class AnalyserSetting:
     def __ne__(self, other: 'AnalyserSetting') -> bool:
         return not self == other
 
+    def has_item(self, item: str) -> bool:
+        return item in self._settings
+
     def load(self, loc: str) -> None:
         self.from_json(open(loc, 'r').read())
 

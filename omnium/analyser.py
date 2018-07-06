@@ -33,6 +33,7 @@ class Analyser(abc.ABC):
     min_runid = 0
     max_runid = int(1e10)
     runid_pattern = None
+    delete = False
 
     @abc.abstractmethod
     def load(self):
@@ -162,14 +163,17 @@ class Analyser(abc.ABC):
             logger.warning('No results to save')
         else:
             logger.debug('saving to {}', cubelist_filename)
-            # logger.debug('Not using zlib')
-            # TODO: Make this a setting somewhere.
-            # Use default compression: complevel 4.
+            save_kwargs = {'zlib': True}
+            if self.settings.has_item('zlib'):
+                save_kwargs['zlib'] = self.settings.zlib
+            if self.settings.has_item('complevel'):
+                save_kwargs['complevel'] = self.settings.complevel
+            logger.debug('Using save_kwargs: {}', str(save_kwargs))
+
             if os.path.exists(cubelist_filename) and os.path.islink(cubelist_filename):
                 logger.debug('Removing symlink')
                 os.remove(cubelist_filename)
-            iris.save(cubelist, cubelist_filename, zlib=True)
-            # iris.save(cubelist, cubelist_filename)
+            iris.save(cubelist, cubelist_filename, **save_kwargs)
 
         self.append_log('Saved cubes')
 

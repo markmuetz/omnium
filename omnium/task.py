@@ -198,7 +198,6 @@ class TaskMaster(object):
                     analyser_cls.analysis_name,
                     filenames, output_filenames)
 
-        # TODO: how to handle deps for suite tasks?
         for filename in filenames:
             if filename in self._filename_task_map:
                 prev_task = self._filename_task_map[filename]
@@ -289,10 +288,9 @@ class TaskMaster(object):
                         self.virtual_dir.append(output_filename)
                         self.virtual_dir.append(output_filename + '.done')
 
-            # TODO:
-            # if delete:
-            #     logger.debug('will delete file: {}', filtered_filename)
-            #     self.virtual_dir.remove(filtered_filename)
+            if analyser_cls.delete:
+                logger.debug('will delete file: {}', filtered_filename)
+                self.virtual_dir.remove(filtered_filename)
 
     def _gen_output_filenames(self, analyser_cls, dir_vars):
         output_filenames = []
