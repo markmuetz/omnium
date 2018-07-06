@@ -229,6 +229,6 @@ class Analyser(abc.ABC):
             logger.debug('making dir: {}', file_path_dir)
             os.makedirs(file_path_dir)
 
-        filename = os.path.join(file_path_dir, name)
+        filename = os.path.join(file_path_dir, self.analysis_name + '_' + name)
         logger.debug('using filename: {}', filename)
         return filename
