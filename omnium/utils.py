@@ -1,9 +1,12 @@
 import os
 import subprocess as sp
+from logging import getLogger
 
 import iris
 import numpy as np
 from omnium.omnium_errors import OmniumError
+
+logger = getLogger('om.utils')
 
 
 def get_git_info(location):
@@ -74,3 +77,17 @@ def get_cubes(cubes, section, item):
         return iris.cube.CubeList(ret_cubes)
     else:
         raise OmniumError('No cubes found ({}, {})'.format(section, item))
+
+
+class cd:
+    def __init__(self, dir):
+        self.dir = dir
+
+    def __enter__(self):
+        self.cwd = os.getcwd()
+        logger.debug('cd to {}', self.dir)
+        os.chdir(self.dir)
+
+    def __exit__(self, type, value, traceback):
+        logger.debug('cd to {}', self.cwd)
+        os.chdir(self.cwd)

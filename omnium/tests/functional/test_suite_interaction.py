@@ -112,3 +112,7 @@ def test_send():
     omnium_main(['omnium', 'send', filename])
     assert os.path.exists(remote_filename)
     os.remove(remote_filename)
+    
+    
+def test_remote_command():
+    omnium_main(['omnium', 'remote-cmd', 'du -hs'])

@@ -24,3 +24,5 @@ def main(suite, args):
             rel_filenames.append(os.path.join(rel_dir, filename))
 
     syncher.send(rel_filenames)
+    for filename in args.filenames:
+        logger.info('Sent {} to "{}"', filename, syncher.remote_name)
