@@ -1,13 +1,11 @@
 import hashlib
 from typing import Any, Dict
-from types import ModuleType
 
 import simplejson
 
 
 class AnalyserSetting:
-    def __init__(self, package: ModuleType, settings: Dict[str, Any]=None):
-        self.package = package
+    def __init__(self, settings: Dict[str, Any]=None):
         if settings:
             for key in settings.keys():
                 assert isinstance(key, str)
@@ -53,4 +51,4 @@ class AnalyserSetting:
         self._settings = serializable_settings
 
     def get_hash(self) -> str:
-        return hashlib.sha1(self.package.__name__.encode() + self.to_json().encode()).hexdigest()
+        return hashlib.sha1(self.to_json().encode()).hexdigest()

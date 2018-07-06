@@ -13,9 +13,9 @@ logger = getLogger('om.analysers')
 
 
 class Analysers(object):
-    def __init__(self, analyser_packages):
-        self.analyser_packages = analyser_packages
-        self.analysis_packages_settings = {}
+    def __init__(self, analyser_package_names):
+        self.analyser_package_names = analyser_package_names
+        self.analysis_packages = {}
         self.analysis_classes = OrderedDict()
         self.analysis_hash = []
         self.analysis_status = []
@@ -28,15 +28,16 @@ class Analysers(object):
         if self.have_found:
             raise OmniumError('Should only call find_all once')
 
-        if self.analyser_packages:
+        if self.analyser_package_names:
             # First dir takes precedence over second etc.
-            for analyser_package in self.analyser_packages:
+            for analyser_package_name in self.analyser_package_names:
                 try:
-                    pkg = importlib.import_module(analyser_package)
+                    pkg = importlib.import_module(analyser_package_name)
                 except ImportError:
-                    logger.error("Package '{}' not found on PYTHONPATH", analyser_package)
+                    logger.error("Package '{}' not found on PYTHONPATH", analyser_package_name)
+                    continue
 
-                self.analysis_packages_settings[analyser_package] = pkg.analysis_settings
+                self.analysis_packages[analyser_package_name] = pkg
                 pkg_dir = os.path.dirname(pkg.__file__)
                 try:
                     pkg_hash, pkg_status = get_git_info(pkg_dir)
@@ -49,10 +50,10 @@ class Analysers(object):
 
                 for cls in pkg.analysis_classes:
                     if cls not in self.analysis_classes:
-                        self._cls_to_pkg[cls] = analyser_package
+                        self._cls_to_pkg[cls] = analyser_package_name
                         self.analysis_classes[cls.analysis_name] = cls
                         self.analysis_groups[cls.analysis_name] = \
-                            os.path.basename(analyser_package)
+                            os.path.basename(analyser_package_name)
                     else:
                         logger.warning('Multiple analysis classes named: {}', cls)
 
@@ -64,9 +65,17 @@ class Analysers(object):
         self.have_found = True
 
     def get_settings(self, analyser_cls, settings_name):
-        analyser_package = self._cls_to_pkg[analyser_cls]
-        settings_dict = self.analysis_packages_settings[analyser_package]
+        logger.debug('getting settings for {}', analyser_cls)
+        analyser_package_name = self._cls_to_pkg[analyser_cls]
+        package = self.analysis_packages[analyser_package_name]
+        logger.debug('{} in package {}', analyser_cls, package)
+        settings_dict = package.analysis_settings
         if settings_name not in settings_dict:
             raise OmniumError('Settings {} not defined in {}, choices are {}'
-                              .format(settings_name, analyser_package, settings_dict.keys()))
-        return settings_dict[settings_name]
+                              .format(settings_name, analyser_package_name, settings_dict.keys()))
+        return package.analysis_settings_filename, settings_dict[settings_name]
+
+    def get_package(self, analyser_cls):
+        analyser_package_name = self._cls_to_pkg[analyser_cls]
+        package = self.analysis_packages[analyser_package_name]
+        return package

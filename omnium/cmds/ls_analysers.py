@@ -10,10 +10,10 @@ RUN_OUTSIDE_SUITE = True
 
 def main(suite, args):
     omnium_analyser_pkgs = os.getenv('OMNIUM_ANALYSER_PKGS')
-    analyser_pkgs = []
+    analyser_pkg_names = []
     if omnium_analyser_pkgs:
-        analyser_pkgs = omnium_analyser_pkgs.split(':')
-    analysers = Analysers(analyser_pkgs)
+        analyser_pkg_names = omnium_analyser_pkgs.split(':')
+    analysers = Analysers(analyser_pkg_names)
     analysers.find_all()
     maxlen = max([len(k) for k in analysers.analysis_classes.keys()])
 

@@ -108,13 +108,14 @@ class ColourConsoleFormatter(logging.Formatter):
         return result
 
 
-def add_file_logging(logging_filename):
+def add_file_logging(logging_filename, root=True):
     root_logger = logging.getLogger()
 
-    if getattr(root_logger, 'has_file_logging', False):
+    if root and getattr(root_logger, 'has_file_logging', False):
         # Stops log being setup for a 2nd time during ipython reload(...)
         root_logger.debug('Root logger already has file logging')
     else:
+        root_logger.debug('Adding file handler {}', logging_filename)
         file_formatter = BraceFormatter('{asctime}:{name:12s}:{levelname:8s}: {message}',
                                         style='{')
         fileHandler = logging.FileHandler(logging_filename, mode='a')
@@ -122,7 +123,18 @@ def add_file_logging(logging_filename):
         fileHandler.setLevel(logging.DEBUG)
 
         root_logger.addHandler(fileHandler)
-        root_logger.has_file_logging = True
+        if root:
+            root_logger.has_file_logging = True
+
+
+def remove_file_logging(logging_filename):
+    root_logger = logging.getLogger()
+    handlers = [h for h in root_logger.handlers
+                if isinstance(h, logging.FileHandler) and h.baseFilename == logging_filename]
+    assert len(handlers) == 1
+    handler = handlers[0]
+    root_logger.handlers.remove(handler)
+    root_logger.debug('Removed file handler {}', logging_filename)
 
 
 def setup_logger(debug=False, colour=True, warn_stderr=False):

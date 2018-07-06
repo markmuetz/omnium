@@ -109,8 +109,6 @@ class Analyser(abc.ABC):
 
     def append_log(self, message):
         logger.debug('{}: {}', self.analysis_name, message)
-        with open(self.logname, 'a') as f:
-            f.write('{}: {}\n'.format(dt.datetime.now(), message))
 
     def load_cubes(self):
         self.append_log('Loading cubes')

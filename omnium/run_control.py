@@ -1,11 +1,12 @@
 import os
 from collections import OrderedDict
-from glob import glob
 from logging import getLogger
 
 from omnium.omnium_errors import OmniumError
 from omnium.state import State
 from omnium.task import TaskMaster
+from omnium.setup_logging import add_file_logging, remove_file_logging
+from omnium.analyser_setting import AnalyserSetting
 
 logger = getLogger('om.run_ctrl')
 
@@ -116,7 +117,7 @@ class RunControl(object):
             task.status = 'done'
             self.task_master.update_task(task.index, task.status)
         if not run_count:
-            logger.warn('No tasks were run')
+            logger.warning('No tasks were run')
 
     def run_single_analysis(self, analysis_name):
         all_tasks = self.task_master.all_tasks
@@ -136,8 +137,19 @@ class RunControl(object):
         logger.debug('running: {}', task)
         analyser_cls = self.analysis_classes[task.analysis_name]
 
-        settings = self.suite.analysers.get_settings(analyser_cls, self.settings_name)
+        settings_filename_fmt, settings = self.suite.analysers.get_settings(analyser_cls,
+                                                                            self.settings_name)
         analyser = analyser_cls(self.suite, task, settings)
+        dir_vars = {'version_dir': self.task_master._get_version_dir(analyser_cls)}
+        settings_filename = settings_filename_fmt.format(**dir_vars)
+        if not os.path.exists(settings_filename):
+            if not os.path.exists(os.path.dirname(settings_filename)):
+                os.makedirs(os.path.dirname(settings_filename))
+            settings.save(settings_filename)
+        else:
+            loaded_settings = AnalyserSetting()
+            loaded_settings.load(settings_filename)
+            assert loaded_settings == settings, 'settings not equal to loaded settings.'
 
         run_analysis = not analyser.already_analysed()
         if self.no_run_if_started and analyser.already_started_analysing():
@@ -146,12 +158,16 @@ class RunControl(object):
             run_analysis = True
 
         if run_analysis:
+            add_file_logging(analyser.logname, root=False)
+
             analyser.analysis_load()
             analyser.analysis_run()
             analyser.analysis_save(self.state, self.suite)
             analyser.analysis_display()
             analyser.analysis_done()
             logger.info('Task run: {}', analyser.analysis_name)
+
+            remove_file_logging(analyser.logname)
         else:
             logger.info('Task already run: {}', analyser.analysis_name)
 

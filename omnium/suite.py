@@ -123,10 +123,10 @@ class Suite(object):
     def load_analysers(self):
         omnium_analysers_pkgs = os.getenv('OMNIUM_ANALYSER_PKGS')
         if omnium_analysers_pkgs:
-            analyser_pkgs = omnium_analysers_pkgs.split(':')
+            analyser_pkg_names = omnium_analysers_pkgs.split(':')
         else:
-            analyser_pkgs = []
-        self.analysers = Analysers(analyser_pkgs)
+            analyser_pkg_names = []
+        self.analysers = Analysers(analyser_pkg_names)
         self.analysers.find_all()
         self.analysis_hash.extend(self.analysers.analysis_hash)
         self.analysis_status.extend(self.analysers.analysis_status)
