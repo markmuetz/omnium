@@ -41,7 +41,7 @@ def coarse_grain(data, mask, npow=None):
     # Don't go to the grid scale (i.e. don't use npow + 1).
     for n in 2**np.arange(npow):
         coarse = np.zeros((n, n))
-        l = nx / n
+        l = nx // n
         for i in range(n):
             s1 = slice(i * l, (i + 1) * l)
             for j in range(n):

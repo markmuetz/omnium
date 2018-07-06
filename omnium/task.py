@@ -345,6 +345,7 @@ class TaskMaster(object):
         if analyser_cls.input_filename_glob:
             filename_glob = os.path.join(self._suite.suite_dir,
                                          analyser_cls.input_filename_glob.format(**dir_vars))
+            logger.debug('Using glob: {}', filename_glob)
             filtered_filenames = sorted(fnmatch.filter(self.virtual_dir, filename_glob))
         elif analyser_cls.input_filenames or analyser_cls.input_filename:
             if analyser_cls.input_filename:
