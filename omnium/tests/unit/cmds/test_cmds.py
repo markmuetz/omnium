@@ -1,3 +1,4 @@
+# I know it's deprecated, but I don't know how to use importlib to achieve same result.
 import imp
 import os
 from unittest import TestCase
@@ -7,9 +8,13 @@ from mock import patch
 from omnium.converter import FF2NC_Converter
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
-from omnium.viewers.viewer_control import ViewerControlWindow
 from omnium.cmds import modules
-from pyqtgraph.Qt import QtGui
+try:
+    from omnium.viewers.viewer_control import ViewerControlWindow
+    from pyqtgraph.Qt import QtGui
+    test_viewer = True
+except ImportError:
+    test_viewer = False
 
 
 def test_src_generator():
@@ -61,9 +66,10 @@ class TestCmds(TestCase):
         # https://stackoverflow.com/a/5850288/54557
         imp.load_source('__main__', os.path.join(os.path.dirname(omnium.__file__), 'version.py'))
 
-    @patch.object(QtGui.QApplication, 'exec_')
-    @patch.object(ViewerControlWindow, 'show')
-    def test_viewer_control(self, mock_show, mock_exec):
-        omnium_main(['omnium', 'viewer'])
-        mock_show.assert_called()
-        mock_exec.assert_called()
+    if test_viewer:
+        @patch.object(QtGui.QApplication, 'exec_')
+        @patch.object(ViewerControlWindow, 'show')
+        def test_viewer_control(self, mock_show, mock_exec):
+            omnium_main(['omnium', 'viewer'])
+            mock_show.assert_called()
+            mock_exec.assert_called()
