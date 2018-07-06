@@ -11,7 +11,10 @@ def main(suite, args):
         import os
         import datetime as dt
         import numpy as np
-        import pylab as plt
+        try:
+            import pylab as plt
+        except ImportError:
+            pass
 
         import iris
 
