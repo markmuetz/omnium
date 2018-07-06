@@ -17,10 +17,12 @@ def main(suite, args):
     from omnium.converter import FF2NC_Converter
     cwd = os.getcwd()
     for i, filename in enumerate(args.filenames):
-
         output_filename = filename + '.nc'
         task = Task(i, None, None, None, 'converter', 'ff2nc_convert',
                     [os.path.join(cwd, filename)], [os.path.join(cwd, output_filename)])
         converter = FF2NC_Converter(suite, task, None)
-        converter.set_opts(args.delete, args.zlib)
+        converter.delete = args.delete
+        converter.force = args.force
+        converter.zlib = args.zlib
         converter.save(None, suite)
+        converter.analysis_done()

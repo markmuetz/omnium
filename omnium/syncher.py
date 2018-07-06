@@ -100,15 +100,14 @@ class Syncher(object):
             sp.call(cmd, shell=True)
 
     def fetch(self, rel_filenames):
-        remote_rel_filenames = self._find_remote_rel_filenames(rel_filenames)
-
-        cmd = self._format_cmd('fetch',
-                               verbose=self.verbose,
-                               progress=self.progress,
-                               rel_filenames=' :'.join(remote_rel_filenames),
-                               host=self.remote_host)
-
         with cd(self.suite.suite_dir):
+            remote_rel_filenames = self._find_remote_rel_filenames(rel_filenames)
+            cmd = self._format_cmd('fetch',
+                                   verbose=self.verbose,
+                                   progress=self.progress,
+                                   rel_filenames=' :'.join(remote_rel_filenames),
+                                   host=self.remote_host)
+
             sp.call(cmd, shell=True)
 
     def file_info(self, rel_filenames):

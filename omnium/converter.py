@@ -12,20 +12,17 @@ logger = getLogger('om.converters')
 
 
 class FF2NC_Converter(Analyser):
-    # TODO: obs.
     analysis_name = 'ff2nc_converter'
-    standard_patterns = ['.*\.pp\d', '^atmosa_da(?P<ts>\d{3}$)']
-    out_ext = '.nc'
     single_file = True
-    input_dir = 'dummy'
-    input_filename = 'dummy'
-    output_dir = 'dummy'
-    output_filenames = ['dummy']
+    input_dir = 'work/20000101T0000Z/{expt}_atmos'
+    input_filename = '{input_dir}/atmos.pp1'
+    output_dir = 'work/20000101T0000Z/{expt}_atmos'
+    output_filenames = ['{output_dir}/atmos.pp1.nc']
 
-    def set_opts(self, delete, zlib):
-        self.delete = delete
-        self.zlib = zlib
-        self.verify = False
+    zlib = True
+    force = False
+    delete = False
+    verify = False
 
     def do_verify(self, converted_filename):
         logger.info('Verifying')
@@ -59,8 +56,9 @@ class FF2NC_Converter(Analyser):
 
     def save(self, state=None, suite=None):
         self.messages = ['archer_analysis convert ' + self.analysis_name]
+        input_filename = self.task.filenames[0]
         converted_filename = self.task.output_filenames[0]
-        logger.info('Convert: {} -> {}', self.filename, converted_filename)
+        logger.info('Convert: {} -> {}', input_filename, converted_filename)
 
         if os.path.exists(converted_filename):
             if self.force:
@@ -77,13 +75,13 @@ class FF2NC_Converter(Analyser):
                 logger.info('Already converted')
                 return converted_filename
 
-        self.cubes = iris.load(self.filename)
+        self.cubes = iris.load(input_filename)
 
-        self.messages.append('Original filename: {}'.format(self.filename))
+        self.messages.append('Original filename: {}'.format(input_filename))
         self.messages.append('New filename: {}'.format(converted_filename))
 
         if len(self.cubes) == 0:
-            logger.warning('{} contains no data', self.filename)
+            logger.warning('{} contains no data', input_filename)
         else:
             logger.debug('Saving data to:{} (zlib={})', converted_filename, self.zlib)
             # Use default compression: complevel 4.
@@ -93,13 +91,8 @@ class FF2NC_Converter(Analyser):
             self.do_verify(converted_filename)
 
         if self.delete:
-            logger.info('Delete: {}', self.filename)
-            os.remove(self.filename)
+            logger.info('Delete: {}', input_filename)
+            os.remove(input_filename)
             self.messages.append('Deleted original')
-
-        with open(converted_filename + '.done', 'w') as f:
-            logger.debug('Writing ' + converted_filename + '.done')
-            f.write('\n'.join(self.messages))
-            f.write('\n')
 
         return converted_filename

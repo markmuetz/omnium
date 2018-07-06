@@ -29,10 +29,12 @@ def _test_module_docstring(command_module):
 
 class TestCmds(TestCase):
     """Only test commands that can be run outside of an omnium suite."""
+    @patch.object(FF2NC_Converter, 'analysis_done')
     @patch.object(FF2NC_Converter, 'save')
-    def test_convert(self, mock_save):
+    def test_convert(self, mock_save, mock_done):
         omnium_main(['omnium', 'convert', 'filename'])
         mock_save.assert_called()
+        mock_done.assert_called()
 
     @patch('IPython.embed')
     def test_shell(self, mock_embed):

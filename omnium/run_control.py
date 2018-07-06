@@ -156,6 +156,7 @@ class RunControl(object):
             run_analysis = False
         if analyser.force or self.force:
             run_analysis = True
+            analyser.force = True
 
         if run_analysis:
             add_file_logging(analyser.logname, root=False)

@@ -33,6 +33,8 @@ class Analyser(abc.ABC):
     min_runid = 0
     max_runid = int(1e10)
     runid_pattern = None
+
+    force = False
     delete = False
 
     @abc.abstractmethod
@@ -82,7 +84,6 @@ class Analyser(abc.ABC):
 
         logger.debug('output_filename: {}', self.output_filename)
         self.results = OrderedDict()
-        self.force = False
         # N.B. there is only one output_dir, even for multi_expt
         logdir = os.path.dirname(self.output_filename)
         self.logname = os.path.join(logdir, self.output_filename + '.log')

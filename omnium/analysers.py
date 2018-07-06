@@ -57,11 +57,6 @@ class Analysers(object):
                     else:
                         logger.warning('Multiple analysis classes named: {}', cls)
 
-        self.analysis_classes[FF2NC_Converter.analysis_name] = FF2NC_Converter
-        self.analysis_groups[FF2NC_Converter.analysis_name] = 'omnium'
-
-        self.analysis_classes[Deleter.analysis_name] = Deleter
-        self.analysis_groups[Deleter.analysis_name] = 'omnium'
         self.have_found = True
 
     def get_settings(self, analyser_cls, settings_name):
