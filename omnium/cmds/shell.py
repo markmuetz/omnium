@@ -11,10 +11,6 @@ def main(suite, args):
         import os
         import datetime as dt
         import numpy as np
-        try:
-            import pylab as plt
-        except ImportError:
-            pass
 
         import iris
 
@@ -29,7 +25,13 @@ def main(suite, args):
         stash = Stash()
         state = State()
 
-        for module in [os, dt, np, plt, iris, om]:
+        modules = [os, dt, np, iris, om]
+        try:
+            import pylab as plt
+            modules.append(plt)
+        except ImportError:
+            pass
+        for module in modules:
             print('Loaded module: {}'.format(module.__name__))
 
         for cls in [OmniumError, Stash, RunControl, Syncher, FF2NC_Converter]:
