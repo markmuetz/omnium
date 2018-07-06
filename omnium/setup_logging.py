@@ -35,11 +35,10 @@ class BraceFormatter(logging.Formatter):
         record_msg_orig = record.msg
         # replace record.msg with a BraceMessage and set record.args to ()
         if isinstance(record.args, dict):
-            args = []
-            kwargs = record.args
+            args = (record.args,)
         else:
             args = record.args
-            kwargs = {}
+        kwargs = {}
         record.args = ()
         # N.B. msg has not been formatted yet. It will get formatted when
         # str(...) gets called on the BraceMessage.
@@ -67,22 +66,6 @@ class ColourConsoleFormatter(logging.Formatter):
         logging.Formatter.__init__(self, fmt, style=style)
 
     def format(self, record):
-
-        # record.msg is whatever was passed into e.g. logger.debug(...).
-        # record.args is:
-        #     extra args, or:
-        # kwargs dict:.
-
-        # replace record.msg with a BraceMessage and set record.args to ()
-        # import ipdb; ipdb.set_trace()
-        if isinstance(record.args, dict):
-            args = []
-            kwargs = record.args
-        else:
-            args = record.args
-            kwargs = {}
-        record.args = ()
-        record.msg = BraceMessage(record.msg, *args, **kwargs)
         # Save the original format configured by the user
         # when the logger formatter was instantiated
         format_orig = self._fmt
@@ -102,7 +85,7 @@ class ColourConsoleFormatter(logging.Formatter):
         if hasattr(self, '_style'):
             self._style._fmt = self._fmt
 
-        # Call the original formatter class to do the grunt work
+        # Call the BraceFormatter formatter class to do the grunt work
         result = BraceFormatter.format(self, record)
 
         # Restore the original format configured by the user

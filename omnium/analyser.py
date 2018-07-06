@@ -169,7 +169,7 @@ class Analyser(abc.ABC):
                 save_kwargs['zlib'] = self.settings.zlib
             if self.settings.has_item('complevel'):
                 save_kwargs['complevel'] = self.settings.complevel
-            logger.debug('Using save_kwargs: {}', str(save_kwargs))
+            logger.debug('Using save_kwargs: {}', save_kwargs)
 
             if os.path.exists(cubelist_filename) and os.path.islink(cubelist_filename):
                 logger.debug('Removing symlink')
