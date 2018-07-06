@@ -4,9 +4,8 @@ Release Procedure
 * Run all tests:
 
 ::
-    
-    cd tests
-    nosetests
+
+    omnium test --all
 
 * Make sure version.py is at correct version:
 
