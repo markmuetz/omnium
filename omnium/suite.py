@@ -29,6 +29,7 @@ class Suite(object):
         self.analysis_classes = OrderedDict()
         self.analysis_hash = []
         self.analysis_status = []
+        self.dotomnium_dir = '.omnium'
 
         self.load(cwd)
 
@@ -143,13 +144,15 @@ class Suite(object):
             self.suite_config.set(remote_sec, 'host', host)
             self.suite_config.set(remote_sec, 'base_path', base_path)
 
-        dotomnium_dir = '.omnium'
-        os.makedirs(dotomnium_dir)
-        with open(os.path.join(dotomnium_dir, 'suite.conf'), 'w') as configfile:
-            self.suite_config.write(configfile)
+        os.makedirs(self.dotomnium_dir)
+        self.save_suite_config()
 
         self.load(os.getcwd())
         os.chdir(cwd)
+
+    def save_suite_config(self):
+        with open(os.path.join(self.dotomnium_dir, 'suite.conf'), 'w') as configfile:
+            self.suite_config.write(configfile)
 
     def abort_if_missing(self, filename):
         if self.check_filename_missing(filename):

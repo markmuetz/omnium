@@ -7,6 +7,7 @@ logger = getLogger('om.cmds')
 commands = [
     'clean-symlinks',
     'convert',
+    'expt-info',
     'file-info',
     'file-cat',
     'ls-analysers',
