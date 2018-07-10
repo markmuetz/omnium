@@ -35,7 +35,7 @@ class RunControl(object):
         import warnings
         warnings.filterwarnings("ignore")
         self.state = State()
-        self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
+        self.task_master = TaskMaster(self.suite, self.run_type, self.expts,
                                       self.settings_name, self.force)
 
         if self.production:

@@ -40,7 +40,7 @@ class Task(object):
 
 
 class TaskMaster(object):
-    def __init__(self, suite, run_type, analysis_workflow, expts, settings_name, force):
+    def __init__(self, suite, run_type, expts, settings_name, force):
         self.all_tasks = []
         """All tasks that have been generated in runable order."""
         self.virtual_dir = []
@@ -49,7 +49,6 @@ class TaskMaster(object):
 
         self._suite = suite
         self._run_type = run_type
-        self._analysis_workflow = analysis_workflow
         self._expts = expts
         self._settings_name = settings_name
         self._force = force
@@ -115,9 +114,9 @@ class TaskMaster(object):
         elif self._run_type == 'suite':
             self.gen_suite_tasks(analyser_cls)
 
-    def gen_all_tasks(self):
+    def gen_all_tasks(self, analysis_workflow):
         logger.debug('generating all tasks for {}', self._run_type)
-        enabled_analysis = [a for a in self._analysis_workflow.values() if a[2]]
+        enabled_analysis = [a for a in analysis_workflow.values() if a[2]]
         self._scan_data_dirs(enabled_analysis)
 
         for analysis_name, analyser_cls, enabled in enabled_analysis:
@@ -126,9 +125,9 @@ class TaskMaster(object):
         self._find_pending()
         logger.info('Generated {} tasks', len(self.all_tasks))
 
-    def gen_single_analysis_tasks(self, analysis_name, filenames):
+    def gen_single_analysis_tasks(self, analysis_workflow, analysis_name, filenames):
         logger.debug('generating single analysis tasks for {}', self._run_type)
-        all_analysis = self._analysis_workflow.values()
+        all_analysis = analysis_workflow.values()
         if filenames:
             self._find_filenames(filenames)
         else:
