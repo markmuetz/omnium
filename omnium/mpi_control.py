@@ -108,6 +108,6 @@ class MpiSlave(object):
             logger.debug('Finished')
         except Exception as e:
             logger.error(e)
-            data = {'command': 'error', 'msg': e.message}
+            data = {'command': 'error', 'msg': str(e)}
             self.comm.send(data, dest=0, tag=WORKTAG)
             return
