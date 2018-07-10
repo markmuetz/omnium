@@ -54,14 +54,14 @@ class TaskMaster(object):
         self._settings_name = settings_name
         self._force = force
 
-        self._pending_tasks = []
+        self.pending_tasks = []
         self._filename_task_map = {}
         self._working_tasks = []
         self._completed_tasks = []
 
     def get_next_pending(self):
-        if self._pending_tasks:
-            task = self._pending_tasks.pop(0)
+        if self.pending_tasks:
+            task = self.pending_tasks.pop(0)
             assert task.status == 'pending'
             task.status = 'working'
             self._working_tasks.append(task)
@@ -88,9 +88,9 @@ class TaskMaster(object):
 
         for next_task in existing_task.next_tasks:
             if all([pt.status == 'done' for pt in next_task.prev_tasks]):
-                if next_task not in self._pending_tasks:
+                if next_task not in self.pending_tasks:
                     next_task.status = 'pending'
-                    self._pending_tasks.append(next_task)
+                    self.pending_tasks.append(next_task)
                     logger.debug('adding pending task {}', next_task.index)
 
     def get_all_tasks(self):
@@ -213,9 +213,9 @@ class TaskMaster(object):
     def _find_pending(self):
         for task in self.all_tasks:
             if all([pt.status == 'done' for pt in task.prev_tasks]):
-                self._pending_tasks.append(task)
+                self.pending_tasks.append(task)
 
-        logger.debug('{} pending tasks', len(self._pending_tasks))
+        logger.debug('{} pending tasks', len(self.pending_tasks))
 
     def _scan_data_dirs(self, analysis):
         dirs_to_scan = []
