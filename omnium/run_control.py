@@ -35,6 +35,8 @@ class RunControl(object):
         import warnings
         warnings.filterwarnings("ignore")
         self.state = State()
+        self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
+                                      self.settings_name, self.force)
 
         if self.production:
             logger.debug('running in production mode')
@@ -90,13 +92,9 @@ class RunControl(object):
             self.analysis_workflow = self.full_analysis_workflow
 
     def gen_tasks(self):
-        self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
-                                      self.settings_name, self.force)
         self.task_master.gen_all_tasks()
 
     def gen_tasks_for_analysis(self, analysis_name, filenames):
-        self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
-                                      self.settings_name, self.force)
         self.task_master.gen_single_analysis_tasks(analysis_name, filenames)
 
     def run_all(self):
