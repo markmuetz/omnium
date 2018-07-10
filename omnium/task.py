@@ -254,11 +254,11 @@ class TaskMaster(object):
         for filtered_filename in done_filenames:
             if analyser_cls.uses_runid:
                 runid = analyser_cls.get_runid(filtered_filename)
+                logger.debug('runid: {}', runid)
                 if not (analyser_cls.min_runid <= runid <= analyser_cls.max_runid):
                     logger.debug('file {} out of runid range: {} - {}',
                                  filtered_filename, analyser_cls.min_runid, analyser_cls.max_runid)
                     continue
-                logger.debug('runid: {}', runid)
                 dir_vars['runid'] = runid
             else:
                 runid = None

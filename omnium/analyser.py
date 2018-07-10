@@ -57,7 +57,7 @@ class Analyser(abc.ABC):
         logger.debug('runid_pattern: {}', cls.runid_pattern)
         logger.debug('match: {}', match)
         if match:
-            return int(match['runid'])
+            return int(match.group('runid'))
         else:
             logger.error('Could not find runid')
             raise OmniumError('Could not find runid in {} using {}', filename, cls.runid_pattern)
