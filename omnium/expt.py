@@ -13,10 +13,17 @@ class ExptList(list):
         self.config_has_required_info = self.expt_datam_dir_fmt and self.expt_dataw_dir_fmt
 
     def find(self, expt_names):
+        if not self.config_has_required_info:
+            logger.warning('Required information not in config')
+            return
+
         for expt_name in expt_names:
             self.append(Expt(self._suite, self, expt_name))
 
     def find_all(self):
+        if not self.config_has_required_info:
+            logger.warning('Required information not in config')
+            return
         expt_names = []
         # Check assumption about expt dir is that expt name comes last.
         assert (os.path.split(self.expt_datam_dir_fmt.format(expt='DUMMY_EXPT_NAME'))[-1] ==
@@ -36,7 +43,7 @@ class Expt:
     def __init__(self, suite, expt_list, name):
         self._suite = suite
         self._expt_list = expt_list
-        self._name = name
+        self.name = name
 
         expt_datam_dir_fmt = self._expt_list.expt_datam_dir_fmt
         expt_dataw_dir_fmt = self._expt_list.expt_dataw_dir_fmt
@@ -65,4 +72,4 @@ class Expt:
             logger.warning('expt rose-app-run.conf not found as no dataw_dirs')
 
     def __str__(self):
-        return 'Expt: {} - {}'.format(self._suite.suite_dir, self._name)
+        return 'Expt: {} - {}'.format(self._suite.suite_dir, self.name)

@@ -1,5 +1,4 @@
 import abc
-import datetime as dt
 import os
 from collections import OrderedDict
 from logging import getLogger
@@ -190,6 +189,7 @@ class Analyser(abc.ABC):
 
     def analysis_save(self, state, suite):
         self.append_log('Saving')
+        self._save_metadata()
         self.save(state, suite)
         self.append_log('Saved')
 
@@ -232,3 +232,11 @@ class Analyser(abc.ABC):
         filename = os.path.join(file_path_dir, self.analysis_name + '_' + name)
         logger.debug('using filename: {}', filename)
         return filename
+
+    def _save_metadata(self):
+        for output_filename in self.task.output_filenames:
+            if self.single_file or self.multi_file:
+                expt_names = [self.task.expt]
+            else:
+                expt_names = self.task.expts
+            self.suite.save_metadata(os.path.dirname(output_filename), expt_names)

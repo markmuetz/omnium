@@ -4,11 +4,13 @@ import shutil
 import socket
 from collections import OrderedDict
 from logging import getLogger
+import shutil
 
 from configparser import ConfigParser
 
 from omnium.analysers import Analysers
 from omnium.omnium_errors import OmniumError
+from omnium.expt import ExptList
 
 logger = getLogger('om.suite')
 
@@ -153,6 +155,18 @@ class Suite(object):
     def save_suite_config(self):
         with open(os.path.join(self.dotomnium_dir, 'suite.conf'), 'w') as configfile:
             self.suite_config.write(configfile)
+
+    def save_metadata(self, output_dirname, expt_names=[]):
+        metadata_dir = os.path.join(output_dirname, 'metadata')
+        if not os.path.exists(metadata_dir):
+            os.makedirs(metadata_dir)
+        if expt_names:
+            expts = ExptList(self)
+            expts.find(expt_names)
+            for expt in expts:
+                rose_app_run_conf_file = os.path.join(metadata_dir,
+                                                      '{}_rose-app-run.conf'.format(expt.name))
+                shutil.copy(expt.rose_app_run_conf_file, rose_app_run_conf_file)
 
     def abort_if_missing(self, filename):
         if self.check_filename_missing(filename):
