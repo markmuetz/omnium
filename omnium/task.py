@@ -258,6 +258,7 @@ class TaskMaster(object):
                     logger.debug('file {} out of runid range: {} - {}',
                                  filtered_filename, analyser_cls.min_runid, analyser_cls.max_runid)
                     continue
+                logger.debug('runid: {}', runid)
                 dir_vars['runid'] = runid
             else:
                 runid = None
@@ -295,7 +296,9 @@ class TaskMaster(object):
     def _gen_output_filenames(self, analyser_cls, dir_vars):
         output_filenames = []
         dir_vars['output_dir'] = analyser_cls.output_dir.format(**dir_vars)
+        logger.debug(dir_vars)
         for output_filename in analyser_cls.output_filenames:
+            logger.debug(output_filename)
             output_filenames.append(os.path.join(self._suite.suite_dir,
                                                  output_filename.format(**dir_vars)))
         return output_filenames
