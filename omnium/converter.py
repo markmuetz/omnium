@@ -14,10 +14,6 @@ logger = getLogger('om.converters')
 class FF2NC_Converter(Analyser):
     analysis_name = 'ff2nc_converter'
     single_file = True
-    input_dir = 'work/20000101T0000Z/{expt}_atmos'
-    input_filename = '{input_dir}/atmos.pp1'
-    output_dir = 'work/20000101T0000Z/{expt}_atmos'
-    output_filenames = ['{output_dir}/atmos.pp1.nc']
 
     zlib = True
     force = False
