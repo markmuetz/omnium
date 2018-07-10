@@ -53,9 +53,13 @@ class Analyser(abc.ABC):
         assert cls.uses_runid and cls.runid_pattern
         filename = os.path.basename(filename)
         match = re.match(cls.runid_pattern, filename)
+        logger.debug('filename: {}', filename)
+        logger.debug('runid_pattern: {}', cls.runid_pattern)
+        logger.debug('match: {}', match)
         if match:
             return int(match['runid'])
         else:
+            logger.error('Could not find runid')
             raise OmniumError('Could not find runid in {} using {}', filename, cls.runid_pattern)
 
     def __init__(self, suite, task, settings):

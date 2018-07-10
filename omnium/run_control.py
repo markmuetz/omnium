@@ -89,10 +89,6 @@ class RunControl(object):
             # When running as cmd want all the analysis available.
             self.analysis_workflow = self.full_analysis_workflow
 
-        for analyser_name in self.analysis_classes.keys():
-            if analyser_name not in self.full_analysis_workflow:
-                logger.debug('analyser_cls found but has no config: {}', analyser_name)
-
     def gen_tasks(self):
         self.task_master = TaskMaster(self.suite, self.run_type, self.analysis_workflow, self.expts,
                                       self.settings_name, self.force)
