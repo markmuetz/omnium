@@ -92,10 +92,10 @@ class RunControl(object):
             self.analysis_workflow = self.full_analysis_workflow
 
     def gen_tasks(self):
-        self.task_master.gen_all_tasks()
+        self.task_master.gen_all_tasks(self.analysis_workflow)
 
     def gen_tasks_for_analysis(self, analysis_name, filenames):
-        self.task_master.gen_single_analysis_tasks(analysis_name, filenames)
+        self.task_master.gen_single_analysis_tasks(self.analysis_workflow, analysis_name, filenames)
 
     def run_all(self):
         logger.debug('running all analysis')
