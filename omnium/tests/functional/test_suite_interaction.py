@@ -1,7 +1,8 @@
 import os
-import sys
 import shutil
 from glob import glob
+
+from nose.tools import assert_raises
 
 from omnium.omnium_cmd import main as omnium_main
 from omnium.setup_logging import setup_logger
@@ -112,7 +113,30 @@ def test_send():
     omnium_main(['omnium', 'send', filename])
     assert os.path.exists(remote_filename)
     os.remove(remote_filename)
-    
-    
+
+
 def test_remote_command():
     omnium_main(['omnium', 'remote-cmd', 'du -hs'])
+
+
+def test_expt_info():
+    omnium_main(['omnium', 'expt-info'])
+    omnium_main(['omnium', 'expt-info', '-l'])
+
+
+def test_suite_freeze():
+    omnium_main(['omnium', 'suite-freeze'])
+    with assert_raises(PermissionError) as pe:
+        with open('dummy_file', 'w') as f:
+            f.write('hi')
+
+
+def test_suite_unfreeze():
+    with assert_raises(PermissionError) as pe:
+        with open('dummy_file', 'w') as f:
+            f.write('hi')
+    omnium_main(['omnium', 'suite-unfreeze'])
+    with open('dummy_file', 'w') as f:
+        f.write('hi')
+    os.remove('dummy_file')
+

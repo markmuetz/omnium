@@ -8,8 +8,8 @@ logger = getLogger('om.expt')
 class ExptList(list):
     def __init__(self, suite):
         self._suite = suite
-        self.expt_datam_dir_fmt = self._suite.suite_config['settings'].get('expt_datam_dir', None)
-        self.expt_dataw_dir_fmt = self._suite.suite_config['settings'].get('expt_dataw_dir', None)
+        self.expt_datam_dir_fmt = self._suite.settings.get('expt_datam_dir', None)
+        self.expt_dataw_dir_fmt = self._suite.settings.get('expt_dataw_dir', None)
         self.config_has_required_info = self.expt_datam_dir_fmt and self.expt_dataw_dir_fmt
 
     def find(self, expt_names):

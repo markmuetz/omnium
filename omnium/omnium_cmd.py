@@ -59,12 +59,13 @@ def main(argv, import_log_msg=''):
             logger.error('Not in an omnium suite')
             return
     else:
-        if hasattr(cmd, 'get_logging_filename'):
-            logging_filename = cmd.get_logging_filename(suite, args)
-        else:
-            logging_filename = suite.logging_filename
+        if not suite.is_readonly:
+            if hasattr(cmd, 'get_logging_filename'):
+                logging_filename = cmd.get_logging_filename(suite, args)
+            else:
+                logging_filename = suite.logging_filename
+            add_file_logging(logging_filename)
 
-        add_file_logging(logging_filename)
     suite.load_analysers()
 
     if omnium_dev:

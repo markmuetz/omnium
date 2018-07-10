@@ -1,6 +1,5 @@
 import io
 import os
-import shutil
 import socket
 from collections import OrderedDict
 from logging import getLogger
@@ -27,11 +26,15 @@ class Suite(object):
         self.is_omnium_app = False
         self.is_init = False
         self.suite_config = None
+        self.settings = None
         self.analyser_dirs = []
         self.analysis_classes = OrderedDict()
         self.analysis_hash = []
         self.analysis_status = []
         self.dotomnium_dir = '.omnium'
+        self.is_readonly = True
+        self.logging_filename = ''
+        self.missing_file_path = ''
 
         self.load(cwd)
 
@@ -46,7 +49,8 @@ class Suite(object):
             lines.extend(['  ' + l for l in self.suite_config_lines()])
         return '\n'.join(lines)
 
-    def _is_suite_root_dir(self, path):
+    @staticmethod
+    def _is_suite_root_dir(path):
         if os.path.exists(os.path.join(path, '.omnium')):
             return True
         elif os.path.exists(os.path.join(path, 'rose-suite.info')):
@@ -66,7 +70,14 @@ class Suite(object):
         self.is_in_suite = True
         self.suite_dir = suite_dir
         self.name = os.path.basename(suite_dir)
+
         logger.debug('in suite: {}', self.suite_dir)
+
+        if not os.access(self.suite_dir, os.W_OK):
+            logger.warning('No write access to suite dir: {}', self.suite_dir)
+            logger.warning('Has suite been frozen? Use `omnium suite-unfreeze {}`', self.suite_dir)
+            return
+        self.is_readonly = False
 
         # Check to see if it's already been initialized.
         config_filename = os.path.join(self.suite_dir, '.omnium/suite.conf')
@@ -160,6 +171,7 @@ class Suite(object):
         metadata_dir = os.path.join(output_dirname, 'metadata')
         if not os.path.exists(metadata_dir):
             os.makedirs(metadata_dir)
+
         if expt_names:
             expts = ExptList(self)
             expts.find(expt_names)

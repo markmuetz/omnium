@@ -16,5 +16,3 @@ class bcolors:
             colour_style.append(getattr(bcolors, style.upper()))
         colour_style = ''.join(colour_style)
         print(colour_style + str(msg) + bcolors.ENDC)
-
-
