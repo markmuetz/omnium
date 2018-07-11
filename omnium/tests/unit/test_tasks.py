@@ -34,7 +34,7 @@ class TestTaskMaster(TestCase):
         self.analysis_workflow = Mock()
         self.settings = Mock()
         self.suite_args = {
-            'basic': [self.suite, 'cmd', self.analysis_workflow, ['expt1'], self.settings, True],
+            'basic': [self.suite, 'cmd', ['expt1'], self.settings, True],
         }
         setup_logger()
 
@@ -55,7 +55,7 @@ class TestTaskMaster(TestCase):
         task_master = TaskMaster(*self.suite_args['basic'])
         task = Mock()
         task.status = 'working'
-        task_master._pending_tasks = [task]
+        task_master.pending_tasks = [task]
         with self.assertRaises(AssertionError):
             task_master.get_next_pending()
 
@@ -63,7 +63,7 @@ class TestTaskMaster(TestCase):
         task_master = TaskMaster(*self.suite_args['basic'])
         task = Mock()
         task.status = 'pending'
-        task_master._pending_tasks = [task]
+        task_master.pending_tasks = [task]
         assert task_master.get_next_pending() is task
         assert task.status == 'working'
 
@@ -89,8 +89,8 @@ class TestTaskMaster(TestCase):
         task_master.all_tasks = [task]
         task_master.update_task(0, 'done')
         assert task.status == 'done'
-        assert task1.status == 'pending' and task1 in task_master._pending_tasks
-        assert task2.status == 'pending' and task2 in task_master._pending_tasks
+        assert task1.status == 'pending' and task1 in task_master.pending_tasks
+        assert task2.status == 'pending' and task2 in task_master.pending_tasks
 
     @patch('omnium.TaskMaster.get_next_pending')
     def test_get_all_tasks1(self, mock_get_next_pending):
@@ -165,16 +165,15 @@ class TestTaskMaster(TestCase):
     def test_gen_all_tasks(self, mock_scan, mock_gen):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
-        task_master._analysis_workflow = Mock()
 
         analysis_class1 = Mock()
         analysis_class2 = Mock()
 
-        task_master._analysis_workflow.values.return_value = [
+        self.analysis_workflow.values.return_value = [
             ('mock_analysis1', analysis_class1, True),
             ('mock_analysis2', analysis_class2, False),
         ]
-        task_master.gen_all_tasks()
+        task_master.gen_all_tasks(self.analysis_workflow)
         mock_scan.assert_called_with([('mock_analysis1', analysis_class1, True)])
         mock_gen.assert_called_with(analysis_class1)
 
@@ -184,7 +183,6 @@ class TestTaskMaster(TestCase):
     def test_single_analysis_task(self, mock_scan, mock_find, mock_gen):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
-        task_master._analysis_workflow = Mock()
 
         analysis_class1 = Mock()
         analysis_class2 = Mock()
@@ -193,13 +191,13 @@ class TestTaskMaster(TestCase):
             ('mock_analysis2', analysis_class2, False),
         ]
 
-        task_master._analysis_workflow.values.return_value = all_analysis
+        self.analysis_workflow.values.return_value = all_analysis
 
-        task_master.gen_single_analysis_tasks('mock_analysis2', [])
+        task_master.gen_single_analysis_tasks(self.analysis_workflow, 'mock_analysis2', [])
         mock_gen.assert_called_with(analysis_class2)
         mock_scan.assert_called_with(all_analysis)
 
-        task_master.gen_single_analysis_tasks('mock_analysis2', ['fn'])
+        task_master.gen_single_analysis_tasks(self.analysis_workflow, 'mock_analysis2', ['fn'])
         mock_find.assert_called_with(['fn'])
 
     def test_find_pending(self):
@@ -218,10 +216,10 @@ class TestTaskMaster(TestCase):
         task2.next_tasks = [task4]
         task_master.all_tasks = [task1, task2, task3, task4]
         task_master._find_pending()
-        assert task1 in task_master._pending_tasks
-        assert task2 in task_master._pending_tasks
-        assert task3 not in task_master._pending_tasks
-        assert task4 not in task_master._pending_tasks
+        assert task1 in task_master.pending_tasks
+        assert task2 in task_master.pending_tasks
+        assert task3 not in task_master.pending_tasks
+        assert task4 not in task_master.pending_tasks
 
     @patch('omnium.task.TaskMaster._get_package_version')
     @patch('glob.glob')

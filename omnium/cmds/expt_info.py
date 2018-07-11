@@ -26,3 +26,16 @@ def main(suite, args):
             for dataw_dir in expt.dataw_dirs:
                 print('  ' + dataw_dir)
             print('  ' + expt.rose_app_run_conf_file)
+            if expt.has_um_config:
+                try:
+                    print('  model_type: {}'.format(expt.model_type))
+                    print('  dt: {} s'.format(expt.dt))
+                    print('  nx: {}'.format(expt.nx))
+                    print('  ny: {}'.format(expt.ny))
+                    if expt.model_type == 'LAM_bicyclic':
+                        print('  dx: {} m'.format(expt.dx))
+                        print('  dy: {} m'.format(expt.dy))
+                        print('  lx: {} m'.format(expt.lx))
+                        print('  ly: {} m'.format(expt.ly))
+                except (ValueError, KeyError) as e:
+                    print('Could not read properties for {}: {}'.format(expt.name, repr(e)))

@@ -2,6 +2,10 @@ import os
 from glob import glob
 from logging import getLogger
 
+from configparser import ConfigParser
+
+from omnium.omnium_errors import OmniumError
+
 logger = getLogger('om.expt')
 
 
@@ -31,12 +35,18 @@ class ExptList(list):
         expt_datam_dir_glob = os.path.join(self._suite.suite_dir,
                                            self.expt_datam_dir_fmt.format(expt='*'))
         logger.debug('using glob: {}', expt_datam_dir_glob)
-        expt_datam_dirs = glob(expt_datam_dir_glob)
+        expt_datam_dirs = sorted(glob(expt_datam_dir_glob))
         for expt_datam_dir in [d for d in expt_datam_dirs if os.path.isdir(d)]:
             expt_name = os.path.split(expt_datam_dir)[-1]
             logger.debug('found expt: {}', expt_name)
             expt_names.append(expt_name)
         self.find(expt_names)
+
+    def get(self, expt_name):
+        for expt in self:
+            if expt_name == expt.name:
+                return expt
+        raise OmniumError('No expt with name {}'.format(expt_name))
 
 
 class Expt:
@@ -44,6 +54,7 @@ class Expt:
         self._suite = suite
         self._expt_list = expt_list
         self.name = name
+        self._config = None
 
         expt_datam_dir_fmt = self._expt_list.expt_datam_dir_fmt
         expt_dataw_dir_fmt = self._expt_list.expt_dataw_dir_fmt
@@ -70,6 +81,72 @@ class Expt:
         else:
             self.rose_app_run_conf_file = None
             logger.warning('expt rose-app-run.conf not found as no dataw_dirs')
+
+    @property
+    def has_um_config(self):
+        return self.rose_app_run_conf_file is not None
+
+    @property
+    def model_type(self):
+        model_type = self.um_config['namelist:model_domain'].getint('model_type')
+        types = {1: 'global_model',
+                 2: 'LAM_classic',
+                 3: 'LAM_EW_cyclic',
+                 4: 'LAM_bicyclic',
+                 5: 'SCM',
+                 6: 'SSFM'}
+        return types[model_type]
+
+    @property
+    def dx(self):
+        return self.um_config[self._namelist_idealised].getfloat('delta_xi1')
+
+    @property
+    def dy(self):
+        return self.um_config[self._namelist_idealised].getfloat('delta_xi2')
+
+    @property
+    def dt(self):
+        return (self.um_config['namelist:nlstcgen'].getfloat('secs_per_periodim') /
+                self.um_config['namelist:nlstcgen'].getfloat('steps_per_periodim'))
+
+    @property
+    def nx(self):
+        return self.um_config['namelist:nlsizes'].getint('global_row_length')
+
+    @property
+    def ny(self):
+        return self.um_config['namelist:nlsizes'].getint('global_rows')
+
+    @property
+    def lx(self):
+        return self.dx * self.nx
+
+    @property
+    def ly(self):
+        return self.dy * self.ny
+
+    @property
+    def um_config(self):
+        if not self.rose_app_run_conf_file:
+            raise OmniumError('{} has no config file'.format(self))
+        if not self._config:
+            cp = ConfigParser()
+            with open(self.rose_app_run_conf_file, 'r') as f:
+                split_first_line = f.readline().split('=')
+                assert split_first_line[0] == 'meta'
+                # version looks like: um-atmos/vn11.0
+                version = split_first_line[1].strip()
+                self.um_version = float(version.split('/')[-1][2:])
+                if self.um_version >= 10.9:
+                    self._namelist_idealised = 'namelist:recon_idealised'
+                else:
+                    self._namelist_idealised = 'namelist:idealise'
+                second_line = f.readline()
+                assert second_line.strip() == ''
+                cp.read_file(f)
+            self._config = cp
+        return self._config
 
     def __str__(self):
         return 'Expt: {} - {}'.format(self._suite.suite_dir, self.name)

@@ -49,7 +49,7 @@ class Analyser(abc.ABC):
         return
 
     @classmethod
-    def get_runid(cls, filename):
+    def get_runid_filename_vars(cls, filename):
         assert cls.uses_runid and cls.runid_pattern
         filename = os.path.basename(filename)
         match = re.match(cls.runid_pattern, filename)
@@ -57,7 +57,7 @@ class Analyser(abc.ABC):
         logger.debug('runid_pattern: {}', cls.runid_pattern)
         logger.debug('match: {}', match)
         if match:
-            return int(match.group('runid'))
+            return int(match.group('runid')), match.groupdict()
         else:
             logger.error('Could not find runid')
             raise OmniumError('Could not find runid in {} using {}', filename, cls.runid_pattern)
@@ -149,7 +149,7 @@ class Analyser(abc.ABC):
             logger.debug('omnium_cube_id: {}', cube_id)
             logger.debug('cube shape: {}', cube.shape)
 
-            cube.attributes['omnium_vn'] = get_version('long')
+            cube.attributes['omnium_vn'] = get_version(form='long')
             cube.attributes['omnium_cube_id'] = cube_id
 
             if state:

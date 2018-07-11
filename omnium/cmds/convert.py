@@ -3,6 +3,7 @@ import os
 from logging import getLogger
 
 from omnium.task import Task
+from omnium.converter import FF2NC_Converter
 
 logger = getLogger('om.convert')
 
@@ -13,14 +14,26 @@ ARGS = [(['filenames'], {'nargs': '+', 'help': 'Filename to convert'}),
 RUN_OUTSIDE_SUITE = True
 
 
+class Converter(FF2NC_Converter):
+    single_file = True
+    multi_file = False
+    multi_expt = False
+
+    input_dir = 'dummy'
+
+    input_filename_glob = 'dummy'
+
+    output_dir = 'dummy'
+    output_filenames = ['dummy']
+
+
 def main(suite, args):
-    from omnium.converter import FF2NC_Converter
     cwd = os.getcwd()
     for i, filename in enumerate(args.filenames):
         output_filename = filename + '.nc'
         task = Task(i, None, None, None, 'converter', 'ff2nc_convert',
                     [os.path.join(cwd, filename)], [os.path.join(cwd, output_filename)])
-        converter = FF2NC_Converter(suite, task, None)
+        converter = Converter(suite, task, None)
         converter.delete = args.delete
         converter.force = args.force
         converter.zlib = args.zlib
