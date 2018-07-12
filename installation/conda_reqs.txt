@@ -65,7 +65,7 @@ libstdcxx-ng=7.2.0=hdf63c60_3
 libtiff=4.0.9=he6b73bb_1
 libuuid=1.0.3=1
 libxcb=1.13=h470a237_0
-libxml2=2.9.8=h422b904_1
+libxml2=2.9.8=h422b904_2
 libxslt=1.1.32=h88dbc4e_1
 locket=0.2.0=py36_1
 lxml=4.2.2=py36hc9114bc_0
