@@ -146,7 +146,9 @@ class RunControl(object):
             assert loaded_settings == settings, 'settings not equal to loaded settings.'
 
         run_analysis = not analyser.already_analysed()
+        already_started = False
         if self.no_run_if_started and analyser.already_started_analysing():
+            already_started = True
             run_analysis = False
         if analyser.force or self.force:
             run_analysis = True
@@ -164,6 +166,9 @@ class RunControl(object):
 
             remove_file_logging(analyser.logname)
         else:
-            logger.info('Task already run: {}', analyser.analysis_name)
+            if already_started:
+                logger.info('Task already started: {}', analyser.analysis_name)
+            else:
+                logger.info('Task already run: {}', analyser.analysis_name)
 
         return analyser
