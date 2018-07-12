@@ -24,6 +24,7 @@ class MpiMaster(object):
             logger.warning('MPI size > # of pending tasks, not sure what will happen')
 
         waiting_dests = list(range(1, self.size)[::-1])
+        # TODO: should handle exception in slave by consuming all data and issuing dies.
         # Farm out rest of work when a worker reports back that it's done.
         while True:
             try:

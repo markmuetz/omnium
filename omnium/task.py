@@ -351,8 +351,9 @@ class TaskMaster(object):
             logger.debug('Using glob: {}', filename_glob)
             filtered_filenames = sorted(fnmatch.filter(self.virtual_dir, filename_glob))
             if not filtered_filenames:
-                raise OmniumError('Could not find any filenames for {} using: {}'
-                                  .format(analyser_cls.analysis_name, filename_glob))
+                # Not necessarily a problem - could be that a previous converter has delete them.
+                logger.warning('Could not find any filenames for {} using: {}',
+                               analyser_cls.analysis_name, filename_glob)
         elif analyser_cls.input_filenames or analyser_cls.input_filename:
             if analyser_cls.input_filename:
                 input_filenames = [analyser_cls.input_filename]
