@@ -141,7 +141,7 @@ class Suite(object):
                 if os.path.exists(suite_name):
                     raise OmniumError('dir {} already exists'.format(suite_name))
                 logger.debug('creating in {}', os.path.abspath(suite_name))
-                os.makedirs(suite_name)
+                os.makedirs(suite_name, exist_ok=True)
                 os.chdir(suite_name)
             elif not os.path.exists('rose-suite.info'):
                 raise OmniumError('Could not find "rose-suite.info" in current dir')
@@ -157,7 +157,7 @@ class Suite(object):
             self.suite_config.set(remote_sec, 'host', host)
             self.suite_config.set(remote_sec, 'base_path', base_path)
 
-        os.makedirs(self.dotomnium_dir)
+        os.makedirs(self.dotomnium_dir, exist_ok=True)
         self.save_suite_config()
 
         self.load(os.getcwd())

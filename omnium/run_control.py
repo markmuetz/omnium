@@ -138,7 +138,7 @@ class RunControl(object):
         settings_filename = settings_filename_fmt.format(**dir_vars)
         if not os.path.exists(settings_filename):
             if not os.path.exists(os.path.dirname(settings_filename)):
-                os.makedirs(os.path.dirname(settings_filename))
+                os.makedirs(os.path.dirname(settings_filename), exist_ok=True)
             settings.save(settings_filename)
         else:
             loaded_settings = AnalyserSetting()

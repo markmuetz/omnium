@@ -97,7 +97,7 @@ class Analyser(abc.ABC):
         for output_dir in [os.path.dirname(fn) for fn in self.task.output_filenames]:
             if not os.path.exists(output_dir):
                 logger.debug('creating output_dir: {}', output_dir)
-                os.makedirs(output_dir)
+                os.makedirs(output_dir, exist_ok=True)
 
     def already_started_analysing(self):
         missing = self.suite.check_filename_missing(self.logname)
@@ -231,7 +231,7 @@ class Analyser(abc.ABC):
 
         if not os.path.exists(file_path_dir):
             logger.debug('making dir: {}', file_path_dir)
-            os.makedirs(file_path_dir)
+            os.makedirs(file_path_dir, exist_ok=True)
 
         filename = os.path.join(file_path_dir, self.analysis_name + '_' + name)
         logger.debug('using filename: {}', filename)
