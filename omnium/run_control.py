@@ -159,8 +159,8 @@ class RunControl(object):
 
             analyser.analysis_load()
             analyser.analysis_run()
-            analyser.analysis_save(self.state, self.suite)
             analyser.analysis_display()
+            analyser.analysis_save(self.state, self.suite)
             analyser.analysis_done()
             logger.info('Task run: {}', analyser.analysis_name)
 
