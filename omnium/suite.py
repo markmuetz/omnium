@@ -170,7 +170,7 @@ class Suite(object):
     def save_metadata(self, output_dirname, expt_names=[]):
         metadata_dir = os.path.join(output_dirname, 'metadata')
         if not os.path.exists(metadata_dir):
-            os.makedirs(metadata_dir)
+            os.makedirs(metadata_dir, exist_ok=True)
 
         if expt_names:
             expts = ExptList(self)

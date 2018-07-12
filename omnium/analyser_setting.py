@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import hashlib
 from typing import Any, Dict
 
@@ -36,7 +37,7 @@ class AnalyserSetting:
         open(loc, 'w').write(self.to_json())
 
     def to_json(self) -> str:
-        serializable_settings = {}
+        serializable_settings = OrderedDict()
         for k, v in sorted(self._settings.items(), key=lambda x: x[0]):
             if isinstance(v, slice):
                 # repr comes in handy!
