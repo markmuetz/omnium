@@ -17,18 +17,7 @@ def main(suite, args):
     if suite.is_in_suite:
         if not suite.is_readonly:
             logger.info('Suite dir is not readonly')
-        suite_dir = suite.suite_dir
+        suite.unfreeze()
     else:
         suite_dir = os.path.join(os.getcwd(), args.suite)
-    assert os.path.exists(suite_dir) and os.path.isdir(suite_dir)
-    cmd = 'chmod -R u=rwX {}'.format(suite_dir)
-    # N.B. logger is not hooked up to file.
-    logger.debug(cmd)
-    sp.call(cmd, shell=True)
-    unfrozen_suite = Suite(suite_dir, False)
-    assert not unfrozen_suite.is_readonly
-
-    add_file_logging(unfrozen_suite.logging_filename)
-    # Do once logger hooked up to file.
-    logger.debug(cmd)
-    logger.info('Unfrozen suite')
+        suite.unfreeze(suite_dir)

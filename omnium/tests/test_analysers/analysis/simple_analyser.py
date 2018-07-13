@@ -1,4 +1,4 @@
-from analysis.analyser import Analyser
+from omnium.analysis import Analyser
 
 
 class SimpleAnalyser(Analyser):

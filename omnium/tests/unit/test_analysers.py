@@ -2,7 +2,7 @@ import os
 import sys
 from unittest import TestCase
 
-from analysis.analysers import Analysers
+from omnium.analysis import Analysers
 
 
 class TestAnalysers(TestCase):

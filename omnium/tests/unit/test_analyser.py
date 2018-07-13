@@ -2,8 +2,8 @@ from unittest import TestCase
 
 from mock import Mock, patch, mock_open
 from omnium import OmniumError
-from analysis.analyser import Analyser
-from run_control.task import Task
+from omnium.analysis import Analyser
+from omnium.run_control import Task
 from omnium.setup_logging import setup_logger
 
 setup_logger()

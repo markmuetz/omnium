@@ -1,5 +1,6 @@
 import io
 import os
+import subprocess as sp
 import socket
 from collections import OrderedDict
 from logging import getLogger
@@ -9,6 +10,7 @@ from configparser import ConfigParser
 
 from omnium.analysis import Analysers
 from omnium.omnium_errors import OmniumError
+from omnium.setup_logging import add_file_logging
 from .expt import ExptList
 
 logger = getLogger('om.suite')
@@ -196,3 +198,28 @@ class Suite(object):
     def info_lines(self):
         with open(os.path.join(self.suite_dir, 'rose-suite.info'), 'r') as f:
             return [l[:-1] for l in f.readlines()]
+
+    def freeze(self):
+        cmd = 'chmod -R u=rX {}'.format(self.suite_dir)
+        logger.debug(cmd)
+        logger.info('Suite frozen: no more commands can be run in suite')
+        unfreeze_cmd = 'omnium suite-unfreeze {}'.format(self.suite_dir)
+        logger.info('No dirs/files can be created/edited/deleted without running `{}`',
+                    unfreeze_cmd)
+        sp.call(cmd, shell=True)
+
+    def unfreeze(self, suite_dir=None):
+        if not suite_dir:
+            suite_dir = self.suite_dir
+        assert os.path.exists(suite_dir) and os.path.isdir(suite_dir)
+        cmd = 'chmod -R u=rwX {}'.format(suite_dir)
+        # N.B. logger is not hooked up to file.
+        logger.debug(cmd)
+        sp.call(cmd, shell=True)
+        unfrozen_suite = Suite(suite_dir, False)
+        assert not unfrozen_suite.is_readonly
+
+        add_file_logging(unfrozen_suite.logging_filename)
+        # Do once logger hooked up to file.
+        logger.debug(cmd)
+        logger.info('Unfrozen suite')

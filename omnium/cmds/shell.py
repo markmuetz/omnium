@@ -5,11 +5,11 @@ RUN_OUTSIDE_SUITE = True
 
 def main(suite, args):
     import IPython
+    import os
+    import datetime as dt
 
     if not args.failsafe:
         # Load up useful modules
-        import os
-        import datetime as dt
         import numpy as np
 
         import iris
@@ -18,14 +18,15 @@ def main(suite, args):
         from omnium.omnium_errors import OmniumError
         from omnium.stash import Stash
         from omnium.state import State
-        from omnium.run_control import RunControl
-        from analysis.converter import FF2NC_Converter
+        from omnium.suite import Suite, ExptList
+        from omnium.run_control import RunControl, TaskMaster
+        from omnium.analysis.converter import FF2NC_Converter
         from omnium.syncher import Syncher
 
         stash = Stash()
         state = State()
 
-        modules = [os, dt, np, iris, om]
+        modules = [os, dt, np, iris]
         try:
             import pylab as plt
             modules.append(plt)
@@ -33,13 +34,36 @@ def main(suite, args):
             pass
         for module in modules:
             print('Loaded module: {}'.format(module.__name__))
+        print('Loaded module: omnium as om')
 
-        for cls in [OmniumError, Stash, RunControl, Syncher, FF2NC_Converter]:
+        for cls in [OmniumError, Stash, RunControl, Syncher, FF2NC_Converter,
+                    ExptList, TaskMaster]:
             print('Loaded class: {}'.format(cls.__name__))
 
+        suite = Suite(os.getcwd())
+        suite.load_analysers()
+        print('Loaded instance: {}: {}'.format('suite', repr(suite)))
         print('Loaded instance: {}: {}'.format('state', state))
         len_stash_entries = sum([len(od) for od in stash.values()])
         print('Loaded instance: {}: {} entries'.format('stash', len_stash_entries))
+
+        if suite.is_in_suite:
+            print('In suite:')
+            syncher = Syncher(suite)
+            expts = ExptList(suite)
+            expts.find_all()
+            cmd_run_control = RunControl(suite, 'cmd', [e.name for e in expts], 'test')
+            cycle_run_control = RunControl(suite, 'cycle', [e.name for e in expts], 'test')
+            expt_run_control = RunControl(suite, 'expt', [e.name for e in expts], 'test')
+            suite_run_control = RunControl(suite, 'suite', [e.name for e in expts], 'test')
+            for rc in [cmd_run_control, cycle_run_control, expt_run_control, suite_run_control]:
+                rc.gen_analysis_workflow()
+            print('  Loaded suite instance: {}: {}'.format('syncher', syncher))
+            print('  Loaded suite instance: {}: {}'.format('expts', expts))
+            print('  Loaded suite instance: {}: {}'.format('cmd_run_control', cmd_run_control))
+            print('  Loaded suite instance: {}: {}'.format('cycle_run_control', cycle_run_control))
+            print('  Loaded suite instance: {}: {}'.format('expt_run_control', expt_run_control))
+            print('  Loaded suite instance: {}: {}'.format('suite_run_control', suite_run_control))
 
     # IPython.start_ipython(argv=[])
     # This is better because it allows you to access e.g. args, config.

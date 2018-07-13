@@ -5,4 +5,3 @@ try:
     from .mpi_control import MpiMaster, MpiSlave
 except ImportError:
     pass
-

@@ -33,6 +33,7 @@ def _scan_data_dirs(expts, suite, task_master, analysis):
     virtual_drive = sorted(list(set(virtual_drive)))
     return virtual_drive
 
+
 def _find_filenames(filenames):
     virtual_drive = []
     for filename in filenames:
@@ -74,7 +75,7 @@ class RunControl(object):
                 if status != 'clean':
                     raise OmniumError('omnium analysis not all clean clean, not running')
         else:
-            logger.warning('Disabling Python warnings') # oh the irony.
+            logger.warning('Disabling Python warnings')  # oh the irony.
             import warnings
             warnings.filterwarnings("ignore")
 
@@ -96,7 +97,7 @@ class RunControl(object):
             if runcontrol_sec in config:
                 runcontrol = config[runcontrol_sec]
             else:
-                logger.info('No runcontrol for {}', run_type)
+                logger.debug('No runcontrol for {}', run_type)
                 continue
 
             for ordered_analysis, enabled_str in sorted(runcontrol.items()):
@@ -124,17 +125,22 @@ class RunControl(object):
             self._analysis_workflow = self._full_analysis_workflow
 
     def gen_tasks(self):
+        if self._run_type == 'cmd':
+            raise OmniumError('Should not call gen_tasks for "cmd": use gen_tasks_for_analysis')
         enabled_analysis = [a for a in self._analysis_workflow.values() if a[2]]
         virtual_drive = _scan_data_dirs(self._expts, self._suite, self._task_master,
                                         enabled_analysis)
         self._task_master.gen_all_tasks(self._expts, virtual_drive, enabled_analysis)
 
-    def gen_tasks_for_analysis(self, analysis_name, filenames):
-        if filenames:
+    def gen_tasks_for_analysis(self, analysis_name, filenames=[]):
+        if self._run_type == 'cmd' and not filenames:
+            raise OmniumError('Must provide filenames for "cmd"')
+
+        if self._run_type == 'cmd':
             virtual_drive = _find_filenames(filenames)
         else:
             virtual_drive = _scan_data_dirs(self._expts, self._suite, self._task_master,
-                                            self._analysis_workflow)
+                                            self._analysis_workflow.values())
         self._task_master.gen_single_analysis_tasks(self._expts, virtual_drive,
                                                     self._analysis_workflow, analysis_name)
 
@@ -163,15 +169,8 @@ class RunControl(object):
         for task in tasks_to_run:
             self.run_task(task)
 
-    def run_task(self, task):
-        print_filenames = os.path.basename(task.filenames[0])
-        if len(task.filenames) > 1:
-            print_filenames += '...' + os.path.basename(task.filenames[-1])
-        logger.info('Running task {}: {} - {}:{}',
-                    task.index, task.analysis_name, task.expt, print_filenames)
-        logger.debug('running: {}', task)
+    def _make_analyser(self, task):
         analyser_cls = self._analysis_classes[task.analysis_name]
-
         settings_filename_fmt, settings = self._suite.analysers.get_settings(analyser_cls,
                                                                              self._settings_name)
         analyser = analyser_cls(self._suite, task, settings)
@@ -185,6 +184,17 @@ class RunControl(object):
             loaded_settings = AnalyserSetting()
             loaded_settings.load(settings_filename)
             assert loaded_settings == settings, 'settings not equal to loaded settings.'
+
+        return analyser
+
+    def run_task(self, task):
+        print_filenames = os.path.basename(task.filenames[0])
+        if len(task.filenames) > 1:
+            print_filenames += '...' + os.path.basename(task.filenames[-1])
+        logger.info('Running task {}: {} - {}:{}',
+                    task.index, task.analysis_name, task.expt, print_filenames)
+        logger.debug('running: {}', task)
+        analyser = self._make_analyser(task)
 
         run_analysis = not analyser.already_analysed()
         already_started = False

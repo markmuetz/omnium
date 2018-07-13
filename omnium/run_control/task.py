@@ -102,8 +102,7 @@ class TaskMaster(object):
 
     def gen_tasks_for_analysis(self, analyser_cls):
         if self._run_type == 'cmd':
-            for expt in self._expts:
-                self.gen_cmd_tasks(analyser_cls)
+            self.gen_cmd_tasks(analyser_cls)
         elif self._run_type == 'cycle':
             for expt in self._expts:
                 self.gen_cycle_tasks(expt, analyser_cls)
@@ -145,9 +144,9 @@ class TaskMaster(object):
         logger.debug('using files: {}', self.virtual_drive)
 
         if analyser_cls.single_file:
-            self._gen_single_file_tasks(None, analyser_cls, self.virtual_drive)
+            self._gen_single_file_tasks('cmd_expt', analyser_cls, self.virtual_drive)
         elif analyser_cls.multi_file:
-            self._gen_multi_file_tasks(None, analyser_cls, self.virtual_drive)
+            self._gen_multi_file_tasks('cmd_expt', analyser_cls, self.virtual_drive)
 
     def gen_cycle_tasks(self, expt, analyser_cls):
         assert analyser_cls.single_file
