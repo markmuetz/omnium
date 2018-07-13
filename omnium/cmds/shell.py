@@ -49,7 +49,10 @@ def main(suite, args):
 
         if suite.is_in_suite:
             print('In suite:')
-            syncher = Syncher(suite)
+            try:
+                syncher = Syncher(suite)
+            except:
+                syncher = None
             expts = ExptList(suite)
             expts.find_all()
             cmd_run_control = RunControl(suite, 'cmd', [e.name for e in expts], 'test')
