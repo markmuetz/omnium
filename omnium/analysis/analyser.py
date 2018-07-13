@@ -158,8 +158,8 @@ class Analyser(abc.ABC):
             if suite:
                 pkg = suite.analysis_pkgs.get_package(self.__class__)
                 cube.attributes['{}_vn'.format(pkg.name)] = get_version(pkg.version, form='long')
-                cube.attributes['{}_git_hash'.format(pkg.name)] = pkg.pkg_hash
-                cube.attributes['{}_git_status'.format(pkg.name)] = pkg.pkg_status
+                cube.attributes['{}_git_hash'.format(pkg.name)] = pkg.git_hash
+                cube.attributes['{}_git_status'.format(pkg.name)] = pkg.git_status
 
             cube.attributes['omnium_process'] = self.analysis_name
 
