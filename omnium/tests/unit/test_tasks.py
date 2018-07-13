@@ -3,7 +3,7 @@ from unittest import TestCase
 from mock import Mock, patch, call
 
 from omnium import OmniumError
-from omnium.task import Task, TaskMaster
+from run_control.task import Task, TaskMaster
 from omnium.setup_logging import setup_logger
 
 

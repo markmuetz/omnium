@@ -11,6 +11,7 @@ class Stash(OrderedDict):
         super(Stash, self).__init__()
         if stash_master_path is None:
             omnium_home = os.path.dirname(os.path.realpath(__file__))
+            # TODO: more recent versions of stash plus option to point to system stash file.
             stash_master_path = os.path.join(omnium_home, 'data/files/vn10.5/STASHmaster_A')
         # stash_master_path = 'files/vn10.5/STASHmaster_A'
 

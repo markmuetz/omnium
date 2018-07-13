@@ -61,7 +61,7 @@ def main(suite, args):
     if args.mpi:
         # Note this will raise an import error if not installed.
         from mpi4py import MPI
-        from omnium.mpi_control import MpiMaster, MpiSlave
+        from run_control.mpi_control import MpiMaster, MpiSlave
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()

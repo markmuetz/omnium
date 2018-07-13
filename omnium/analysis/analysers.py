@@ -4,8 +4,6 @@ import os
 from collections import OrderedDict
 from logging import getLogger
 
-from omnium.converter import FF2NC_Converter
-from omnium.deleter import Deleter
 from omnium.omnium_errors import OmniumError
 from omnium.utils import get_git_info
 
@@ -33,8 +31,9 @@ class Analysers(object):
             for analyser_package_name in self.analyser_package_names:
                 try:
                     pkg = importlib.import_module(analyser_package_name)
-                except ImportError:
+                except ImportError as e:
                     logger.error("Package '{}' not found on PYTHONPATH", analyser_package_name)
+                    logger.error(e)
                     continue
 
                 self.analysis_packages[analyser_package_name] = pkg

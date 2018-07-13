@@ -1,7 +1,7 @@
 import os
 from logging import getLogger
 
-from omnium.analyser import Analyser
+from analysis.analyser import Analyser
 
 logger = getLogger('om.deleter')
 

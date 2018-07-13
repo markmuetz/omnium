@@ -3,8 +3,8 @@ import os
 import inspect
 
 from omnium.omnium_errors import OmniumError
-from omnium.analyser import Analyser
-from omnium.analysers import Analysers
+from omnium.analysis import Analyser
+from omnium.analysis import Analysers
 from omnium.bcolors import bcolors
 
 ARGS = [(['analysers'], {'nargs': '*', 'help': 'Analyser(s) to get info on'}),

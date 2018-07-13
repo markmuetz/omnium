@@ -5,9 +5,9 @@ from logging import getLogger
 
 from omnium.omnium_errors import OmniumError
 from omnium.state import State
-from omnium.task import TaskMaster
 from omnium.setup_logging import add_file_logging, remove_file_logging
-from omnium.analyser_setting import AnalyserSetting
+from omnium.analysis import AnalyserSetting
+from .task import TaskMaster
 
 logger = getLogger('om.run_ctrl')
 

@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from mock import patch, mock_open
 
-from omnium.analyser_setting import AnalyserSetting
+from analysis.analyser_setting import AnalyserSetting
 
 
 class TestAnalyserSetting(TestCase):

@@ -1,7 +1,7 @@
 """Returns information on currently installed analysers"""
 import os
 
-from omnium.analysers import Analysers
+from omnium.analysis import Analysers
 
 ARGS = [(['-l', '--long'], {'help': 'print long version', 'action': 'store_true'})]
 RUN_OUTSIDE_SUITE = True

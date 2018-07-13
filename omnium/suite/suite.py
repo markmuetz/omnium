@@ -7,9 +7,9 @@ import shutil
 
 from configparser import ConfigParser
 
-from omnium.analysers import Analysers
+from omnium.analysis import Analysers
 from omnium.omnium_errors import OmniumError
-from omnium.expt import ExptList
+from .expt import ExptList
 
 logger = getLogger('om.suite')
 

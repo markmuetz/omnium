@@ -5,7 +5,7 @@ from unittest import TestCase
 
 import omnium
 from mock import patch
-from omnium.converter import FF2NC_Converter
+from analysis.converter import FF2NC_Converter
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
 from omnium.cmds import modules

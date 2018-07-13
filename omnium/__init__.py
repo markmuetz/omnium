@@ -3,13 +3,38 @@ import logging
 # before everything else starts trying to get the logger.
 logging.basicConfig()  # nopep8
 
-from .version import __version__
-
-from .omnium_cmd import main as omnium_main
+from .version import VERSION
 from .stash import Stash
+from .analysis import Analysers, Analyser, AnalyserSetting, FF2NC_Converter
+from .run_control import RunControl, TaskMaster, Task
+from .suite import Suite, ExptList, Expt
 from .omnium_errors import OmniumError
-from .analyser_setting import AnalyserSetting
-from .task import TaskMaster
+from .state import State
+from .syncher import Syncher
+from .omnium_cmd import main as omnium_main
+import omnium.analysis
+import omnium.run_control
+import omnium.suite
+
+__version__ = VERSION
+
+__all__ = [
+    Stash,
+    Analysers,
+    Analyser,
+    AnalyserSetting,
+    FF2NC_Converter,
+    RunControl,
+    TaskMaster,
+    Task,
+    Suite,
+    ExptList,
+    Expt,
+    OmniumError,
+    State,
+    Syncher,
+    omnium_main
+]
 
 
 def init():

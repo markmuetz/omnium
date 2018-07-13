@@ -1,6 +1,6 @@
 import csv
 
-from omnium.analyser import Analyser
+from analysis.analyser import Analyser
 
 
 class CsvAnalyser(Analyser):
