@@ -127,6 +127,13 @@ class Expt:
         return self.dy * self.ny
 
     @property
+    def um_version(self):
+        if not self._config:
+            # Force load.
+            _ = self.um_config
+        return self._um_version
+
+    @property
     def um_config(self):
         if not self.rose_app_run_conf_file:
             raise OmniumError('{} has no config file'.format(self))
@@ -137,8 +144,8 @@ class Expt:
                 assert split_first_line[0] == 'meta'
                 # version looks like: um-atmos/vn11.0
                 version = split_first_line[1].strip()
-                self.um_version = float(version.split('/')[-1][2:])
-                if self.um_version >= 10.9:
+                self._um_version = tuple([int(v) for v in version.split('/')[-1][2:].split('.')])
+                if self._um_version >= (10, 9):
                     self._namelist_idealised = 'namelist:recon_idealised'
                 else:
                     self._namelist_idealised = 'namelist:idealise'

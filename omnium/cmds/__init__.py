@@ -5,6 +5,7 @@ from logging import getLogger
 logger = getLogger('om.cmds')
 
 commands = [
+    'analyser-info',
     'clean-symlinks',
     'convert',
     'expt-info',

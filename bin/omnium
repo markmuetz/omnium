@@ -32,4 +32,5 @@ except ImportError:
     import omnium
 
 from omnium.omnium_cmd import main
-exit(main(sys.argv, import_log_msg))
+main(sys.argv, import_log_msg)
+exit(0)

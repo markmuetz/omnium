@@ -3,8 +3,7 @@ import os
 
 from omnium.analysers import Analysers
 
-ARGS = [(['-l', '--long'], {'help': 'print long version',
-                            'action': 'store_true'})]
+ARGS = [(['-l', '--long'], {'help': 'print long version', 'action': 'store_true'})]
 RUN_OUTSIDE_SUITE = True
 
 

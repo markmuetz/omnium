@@ -28,6 +28,7 @@ def main(suite, args):
             print('  ' + expt.rose_app_run_conf_file)
             if expt.has_um_config:
                 try:
+                    print('  um_version: {}'.format(expt.um_version))
                     print('  model_type: {}'.format(expt.model_type))
                     print('  dt: {} s'.format(expt.dt))
                     print('  nx: {}'.format(expt.nx))

@@ -120,8 +120,8 @@ def test_remote_command():
 
 
 def test_expt_info():
-    omnium_main(['omnium', 'expt-info'])
-    omnium_main(['omnium', 'expt-info', '-l'])
+    omnium_main(['omnium', 'expt-info', '--all'])
+    omnium_main(['omnium', 'expt-info', '--all', '-l'])
 
 
 def test_suite_freeze():
@@ -140,3 +140,6 @@ def test_suite_unfreeze():
         f.write('hi')
     os.remove('dummy_file')
 
+def test_analyser_info():
+    omnium_main(['omnium', 'analyser-info', '--all'])
+    omnium_main(['omnium', 'analyser-info', '--all', '-l'])
