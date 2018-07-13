@@ -5,7 +5,7 @@ logging.basicConfig()  # nopep8
 
 from .version import VERSION
 from .stash import Stash
-from .analysis import Analysers, Analyser, AnalyserSetting, FF2NC_Converter
+from .analysis import AnalysisPkgs, Analyser, AnalyserSetting, FF2NC_Converter
 from .run_control import RunControl, TaskMaster, Task
 from .suite import Suite, ExptList, Expt
 from .omnium_errors import OmniumError
@@ -20,7 +20,7 @@ __version__ = VERSION
 
 __all__ = [
     Stash,
-    Analysers,
+    AnalysisPkgs,
     Analyser,
     AnalyserSetting,
     FF2NC_Converter,

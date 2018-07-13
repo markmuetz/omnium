@@ -61,11 +61,11 @@ class RunControl(object):
 
         self._analysis_workflow = OrderedDict()
         self._full_analysis_workflow = OrderedDict()
-        self._analysis_classes = self._suite.analysis_classes
 
         self._state = State()
         self._task_master = TaskMaster(self._suite, self._run_type, self._settings_name,
                                        self._force)
+        self._analysis_pkgs = self._suite.analysis_pkgs
 
         if self._production:
             logger.info('Running in production mode')
@@ -105,13 +105,13 @@ class RunControl(object):
                 logger.debug('analysis: {}', analysis_name)
                 enabled = enabled_str == 'True'
 
-                if analysis_name not in self._analysis_classes:
+                if analysis_name not in self._analysis_pkgs.analyser_classes:
                     raise OmniumError('COULD NOT FIND ANALYSER: {}'.format(analysis_name))
 
                 if analysis_name in analysis_workflow:
                     raise OmniumError('{} already in analysis workflow'.format(analysis_name))
 
-                analyser_cls = self._analysis_classes[analysis_name]
+                analyser_cls = self._analysis_pkgs.analyser_classes[analysis_name]
                 self._full_analysis_workflow[analysis_name] = (analysis_name, analyser_cls, enabled)
                 analysis_workflow[analysis_name] = (analysis_name, analyser_cls, enabled)
 
@@ -170,9 +170,9 @@ class RunControl(object):
             self.run_task(task)
 
     def _make_analyser(self, task):
-        analyser_cls = self._analysis_classes[task.analysis_name]
-        settings_filename_fmt, settings = self._suite.analysers.get_settings(analyser_cls,
-                                                                             self._settings_name)
+        analyser_cls = self._analysis_pkgs.analyser_classes[task.analysis_name]
+        settings_filename_fmt, settings = self._analysis_pkgs.get_settings(analyser_cls,
+                                                                           self._settings_name)
         analyser = analyser_cls(self._suite, task, settings)
         dir_vars = {'version_dir': self._task_master.get_version_dir(analyser_cls)}
         settings_filename = settings_filename_fmt.format(**dir_vars)

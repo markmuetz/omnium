@@ -18,7 +18,7 @@ def setup():
     print(origcwd)
     #sys.path.insert(0, os.path.join(origcwd, 'test_analysers'))
 
-    os.environ['OMNIUM_ANALYSER_PKGS'] = 'omnium.tests.test_analysers.analysis'
+    os.environ['OMNIUM_ANALYSIS_PKGS'] = 'omnium.tests.test_analysers.analysis'
 
     if os.path.exists(SCRATCH_DIR):
         shutil.rmtree(SCRATCH_DIR)

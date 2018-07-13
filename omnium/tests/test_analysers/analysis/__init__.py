@@ -10,4 +10,4 @@ analysis_settings = {
     'default': settings,
 }
 
-analysis_classes = [CsvAnalyser, SimpleAnalyser]
+analyser_classes = [CsvAnalyser, SimpleAnalyser]

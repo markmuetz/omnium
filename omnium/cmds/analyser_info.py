@@ -3,8 +3,7 @@ import os
 import inspect
 
 from omnium.omnium_errors import OmniumError
-from omnium.analysis import Analyser
-from omnium.analysis import Analysers
+from omnium.analysis import Analyser, AnalysisPkgs
 from omnium.bcolors import bcolors
 
 ARGS = [(['analysers'], {'nargs': '*', 'help': 'Analyser(s) to get info on'}),
@@ -48,20 +47,19 @@ def _display_info(analyser_cls: Analyser, long: bool) -> Analyser:
 
 
 def main(suite, args):
-    omnium_analyser_pkgs = os.getenv('OMNIUM_ANALYSER_PKGS')
-    analyser_pkg_names = []
-    if omnium_analyser_pkgs:
-        analyser_pkg_names = omnium_analyser_pkgs.split(':')
-    analysers = Analysers(analyser_pkg_names)
-    analysers.find_all()
+    omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
+    analysis_pkg_names = []
+    if omnium_analysis_pkgs:
+        analysis_pkg_names = omnium_analysis_pkgs.split(':')
+    analysis_pkgs = AnalysisPkgs(analysis_pkg_names)
 
     all_analysers = []
     if args.all:
-        all_analysers = analysers.analysis_classes.values()
+        all_analysers = analysis_pkgs.analyser_classes.values()
     else:
         for analyser_name in args.analysers:
-            if analyser_name in analysers.analysis_classes:
-                all_analysers.append(analysers.analysis_classes[analyser_name])
+            if analyser_name in analysis_pkgs.analyser_classes:
+                all_analysers.append(analysis_pkgs.analyser_classes[analyser_name])
             else:
                 raise OmniumError('analyser {} not found'.format(analyser_name))
     for analyser_cls in all_analysers:

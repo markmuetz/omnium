@@ -41,7 +41,7 @@ def main(suite, args):
         run_omnium_tests()
 
     if args.all:
-        analysis_pkgs = os.environ.get('OMNIUM_ANALYSER_PKGS').split(':')
+        analysis_pkgs = os.environ.get('OMNIUM_ANALYSIS_PKGS').split(':')
         logger.info('Found analysis packages: {}', ', '.join(analysis_pkgs))
         for analysis_pkg in analysis_pkgs:
             run_analysis_tests(analysis_pkg)

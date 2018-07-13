@@ -8,7 +8,7 @@ import shutil
 
 from configparser import ConfigParser
 
-from omnium.analysis import Analysers
+from omnium.analysis import AnalysisPkgs
 from omnium.omnium_errors import OmniumError
 from omnium.setup_logging import add_file_logging
 from .expt import ExptList
@@ -29,10 +29,6 @@ class Suite(object):
         self.is_init = False
         self.suite_config = None
         self.settings = None
-        self.analyser_dirs = []
-        self.analysis_classes = OrderedDict()
-        self.analysis_hash = []
-        self.analysis_status = []
         self.dotomnium_dir = '.omnium'
         self.is_readonly = True
         self.logging_filename = ''
@@ -98,7 +94,7 @@ class Suite(object):
             self.app_config = ConfigParser()
             with open(self.app_config_path, 'r') as f:
                 self.app_config.read_file(f)
-            # I have an app config. See if I can find analysis_classes:
+            # I have an app config. See if I can find analyser_classes:
             logger.debug('loaded app config')
 
         self.missing_file_path = os.path.join(self.suite_dir, '.omnium/missing_file.txt')
@@ -121,16 +117,12 @@ class Suite(object):
             os.makedirs(os.path.dirname(self.logging_filename), exist_ok=True)
 
     def load_analysers(self):
-        omnium_analysers_pkgs = os.getenv('OMNIUM_ANALYSER_PKGS')
-        if omnium_analysers_pkgs:
-            analyser_pkg_names = omnium_analysers_pkgs.split(':')
+        omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
+        if omnium_analysis_pkgs:
+            analysis_pkg_names = omnium_analysis_pkgs.split(':')
         else:
-            analyser_pkg_names = []
-        self.analysers = Analysers(analyser_pkg_names)
-        self.analysers.find_all()
-        self.analysis_hash.extend(self.analysers.analysis_hash)
-        self.analysis_status.extend(self.analysers.analysis_status)
-        self.analysis_classes = self.analysers.analysis_classes
+            analysis_pkg_names = []
+        self.analysis_pkgs = AnalysisPkgs(analysis_pkg_names)
 
     def init(self, suite_name, suite_type, host_name=None, host=None, base_path=None):
         assert suite_type in Suite.suite_types

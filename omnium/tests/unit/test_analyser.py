@@ -283,11 +283,12 @@ class TestAnalyserInstanceFunction(TestCase):
     @patch('iris.save')
     def test_save_results_cube(self, mock_save, mock_CubeList):
         sa = SingleAnalyser(self.suite, task, self.settings)
+        pkg = Mock()
+        pkg.version = (0, 1, 2, 3, 'omega')
+        self.suite.analysis_pkgs.get_package.return_value = pkg
         sa.save_results_cubes(None, self.suite)
         mock_CubeList.assert_called_with([])
         mock_save.assert_not_called()
-        self.suite.analysis_hash = [b'a' * 64, b'b' * 64]
-        self.suite.analysis_status = ['clean', 'clean']
 
         results = [('result_{}'.format(i), Mock(attributes={'omnium_cube_id': i}))
                    for i in range(5)]

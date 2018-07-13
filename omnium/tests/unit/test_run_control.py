@@ -22,7 +22,6 @@ class TestRunControl(TestCase):
         mock_settings = Mock()
         mock_settings.get_hash.return_value = 'abcdefghijklmnop'
         mock_settings.package = Mock()
-        suite.analysers.get_settings.return_value = mock_settings.package, mock_settings
         mock_get_package_version.return_value = 'pkg_name_v_-99'
         analysis = [('mock_analysis', mock_analysis_cls, True)]
 
@@ -43,7 +42,6 @@ class TestRunControl(TestCase):
         mock_settings = Mock()
         mock_settings.get_hash.return_value = 'abcdefghijklmnop'
         mock_settings.package = Mock()
-        suite.analysers.get_settings.return_value = mock_settings.package, mock_settings
         mock_get_package_version.return_value = 'pkg_name_v_-99'
         analysis = [('mock_analysis', mock_analysis_cls, True)]
 

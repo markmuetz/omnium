@@ -122,71 +122,71 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster.gen_cmd_tasks')
     def test_gen_tasks_for_analysis1(self, mock_gen_cmd):
         task_master = TaskMaster(*self.suite_args['basic'])
-        analysis_class = Mock()
+        analyser_cls = Mock()
 
         task_master._run_type = 'cmd'
-        task_master.gen_tasks_for_analysis(analysis_class)
-        mock_gen_cmd.assert_has_calls([call(analysis_class)])
+        task_master.gen_tasks_for_analysis(analyser_cls)
+        mock_gen_cmd.assert_has_calls([call(analyser_cls)])
 
     @patch('omnium.TaskMaster.gen_cycle_tasks')
     def test_gen_tasks_for_analysis2(self, mock_gen_cycle):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
-        analysis_class = Mock()
+        analyser_cls = Mock()
         task_master._run_type = 'cycle'
-        task_master.gen_tasks_for_analysis(analysis_class)
-        mock_gen_cycle.assert_has_calls([call('expt1', analysis_class),
-                                         call('expt2', analysis_class)])
+        task_master.gen_tasks_for_analysis(analyser_cls)
+        mock_gen_cycle.assert_has_calls([call('expt1', analyser_cls),
+                                         call('expt2', analyser_cls)])
 
     @patch('omnium.TaskMaster.gen_expt_tasks')
     def test_gen_tasks_for_analysis3(self, mock_gen_expt):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
-        analysis_class = Mock()
+        analyser_cls = Mock()
         task_master._run_type = 'expt'
-        task_master.gen_tasks_for_analysis(analysis_class)
-        mock_gen_expt.assert_has_calls([call('expt1', analysis_class),
-                                        call('expt2', analysis_class)])
+        task_master.gen_tasks_for_analysis(analyser_cls)
+        mock_gen_expt.assert_has_calls([call('expt1', analyser_cls),
+                                        call('expt2', analyser_cls)])
 
     @patch('omnium.TaskMaster.gen_suite_tasks')
     def test_gen_tasks_for_analysis4(self, mock_gen_suite):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
-        analysis_class = Mock()
+        analyser_cls = Mock()
         task_master._run_type = 'suite'
-        task_master.gen_tasks_for_analysis(analysis_class)
-        mock_gen_suite.assert_has_calls([call(analysis_class)])
+        task_master.gen_tasks_for_analysis(analyser_cls)
+        mock_gen_suite.assert_has_calls([call(analyser_cls)])
 
     @patch('omnium.TaskMaster.gen_tasks_for_analysis')
     def test_gen_all_tasks(self, mock_gen):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
 
-        analysis_class1 = Mock()
+        analyser_cls = Mock()
 
         enabled_analysis = [
-            ('mock_analysis1', analysis_class1, True),
+            ('mock_analysis1', analyser_cls, True),
         ]
         task_master.gen_all_tasks(['e0', 'e1'], [], enabled_analysis)
-        mock_gen.assert_called_with(analysis_class1)
+        mock_gen.assert_called_with(analyser_cls)
 
     @patch('omnium.TaskMaster.gen_tasks_for_analysis')
     def test_single_analysis_task(self, mock_gen):
         task_master = TaskMaster(*self.suite_args['basic'])
         task_master._expts = ['expt1', 'expt2']
 
-        analysis_class1 = Mock()
-        analysis_class2 = Mock()
+        analyser_cls1 = Mock()
+        analyser_cls2 = Mock()
         all_analysis = [
-            ('mock_analysis1', analysis_class1, True),
-            ('mock_analysis2', analysis_class2, False),
+            ('mock_analysis1', analyser_cls1, True),
+            ('mock_analysis2', analyser_cls2, False),
         ]
 
         self.analysis_workflow.values.return_value = all_analysis
         expts = ['e1', 'e2']
 
         task_master.gen_single_analysis_tasks(expts, [], self.analysis_workflow, 'mock_analysis2')
-        mock_gen.assert_called_with(analysis_class2)
+        mock_gen.assert_called_with(analyser_cls2)
 
     def test_find_pending(self):
         task_master = TaskMaster(*self.suite_args['basic'])
