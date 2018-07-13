@@ -2,7 +2,6 @@ import io
 import os
 import subprocess as sp
 import socket
-from collections import OrderedDict
 from logging import getLogger
 import shutil
 
@@ -11,6 +10,7 @@ from configparser import ConfigParser
 from omnium.analysis import AnalysisPkgs
 from omnium.omnium_errors import OmniumError
 from omnium.setup_logging import add_file_logging
+from omnium.state import State
 from .expt import ExptList
 
 logger = getLogger('om.suite')
@@ -161,10 +161,30 @@ class Suite(object):
         with open(os.path.join(self.dotomnium_dir, 'suite.conf'), 'w') as configfile:
             self.suite_config.write(configfile)
 
-    def save_metadata(self, output_dirname, expt_names=[]):
+    def save_metadata(self, settings, output_dirname, expt_names=[]):
         metadata_dir = os.path.join(output_dirname, 'metadata')
+        logger.debug('write metadata to: {}', metadata_dir)
         if not os.path.exists(metadata_dir):
             os.makedirs(metadata_dir, exist_ok=True)
+
+        settings_filename = os.path.join(metadata_dir, 'settings.json')
+        settings.save(settings_filename)
+
+        suite_filename = os.path.join(metadata_dir, 'suite_{}_info.txt'.format(self.name))
+        with open(suite_filename, 'w') as f:
+            f.write('name: {}\n'.format(self.name))
+            for line in self.info_lines():
+                f.write('{}\n'.format(line))
+
+        computer_name = socket.gethostname()
+        computer_filename = os.path.join(metadata_dir, 'comp_{}_info.txt'.format(computer_name))
+        with open(computer_filename, 'w') as f:
+            f.write('hostname: {}\n'.format(computer_name))
+            f.write('suite_dir: {}\n'.format(self.suite_dir))
+            f.write('cwd: {}\n'.format(os.getcwd()))
+            f.write('ENV:\n')
+            for env_key, env_val in os.environ.items():
+                f.write('  {}={}\n'.format(env_key, env_val))
 
         if expt_names:
             expts = ExptList(self)
@@ -173,6 +193,22 @@ class Suite(object):
                 rose_app_run_conf_file = os.path.join(metadata_dir,
                                                       '{}_rose-app-run.conf'.format(expt.name))
                 shutil.copy(expt.rose_app_run_conf_file, rose_app_run_conf_file)
+        state = State()
+        omnium_filename = os.path.join(metadata_dir, 'omnium_info.txt')
+        with open(omnium_filename, 'w') as f:
+            f.write('pkg_loc: {}\n'.format(state.location))
+            f.write('git_hash: {}\n'.format(state.git_hash))
+            f.write('git_status: {}\n'.format(state.git_status))
+            f.write('git_describe: {}\n'.format(state.git_describe))
+            f.write('conda_env: {}\n'.format(state.conda_env))
+
+        for pkg_name, pkg in self.analysis_pkgs.items():
+            pkg_filename = os.path.join(metadata_dir, '{}_info.txt'.format(pkg_name))
+            with open(pkg_filename, 'w') as f:
+                f.write('pkg_loc: {}\n'.format(os.path.dirname(pkg.pkg.__file__)))
+                f.write('git_hash: {}\n'.format(pkg.git_hash))
+                f.write('git_status: {}\n'.format(pkg.git_status))
+                f.write('git_describe: {}\n'.format(pkg.git_describe))
 
     def abort_if_missing(self, filename):
         if self.check_filename_missing(filename):

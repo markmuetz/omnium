@@ -3,14 +3,14 @@ import os
 from omnium.utils import get_git_info
 
 
-class State(object):
+class State:
     """State of the omnium project directory
 
     location, git_hash, git_status and conda_env.
     """
     def __init__(self):
         self.location = self._get_location()
-        self.git_hash, self.git_status = get_git_info(self.location)
+        self.git_hash, self.git_describe, self.git_status = get_git_info(self.location)
         self.conda_env = self._get_conda_env()
 
     def __repr__(self):

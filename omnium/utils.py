@@ -14,10 +14,11 @@ def get_git_info(location):
     os.chdir(location)
     try:
         git_hash = sp.check_output('git rev-parse HEAD'.split()).strip()
+        git_describe = sp.check_output('git describe --tags'.split()).strip()
         if sp.check_output('git status --porcelain'.split()) == b'':
-            return git_hash, 'clean'
+            return git_hash, git_describe, 'clean'
         else:
-            return git_hash, 'uncommitted_changes'
+            return git_hash, git_describe, 'uncommitted_changes'
     except sp.CalledProcessError as ex:
         return None, 'not_git_repo'
     finally:

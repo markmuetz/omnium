@@ -155,11 +155,13 @@ class Analyser(abc.ABC):
             if state:
                 cube.attributes['omnium_git_hash'] = state.git_hash
                 cube.attributes['omnium_git_status'] = state.git_status
+                cube.attributes['omnium_git_describe'] = state.git_describe
             if suite:
                 pkg = suite.analysis_pkgs.get_package(self.__class__)
                 cube.attributes['{}_vn'.format(pkg.name)] = get_version(pkg.version, form='long')
                 cube.attributes['{}_git_hash'.format(pkg.name)] = pkg.git_hash
                 cube.attributes['{}_git_status'.format(pkg.name)] = pkg.git_status
+                cube.attributes['{}_git_describe'.format(pkg.name)] = pkg.git_describe
 
             cube.attributes['omnium_process'] = self.analysis_name
 
@@ -244,4 +246,4 @@ class Analyser(abc.ABC):
                 expt_names = [self.task.expt]
             else:
                 expt_names = self.task.expts
-            self.suite.save_metadata(os.path.dirname(output_filename), expt_names)
+            self.suite.save_metadata(self.settings, os.path.dirname(output_filename), expt_names)

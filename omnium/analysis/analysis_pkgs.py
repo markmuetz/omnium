@@ -28,10 +28,10 @@ class AnalysisPkg(dict):
         self.version = self.pkg.__version__
         self.pkg_dir = os.path.dirname(self.pkg.__file__)
         try:
-            self.git_hash, self.git_status = get_git_info(self.pkg_dir)
+            self.git_hash, self.git_describe, self.git_status = get_git_info(self.pkg_dir)
         except:
             logger.warning('analysis pkg is not a git repo: {}', self.pkg_dir)
-            self.git_hash, self.git_status = None, 'not a git repo'
+            self.git_hash, self.git_describe, self.git_status = None, None, 'not a git repo'
 
         for cls in pkg.analyser_classes:
             if cls not in self:
