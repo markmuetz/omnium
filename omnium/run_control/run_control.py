@@ -6,7 +6,7 @@ from logging import getLogger
 from omnium.omnium_errors import OmniumError
 from omnium.state import State
 from omnium.setup_logging import add_file_logging, remove_file_logging
-from omnium.analysis import AnalyserSettings
+from omnium.analysis import AnalysisSettings
 from .task import TaskMaster
 
 logger = getLogger('om.run_ctrl')
@@ -181,7 +181,7 @@ class RunControl(object):
                 os.makedirs(os.path.dirname(settings_filename), exist_ok=True)
             settings.save(settings_filename)
         else:
-            loaded_settings = AnalyserSettings()
+            loaded_settings = AnalysisSettings()
             loaded_settings.load(settings_filename)
             assert loaded_settings == settings, 'settings not equal to loaded settings.'
 
