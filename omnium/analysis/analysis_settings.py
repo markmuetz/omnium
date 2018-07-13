@@ -5,7 +5,7 @@ from typing import Any, Dict
 import simplejson
 
 
-class AnalyserSetting:
+class AnalyserSettings:
     def __init__(self, settings: Dict[str, Any]=None):
         if settings:
             for key in settings.keys():
@@ -21,10 +21,10 @@ class AnalyserSetting:
             return None
         return self._settings[item]
 
-    def __eq__(self, other: 'AnalyserSetting') -> bool:
+    def __eq__(self, other: 'AnalyserSettings') -> bool:
         return self.get_hash() == other.get_hash()
 
-    def __ne__(self, other: 'AnalyserSetting') -> bool:
+    def __ne__(self, other: 'AnalyserSettings') -> bool:
         return not self == other
 
     def has_item(self, item: str) -> bool:

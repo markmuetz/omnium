@@ -1,5 +1,5 @@
-from omnium import AnalyserSetting
+from omnium import AnalyserSettings
 
 
 __version__ = (0, 0, 0, 1)
-settings = AnalyserSetting()
+settings = AnalyserSettings()

@@ -5,7 +5,7 @@ logging.basicConfig()  # nopep8
 
 from .version import VERSION
 from .stash import Stash
-from .analysis import AnalysisPkgs, Analyser, AnalyserSetting, FF2NC_Converter
+from .analysis import AnalysisPkgs, Analyser, AnalyserSettings, FF2NC_Converter
 from .run_control import RunControl, TaskMaster, Task
 from .suite import Suite, ExptList, Expt
 from .omnium_errors import OmniumError
@@ -22,7 +22,7 @@ __all__ = [
     Stash,
     AnalysisPkgs,
     Analyser,
-    AnalyserSetting,
+    AnalyserSettings,
     FF2NC_Converter,
     RunControl,
     TaskMaster,
