@@ -1,6 +1,5 @@
 import fnmatch
-import os
-import glob
+import os.path as path
 from logging import getLogger
 
 from omnium.omnium_errors import OmniumError
@@ -40,19 +39,19 @@ class Task(object):
 
 
 class TaskMaster(object):
-    def __init__(self, suite, run_type, expts, settings_name, force):
+    def __init__(self, suite, run_type, settings_name, force):
         self.all_tasks = []
         """All tasks that have been generated in runable order."""
-        self.virtual_dir = []
+        self.virtual_drive = []
         """Virtual directory that initially mirrors real input dirs, and is filled up
         with files that will be created by each task."""
 
         self._suite = suite
         self._run_type = run_type
-        self._expts = expts
         self._settings_name = settings_name
         self._force = force
 
+        self._expts = None
         self.pending_tasks = []
         self._filename_task_map = {}
         self._working_tasks = []
@@ -114,10 +113,10 @@ class TaskMaster(object):
         elif self._run_type == 'suite':
             self.gen_suite_tasks(analyser_cls)
 
-    def gen_all_tasks(self, analysis_workflow):
+    def gen_all_tasks(self, expts, virtual_drive, enabled_analysis):
+        self._expts = expts
+        self.virtual_drive = virtual_drive
         logger.debug('generating all tasks for {}', self._run_type)
-        enabled_analysis = [a for a in analysis_workflow.values() if a[2]]
-        self._scan_data_dirs(enabled_analysis)
 
         for analysis_name, analyser_cls, enabled in enabled_analysis:
             self.gen_tasks_for_analysis(analyser_cls)
@@ -125,13 +124,11 @@ class TaskMaster(object):
         self._find_pending()
         logger.info('Generated {} tasks', len(self.all_tasks))
 
-    def gen_single_analysis_tasks(self, analysis_workflow, analysis_name, filenames):
+    def gen_single_analysis_tasks(self, expts, virtual_drive, analysis_workflow, analysis_name):
+        self._expts = expts
+        self.virtual_drive = virtual_drive
         logger.debug('generating single analysis tasks for {}', self._run_type)
         all_analysis = analysis_workflow.values()
-        if filenames:
-            self._find_filenames(filenames)
-        else:
-            self._scan_data_dirs(all_analysis)
         # N.B. ignores analysis enabled status.
 
         for search_analysis_name, analyser_cls, enabled in all_analysis:
@@ -145,12 +142,12 @@ class TaskMaster(object):
         assert analyser_cls.single_file or analyser_cls.multi_file
         logger.debug('generating cmd tasks for {}', analyser_cls.analysis_name)
 
-        logger.debug('using files: {}', self.virtual_dir)
+        logger.debug('using files: {}', self.virtual_drive)
 
         if analyser_cls.single_file:
-            self._gen_single_file_tasks(None, analyser_cls, self.virtual_dir)
+            self._gen_single_file_tasks(None, analyser_cls, self.virtual_drive)
         elif analyser_cls.multi_file:
-            self._gen_multi_file_tasks(None, analyser_cls, self.virtual_dir)
+            self._gen_multi_file_tasks(None, analyser_cls, self.virtual_drive)
 
     def gen_cycle_tasks(self, expt, analyser_cls):
         assert analyser_cls.single_file
@@ -189,7 +186,7 @@ class TaskMaster(object):
 
         # N.B. output filename for suite tasks cannot contain {expt} - this will raise an error if
         # it does.
-        dir_vars = {'version_dir': self._get_version_dir(analyser_cls),
+        dir_vars = {'version_dir': self.get_version_dir(analyser_cls),
                     'expts': '_'.join(self._expts)}
         output_filenames = self._gen_output_filenames(analyser_cls, dir_vars)
         runid = None
@@ -206,8 +203,8 @@ class TaskMaster(object):
             self._filename_task_map[output_filename] = task
 
         self.all_tasks.append(task)
-        self.virtual_dir.extend(task.output_filenames)
-        self.virtual_dir.extend([fn + '.done' for fn in task.output_filenames])
+        self.virtual_drive.extend(task.output_filenames)
+        self.virtual_drive.extend([fn + '.done' for fn in task.output_filenames])
 
     def _find_pending(self):
         for task in self.all_tasks:
@@ -216,33 +213,8 @@ class TaskMaster(object):
 
         logger.debug('{} pending tasks', len(self.pending_tasks))
 
-    def _scan_data_dirs(self, analysis):
-        dirs_to_scan = []
-        for expt in self._expts:
-            for analysis_name, analyser_cls, enabled in analysis:
-                dir_vars = {'expt': expt,
-                            'version_dir': self._get_version_dir(analyser_cls)}
-                # TODO: this *might* miss some files if it is not def'd using '{input_dir}/...'
-                input_dir = os.path.join(self._suite.suite_dir,
-                                         analyser_cls.input_dir.format(**dir_vars))
-                dirs_to_scan.append(input_dir)
-
-        # Ensure uniqueness.
-        dirs_to_scan = set(dirs_to_scan)
-        for dir in dirs_to_scan:
-            logger.debug('Scanning dir: {}', dir)
-            found_filenames = sorted(glob.glob(os.path.join(dir, '*')))
-            self.virtual_dir.extend(found_filenames)
-        self.virtual_dir = sorted(list(set(self.virtual_dir)))
-
-    def _find_filenames(self, filenames):
-        for filename in filenames:
-            if not os.path.exists(filename):
-                raise OmniumError('{} does not exist'.format(filename))
-            self.virtual_dir.append(os.path.abspath(filename))
-
     def _gen_single_file_tasks(self, expt, analyser_cls, done_filenames):
-        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls)}
+        dir_vars = {'expt': expt, 'version_dir': self.get_version_dir(analyser_cls)}
 
         if not done_filenames:
             logger.debug('no files for {}', analyser_cls.analysis_name)
@@ -274,11 +246,11 @@ class TaskMaster(object):
             for output_filename in task.output_filenames:
                 self._filename_task_map[output_filename] = task
             self.all_tasks.append(task)
-            # Don't fill up virtual_dir if cmd.
+            # Don't fill up virtual_drive if cmd.
             if self._run_type != 'cmd':
                 # Check output filenames don't exist.
                 for output_filename in task.output_filenames:
-                    if os.path.exists(output_filename):
+                    if output_filename in self.virtual_drive:
                         if not self._force:
                             msg = 'output file {} already exists'
                             logger.debug(msg, output_filename)
@@ -286,12 +258,12 @@ class TaskMaster(object):
                             msg = 'output file {} will be overwritten'
                             logger.debug(msg, output_filename)
                     else:
-                        self.virtual_dir.append(output_filename)
-                        self.virtual_dir.append(output_filename + '.done')
+                        self.virtual_drive.append(output_filename)
+                        self.virtual_drive.append(output_filename + '.done')
 
             if analyser_cls.delete:
                 logger.debug('will delete file: {}', filtered_filename)
-                self.virtual_dir.remove(filtered_filename)
+                self.virtual_drive.remove(filtered_filename)
 
     def _gen_output_filenames(self, analyser_cls, dir_vars):
         output_filenames = []
@@ -299,12 +271,12 @@ class TaskMaster(object):
         logger.debug('dir_vars: {}', dir_vars)
         for output_filename in analyser_cls.output_filenames:
             logger.debug('output_filename: {}', output_filename)
-            output_filenames.append(os.path.join(self._suite.suite_dir,
-                                                 output_filename.format(**dir_vars)))
+            output_filenames.append(path.join(self._suite.suite_dir,
+                                              output_filename.format(**dir_vars)))
         return output_filenames
 
     def _gen_multi_file_tasks(self, expt, analyser_cls, done_filenames):
-        dir_vars = {'expt': expt, 'version_dir': self._get_version_dir(analyser_cls)}
+        dir_vars = {'expt': expt, 'version_dir': self.get_version_dir(analyser_cls)}
         if not done_filenames:
             logger.debug('no files for {}', analyser_cls.analysis_name)
             return
@@ -327,7 +299,7 @@ class TaskMaster(object):
         self.all_tasks.append(task)
         for output_filename in task.output_filenames:
             # Check output filenames don't exist.
-            if os.path.exists(output_filename):
+            if output_filename in self.virtual_drive:
                 if not self._force:
                     msg = 'output file {} already exists'
                     logger.debug(msg, output_filename)
@@ -335,21 +307,21 @@ class TaskMaster(object):
                     msg = 'output file {} will be overwritten'
                     logger.debug(msg, output_filename)
             else:
-                self.virtual_dir.append(output_filename)
-                self.virtual_dir.append(output_filename + '.done')
+                self.virtual_drive.append(output_filename)
+                self.virtual_drive.append(output_filename + '.done')
         logger.debug(task)
 
     def _find_done_filenames(self, expt, analyser_cls):
-        dir_vars = {'version_dir': self._get_version_dir(analyser_cls)}
+        dir_vars = {'version_dir': self.get_version_dir(analyser_cls)}
         if expt:
             dir_vars['expt'] = expt
         dir_vars['input_dir'] = analyser_cls.input_dir.format(**dir_vars)
 
         if analyser_cls.input_filename_glob:
-            filename_glob = os.path.join(self._suite.suite_dir,
-                                         analyser_cls.input_filename_glob.format(**dir_vars))
+            filename_glob = path.join(self._suite.suite_dir,
+                                      analyser_cls.input_filename_glob.format(**dir_vars))
             logger.debug('Using glob: {}', filename_glob)
-            filtered_filenames = sorted(fnmatch.filter(self.virtual_dir, filename_glob))
+            filtered_filenames = sorted(fnmatch.filter(self.virtual_drive, filename_glob))
             if not filtered_filenames:
                 # Not necessarily a problem - could be that a previous converter has delete them.
                 logger.warning('Could not find any filenames for {} using: {}',
@@ -362,8 +334,8 @@ class TaskMaster(object):
 
             filtered_filenames = []
             for fn in input_filenames:
-                filename = os.path.join(self._suite.suite_dir, fn.format(**dir_vars))
-                fns = sorted(fnmatch.filter(self.virtual_dir, filename))
+                filename = path.join(self._suite.suite_dir, fn.format(**dir_vars))
+                fns = sorted(fnmatch.filter(self.virtual_drive, filename))
                 filtered_filenames.extend(fns)
             if len(input_filenames) != len(filtered_filenames):
                 raise OmniumError('Could not find all filenames for {}'
@@ -372,11 +344,11 @@ class TaskMaster(object):
             raise OmniumError('{} must have one of these set: '
                               'input_filename_glob, input_filenames, input_filename'
                               .format(analyser_cls))
-        done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.virtual_dir]
+        done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.virtual_drive]
         logger.debug('found files: {}', done_filenames)
         return done_filenames
 
-    def _get_version_dir(self, analyser_cls):
+    def get_version_dir(self, analyser_cls):
         _, settings = self._suite.analysers.get_settings(analyser_cls, self._settings_name)
         package = self._suite.analysers.get_package(analyser_cls)
         omnium_version = 'om_v' + get_version(form='medium')

@@ -68,3 +68,4 @@ def main(suite, args):
         _display_info(analyser_cls, args.long)
     if not all_analysers:
         raise OmniumError('No analysers found')
+    return all_analysers

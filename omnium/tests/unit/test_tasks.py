@@ -39,20 +39,20 @@ class TestTaskMaster(TestCase):
         setup_logger()
 
     def test_task_master_init(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
 
     def test_get_next_pending1(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         with self.assertRaises(StopIteration):
             task_master.get_next_pending()
 
     def test_get_next_pending2(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task_master.all_tasks = [Mock()]
         assert task_master.get_next_pending() is None
 
     def test_get_next_pending3(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task = Mock()
         task.status = 'working'
         task_master.pending_tasks = [task]
@@ -60,7 +60,7 @@ class TestTaskMaster(TestCase):
             task_master.get_next_pending()
 
     def test_get_next_pending4(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task = Mock()
         task.status = 'pending'
         task_master.pending_tasks = [task]
@@ -68,7 +68,7 @@ class TestTaskMaster(TestCase):
         assert task.status == 'working'
 
     def test_update_task1(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task = Mock()
         task.status = 'pending'
         task.next_tasks = []
@@ -77,7 +77,7 @@ class TestTaskMaster(TestCase):
         assert task.status == 'working'
 
     def test_update_task2(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task = Mock()
         task1 = Mock()
         task2 = Mock()
@@ -94,7 +94,7 @@ class TestTaskMaster(TestCase):
 
     @patch('omnium.TaskMaster.get_next_pending')
     def test_get_all_tasks1(self, mock_get_next_pending):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task = Mock()
         mock_get_next_pending.return_value = task
         rtask = next(task_master.get_all_tasks())
@@ -102,7 +102,7 @@ class TestTaskMaster(TestCase):
 
     @patch('omnium.TaskMaster.get_next_pending')
     def test_get_all_tasks2(self, mock_get_next_pending):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
 
         def r():
             raise StopIteration
@@ -114,7 +114,7 @@ class TestTaskMaster(TestCase):
 
     @patch('builtins.print')
     def test_print_tasks(self, mock_print):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task = Mock()
         task_master.all_tasks = [task]
         task_master.print_tasks()
@@ -122,7 +122,7 @@ class TestTaskMaster(TestCase):
 
     @patch('omnium.TaskMaster.gen_cmd_tasks')
     def test_gen_tasks_for_analysis1(self, mock_gen_cmd):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
 
@@ -133,7 +133,7 @@ class TestTaskMaster(TestCase):
 
     @patch('omnium.TaskMaster.gen_cycle_tasks')
     def test_gen_tasks_for_analysis2(self, mock_gen_cycle):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
         task_master._run_type = 'cycle'
@@ -143,7 +143,7 @@ class TestTaskMaster(TestCase):
 
     @patch('omnium.TaskMaster.gen_expt_tasks')
     def test_gen_tasks_for_analysis3(self, mock_gen_expt):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
         task_master._run_type = 'expt'
@@ -153,7 +153,7 @@ class TestTaskMaster(TestCase):
 
     @patch('omnium.TaskMaster.gen_suite_tasks')
     def test_gen_tasks_for_analysis4(self, mock_gen_suite):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task_master._expts = ['expt1', 'expt2']
         analysis_class = Mock()
         task_master._run_type = 'suite'
@@ -163,7 +163,7 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster.gen_tasks_for_analysis')
     @patch('omnium.TaskMaster._scan_data_dirs')
     def test_gen_all_tasks(self, mock_scan, mock_gen):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task_master._expts = ['expt1', 'expt2']
 
         analysis_class1 = Mock()
@@ -181,7 +181,7 @@ class TestTaskMaster(TestCase):
     @patch('omnium.TaskMaster._find_filenames')
     @patch('omnium.TaskMaster._scan_data_dirs')
     def test_single_analysis_task(self, mock_scan, mock_find, mock_gen):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task_master._expts = ['expt1', 'expt2']
 
         analysis_class1 = Mock()
@@ -201,7 +201,7 @@ class TestTaskMaster(TestCase):
         mock_find.assert_called_with(['fn'])
 
     def test_find_pending(self):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         task1 = Mock()
         task2 = Mock()
         task3 = Mock()
@@ -224,7 +224,7 @@ class TestTaskMaster(TestCase):
     @patch('omnium.task.TaskMaster._get_package_version')
     @patch('glob.glob')
     def test_scan_dirs_empty(self, mock_glob, mock_get_package_version):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         mock_analysis_cls = Mock()
         mock_analysis_cls.input_dir.format.return_value = '/mock_dir'
 
@@ -239,12 +239,12 @@ class TestTaskMaster(TestCase):
 
         mock_glob.return_value = []
         task_master._scan_data_dirs(analysis)
-        assert task_master.virtual_dir == []
+        assert task_master.virtual_drive == []
 
     @patch('omnium.task.TaskMaster._get_package_version')
     @patch('glob.glob')
     def test_scan_dirs_finds_some(self, mock_glob, mock_get_package_version):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
         mock_analysis_cls = Mock()
         mock_analysis_cls.input_dir.format.return_value = '/mock_dir'
 
@@ -267,12 +267,12 @@ class TestTaskMaster(TestCase):
         mock_glob.side_effect = mock_glob_fn
         task_master._scan_data_dirs(analysis)
         assert mock_glob.call_count == 1
-        assert task_master.virtual_dir == fns
+        assert task_master.virtual_drive == fns
 
     @patch('os.path.exists')
     @patch('os.path.abspath')
     def test_find_filenames(self, mock_abspath, mock_exists):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
 
         def mock_exists_fn(fn):
             return True
@@ -282,12 +282,12 @@ class TestTaskMaster(TestCase):
         fns = ['fn1', 'fn2']
         task_master._find_filenames(fns)
         output_fns = ['/' + f for f in fns]
-        assert(set(task_master.virtual_dir) == set(output_fns))
+        assert(set(task_master.virtual_drive) == set(output_fns))
 
     @patch('os.path.exists')
     @patch('os.path.abspath')
     def test_find_filenames_no_done(self, mock_abspath, mock_exists):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
 
         def mock_exists_fn(fn):
             return fn[-5:] != '.done'
@@ -297,12 +297,12 @@ class TestTaskMaster(TestCase):
         fns = ['fn1', 'fn2']
         task_master._find_filenames(fns)
         output_fns = ['/' + f for f in fns]
-        assert(set(task_master.virtual_dir) == set(output_fns))
+        assert(set(task_master.virtual_drive) == set(output_fns))
 
     @patch('os.path.exists')
     @patch('os.path.abspath')
     def test_find_filenames_not_there(self, mock_abspath, mock_exists):
-        task_master = TaskMaster(*self.suite_args['basic'])
+        task_master = TaskMaster(,
 
         def mock_exists_fn(fn):
             return False
