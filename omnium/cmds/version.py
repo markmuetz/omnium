@@ -6,7 +6,7 @@ ARGS = [(['-l', '--long'], {'help': 'print long version',
 RUN_OUTSIDE_SUITE = True
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     if args.long:
         print('Version ' + get_version('long'))
     else:

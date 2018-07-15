@@ -7,14 +7,14 @@ logger = getLogger('om.suite_info')
 ARGS = []
 
 
-def main(suite, args):
-    bcolors.print('= Suite: {} ='.format(suite.name), ['HEADER', 'BOLD'])
+def main(cmd_ctx, args):
+    bcolors.print('= Suite: {} ='.format(cmd_ctx.suite.name), ['HEADER', 'BOLD'])
     print('')
     bcolors.print('== Suite info: ==', ['BOLD'])
-    for line in suite.info_lines():
+    for line in cmd_ctx.suite.info_lines():
         print(line)
     print('')
-    if suite.is_init:
+    if cmd_ctx.suite.is_init:
         bcolors.print('== Suite config: ==', ['BOLD'])
-        for line in suite.suite_config_lines():
+        for line in cmd_ctx.suite.suite_config_lines():
             print(line)

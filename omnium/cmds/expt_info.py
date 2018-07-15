@@ -7,8 +7,8 @@ ARGS = [(['expts'], {'nargs': '*', 'help': 'Experiments to display'}),
         (['--all'], {'help': 'Display all experiments', 'action': 'store_true'})]
 
 
-def main(suite, args):
-    expts = ExptList(suite)
+def main(cmd_ctx, args):
+    expts = ExptList(cmd_ctx.suite)
     if not expts.config_has_required_info:
         bcolors.print('Required information not in config', ['WARNING', 'BOLD'])
         print('add expt_datam_dir and expt_dataw_dir')

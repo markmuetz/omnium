@@ -3,7 +3,7 @@ import os
 import inspect
 
 from omnium.omnium_errors import OmniumError
-from omnium.analysis import Analyser, AnalysisPkgs
+from omnium.analysis import Analyser
 from omnium.bcolors import bcolors
 
 ARGS = [(['analysers'], {'nargs': '*', 'help': 'Analyser(s) to get info on'}),
@@ -46,12 +46,8 @@ def _display_info(analyser_cls: Analyser, long: bool) -> Analyser:
     return analyser_cls
 
 
-def main(suite, args):
-    omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
-    analysis_pkg_names = []
-    if omnium_analysis_pkgs:
-        analysis_pkg_names = omnium_analysis_pkgs.split(':')
-    analysis_pkgs = AnalysisPkgs(analysis_pkg_names)
+def main(cmd_ctx, args):
+    analysis_pkgs = cmd_ctx.analysis_pkgs
 
     all_analysers = []
     if args.all:

@@ -13,10 +13,10 @@ ARGS = [(['--host-name'], {'help': 'Short name for host', 'default': 'rdf'}),
 RUN_OUTSIDE_SUITE = True
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     logger.info('Cloning into {}', args.suite[0])
-    suite.init(args.suite[0], 'mirror', args.host_name, args.host, args.base_path)
-    syncher = Syncher(suite, args.host_name, args.verbose)
+    cmd_ctx.suite.init(args.suite[0], 'mirror', args.host_name, args.host, args.base_path)
+    syncher = Syncher(cmd_ctx.suite, args.host_name, args.verbose)
     syncher.clone()
     syncher.sync()
     logger.info('Suite cloned')

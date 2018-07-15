@@ -9,6 +9,6 @@ ARGS = [(['--remote', '-r'], {'help': 'Remote'}),
         (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'})]
 
 
-def main(suite, args):
-    syncher = Syncher(suite, args.remote, verbose=args.verbose)
+def main(cmd_ctx, args):
+    syncher = Syncher(cmd_ctx.suite, args.remote, verbose=args.verbose)
     syncher.sync()

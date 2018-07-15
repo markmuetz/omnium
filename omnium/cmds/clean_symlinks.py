@@ -7,9 +7,9 @@ logger = getLogger('om.clean_sym')
 ARGS = [(['--dry-run', '-d'], {'help': 'Dry run', 'action': 'store_true'})]
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     cwd = os.getcwd()
-    os.chdir(suite.suite_dir)
+    os.chdir(cmd_ctx.suite.suite_dir)
 
     total = 0
     for root, dirs, filenames in os.walk('.'):
@@ -17,7 +17,7 @@ def main(suite, args):
         for filename in filenames:
             full_filename = os.path.join(root, filename)
             if os.path.islink(full_filename):
-                if os.path.realpath(full_filename) == suite.missing_file_path:
+                if os.path.realpath(full_filename) == cmd_ctx.suite.missing_file_path:
                     logger.debug('removing link: {}', full_filename)
                     total += 1
                     if not args.dry_run:

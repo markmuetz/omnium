@@ -27,15 +27,15 @@ class Converter(FF2NC_Converter):
     output_filenames = ['dummy']
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     cwd = os.getcwd()
     for i, filename in enumerate(args.filenames):
         output_filename = filename + '.nc'
         task = Task(i, None, None, None, 'converter', 'ff2nc_convert',
                     [os.path.join(cwd, filename)], [os.path.join(cwd, output_filename)])
-        converter = Converter(suite, task, None)
+        converter = Converter(cmd_ctx.suite, task, None)
         converter.delete = args.delete
         converter.force = args.force
         converter.zlib = args.zlib
-        converter.save(None, suite)
+        converter.save(None, cmd_ctx.suite)
         converter.analysis_done()

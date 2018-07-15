@@ -6,5 +6,5 @@ logger = getLogger('om.suite_freeze')
 ARGS = []
 
 
-def main(suite, args):
-    suite.freeze()
+def main(cmd_ctx, args):
+    cmd_ctx.suite.freeze()

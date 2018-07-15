@@ -8,10 +8,12 @@ from logging import getLogger
 
 import omnium
 import omnium.cmds as cmds
+from omnium.cmds.cmd_context import CmdContext
 from omnium.command_parser import parse_commands
 from omnium.setup_logging import setup_logger, add_file_logging
 from omnium.pkg_state import PkgState
 from omnium.suite import Suite
+from omnium.analysis import AnalysisPkgs
 
 # Top level args, e.g. omnium -D ...
 ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False}),
@@ -57,6 +59,12 @@ def main(argv, import_log_msg=''):
         suite_dir = os.path.join(suite_base_dir, cylc_suite_name)
         os.chdir(suite_dir)
 
+    omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
+    if omnium_analysis_pkgs:
+        analysis_pkg_names = omnium_analysis_pkgs.split(':')
+    else:
+        analysis_pkg_names = []
+
     logger.debug('start dir: {}', os.getcwd())
     suite = Suite(os.getcwd(), cylc_control)
     if not suite.is_in_suite:
@@ -71,7 +79,8 @@ def main(argv, import_log_msg=''):
                 logging_filename = suite.logging_filename
             add_file_logging(logging_filename)
 
-    suite.load_analysers()
+    analysis_pkgs = AnalysisPkgs(analysis_pkg_names)
+    suite.set_analysis_pkgs(analysis_pkgs)
 
     if omnium_dev:
         logger.info('running omnium_dev')
@@ -84,13 +93,15 @@ def main(argv, import_log_msg=''):
 
     omnium_state = PkgState(omnium)
     logger.debug('omnium state: {}', omnium_state)
+
+    cmd_ctx = CmdContext(omnium_state, analysis_pkgs, suite)
     if not args.throw_exceptions:
         logger.debug('Catching all exceptions')
         try:
             # dispatch on arg
-            return cmd.main(suite, args)
+            return cmd.main(cmd_ctx, args)
         except Exception as e:
             logger.exception('{}', e)
             raise
     else:
-        return cmd.main(suite, args)
+        return cmd.main(cmd_ctx, args)

@@ -34,6 +34,7 @@ class Suite(object):
         self.is_readonly = True
         self.logging_filename = ''
         self.missing_file_path = ''
+        self.analysis_pkgs = None
 
         self.load(cwd)
 
@@ -117,13 +118,8 @@ class Suite(object):
         if not os.path.exists(os.path.dirname(self.logging_filename)):
             os.makedirs(os.path.dirname(self.logging_filename), exist_ok=True)
 
-    def load_analysers(self):
-        omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
-        if omnium_analysis_pkgs:
-            analysis_pkg_names = omnium_analysis_pkgs.split(':')
-        else:
-            analysis_pkg_names = []
-        self.analysis_pkgs = AnalysisPkgs(analysis_pkg_names)
+    def set_analysis_pkgs(self, analysis_pkgs):
+        self.analysis_pkgs = analysis_pkgs
 
     def init(self, suite_name, suite_type, host_name=None, host=None, base_path=None):
         assert suite_type in Suite.suite_types

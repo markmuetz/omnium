@@ -40,7 +40,7 @@ def get_logging_filename(suite, args):
     return os.path.join(dirname, expt + rank + filename)
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     from omnium.run_control import RunControl
     production = (os.getenv('PRODUCTION') == 'True') or args.production
     if args.filenames:
@@ -56,7 +56,7 @@ def main(suite, args):
     else:
         expts = args.expts
 
-    run_control = RunControl(suite, args.run_type, expts, args.settings, production,
+    run_control = RunControl(cmd_ctx.suite, args.run_type, expts, args.settings, production,
                              args.force, args.no_run_if_started)
     if args.mpi:
         # Note this will raise an import error if not installed.

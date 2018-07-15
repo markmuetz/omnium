@@ -11,11 +11,11 @@ ARGS = [(['filenames'], {'help': 'Filenames to send', 'nargs': '+'}),
         (['--verbose', '-v'], {'help': 'Set verbose mode', 'action': 'store_true'})]
 
 
-def main(suite, args):
-    syncher = Syncher(suite, args.remote, args.verbose)
+def main(cmd_ctx, args):
+    syncher = Syncher(cmd_ctx.suite, args.remote, args.verbose)
 
     filenames = args.filenames
-    rel_dir = os.path.relpath(os.getcwd(), suite.suite_dir)
+    rel_dir = os.path.relpath(os.getcwd(), cmd_ctx.suite.suite_dir)
     rel_filenames = []
     for filename in filenames:
         if os.path.islink(filename):

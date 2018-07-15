@@ -7,7 +7,7 @@ ARGS = [(['-l', '--long'], {'help': 'print long version', 'action': 'store_true'
 RUN_OUTSIDE_SUITE = True
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
     analysis_pkg_names = []
     if omnium_analysis_pkgs:

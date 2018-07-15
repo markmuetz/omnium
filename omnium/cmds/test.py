@@ -36,7 +36,7 @@ def run_analysis_tests(analysis):
     sp.check_output(['nosetests'])
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     if not args.analysis or args.all:
         run_omnium_tests()
 

@@ -12,18 +12,19 @@ ARGS = [(['filenames'], {'help': 'Filenames to fetch', 'nargs': '+'}),
         (['--long', '-l'], {'help': 'Output ls -l', 'action': 'store_true'})]
 
 
-def main(suite, args):
-    syncher = Syncher(suite, args.remote, args.verbose)
+def main(cmd_ctx, args):
+    syncher = Syncher(cmd_ctx.suite, args.remote, args.verbose)
 
     filenames = args.filenames
     rel_filenames = []
-    rel_dir = os.path.relpath(os.getcwd(), suite.suite_dir)
+    rel_dir = os.path.relpath(os.getcwd(), cmd_ctx.suite.suite_dir)
     rel_filenames = [os.path.join(rel_dir, fn) for fn in sorted(filenames)]
     output_lines = syncher.file_info(rel_filenames)
 
     print('Output from: {} ({}:{})'.format(syncher.remote_name,
                                            syncher.remote_host,
-                                           os.path.join(syncher.remote_base_path, suite.name)))
+                                           os.path.join(syncher.remote_base_path,
+                                                        cmd_ctx.suite.name)))
     print('')
     for line in output_lines:
         logger.debug(line)

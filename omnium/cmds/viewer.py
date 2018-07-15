@@ -7,7 +7,7 @@ ARGS = [(['filenames'], {'nargs': '*'}),
 RUN_OUTSIDE_SUITE = True
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     from pyqtgraph.Qt import QtCore, QtGui
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         from omnium.viewers.viewer_control import ViewerControlWindow

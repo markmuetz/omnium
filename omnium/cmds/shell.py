@@ -3,7 +3,7 @@ ARGS = [(['--failsafe'], {'action': 'store_true'})]
 RUN_OUTSIDE_SUITE = True
 
 
-def main(suite, args):
+def main(cmd_ctx, args):
     import IPython
     import os
     import datetime as dt
@@ -40,9 +40,10 @@ def main(suite, args):
                     ExptList, TaskMaster]:
             print('Loaded class: {}'.format(cls.__name__))
 
-        suite = Suite(os.getcwd())
-        suite.load_analysers()
+        suite = cmd_ctx.suite
+        analysis_pkgs = cmd_ctx.analysis_pkgs
         print('Loaded instance: {}: {}'.format('suite', repr(suite)))
+        print('Loaded instance: {}: {}'.format('analysis_pkgs', repr(analysis_pkgs)))
         print('Loaded instance: {}: {}'.format('omnium_state', omnium_state))
         len_stash_entries = sum([len(od) for od in stash.values()])
         print('Loaded instance: {}: {} entries'.format('stash', len_stash_entries))
