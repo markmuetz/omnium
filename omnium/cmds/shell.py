@@ -17,14 +17,14 @@ def main(suite, args):
         import omnium as om
         from omnium.omnium_errors import OmniumError
         from omnium.stash import Stash
-        from omnium.state import State
+        from omnium.pkg_state import PkgState
         from omnium.suite import Suite, ExptList
         from omnium.run_control import RunControl, TaskMaster
         from omnium.analysis.converter import FF2NC_Converter
         from omnium.syncher import Syncher
 
         stash = Stash()
-        state = State()
+        omnium_state = PkgState(om)
 
         modules = [os, dt, np, iris]
         try:
@@ -43,7 +43,7 @@ def main(suite, args):
         suite = Suite(os.getcwd())
         suite.load_analysers()
         print('Loaded instance: {}: {}'.format('suite', repr(suite)))
-        print('Loaded instance: {}: {}'.format('state', state))
+        print('Loaded instance: {}: {}'.format('omnium_state', omnium_state))
         len_stash_entries = sum([len(od) for od in stash.values()])
         print('Loaded instance: {}: {} entries'.format('stash', len_stash_entries))
 

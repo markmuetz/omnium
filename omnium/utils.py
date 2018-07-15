@@ -1,6 +1,7 @@
 import os
 import subprocess as sp
 from logging import getLogger
+from collections import namedtuple
 
 import iris
 import numpy as np
@@ -8,19 +9,23 @@ from omnium.omnium_errors import OmniumError
 
 logger = getLogger('om.utils')
 
+GitInfo = namedtuple('GitInfo', ['loc', 'is_repo', 'hash', 'describe', 'status'])
+
 
 def get_git_info(location):
     cwd = os.getcwd()
     os.chdir(location)
     try:
-        git_hash = sp.check_output('git rev-parse HEAD'.split()).strip()
-        git_describe = sp.check_output('git describe --tags'.split()).strip()
+        # Will raise sp.CalledProcessError if not in git repo.
+        git_hash = sp.check_output('git rev-parse HEAD'.split(),
+                                   stderr=sp.STDOUT).decode().strip()
+        git_describe = sp.check_output('git describe --tags'.split()).decode().strip()
         if sp.check_output('git status --porcelain'.split()) == b'':
-            return git_hash, git_describe, 'clean'
+            return GitInfo(location, True, git_hash, git_describe, 'clean')
         else:
-            return git_hash, git_describe, 'uncommitted_changes'
+            return GitInfo(location, True, git_hash, git_describe, 'uncommitted_changes')
     except sp.CalledProcessError as ex:
-        return None, None, 'not_git_repo'
+        return GitInfo(location, False, None, None, 'not_a_repo')
     finally:
         os.chdir(cwd)
 

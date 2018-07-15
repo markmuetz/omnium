@@ -7,10 +7,11 @@ import shutil
 
 from configparser import ConfigParser
 
+import omnium
 from omnium.analysis import AnalysisPkgs
 from omnium.omnium_errors import OmniumError
 from omnium.setup_logging import add_file_logging
-from omnium.state import State
+from omnium.pkg_state import PkgState
 from .expt import ExptList
 
 logger = getLogger('om.suite')
@@ -193,22 +194,28 @@ class Suite(object):
                 rose_app_run_conf_file = os.path.join(metadata_dir,
                                                       '{}_rose-app-run.conf'.format(expt.name))
                 shutil.copy(expt.rose_app_run_conf_file, rose_app_run_conf_file)
-        state = State()
+        omnium_state = PkgState(omnium, True)
         omnium_filename = os.path.join(metadata_dir, 'omnium_info.txt')
         with open(omnium_filename, 'w') as f:
-            f.write('pkg_loc: {}\n'.format(state.location))
-            f.write('git_hash: {}\n'.format(state.git_hash))
-            f.write('git_status: {}\n'.format(state.git_status))
-            f.write('git_describe: {}\n'.format(state.git_describe))
-            f.write('conda_env: {}\n'.format(state.conda_env))
+            f.write('pkg_loc: {}\n'.format(omnium_state.location))
+            f.write('conda_env: {}\n'.format(self._get_conda_env()))
+            f.write('state: {}\n'.format(omnium_state))
 
         for pkg_name, pkg in self.analysis_pkgs.items():
             pkg_filename = os.path.join(metadata_dir, '{}_info.txt'.format(pkg_name))
+            pkg_state = PkgState(pkg.pkg, True)
             with open(pkg_filename, 'w') as f:
                 f.write('pkg_loc: {}\n'.format(os.path.dirname(pkg.pkg.__file__)))
-                f.write('git_hash: {}\n'.format(pkg.git_hash))
-                f.write('git_status: {}\n'.format(pkg.git_status))
-                f.write('git_describe: {}\n'.format(pkg.git_describe))
+                f.write('state: {}\n'.format(pkg_state))
+
+        conda_list_filename = os.path.join(metadata_dir, 'conda_list.txt')
+        with open(conda_list_filename, 'w') as f:
+            f.write(sp.check_output('conda list'.split()).decode())
+            
+        pip_freeze_filename = os.path.join(metadata_dir, 'pip_freeze.txt')
+        with open(pip_freeze_filename, 'w') as f:
+            f.write(sp.check_output('pip freeze'.split()).decode())
+        
 
     def abort_if_missing(self, filename):
         if self.check_filename_missing(filename):
@@ -251,3 +258,6 @@ class Suite(object):
         # Do once logger hooked up to file.
         logger.debug(cmd)
         logger.info('Unfrozen suite')
+
+    def _get_conda_env(self):
+        return os.environ.get('CONDA_DEFAULT_ENV')

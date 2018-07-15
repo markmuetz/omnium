@@ -4,11 +4,13 @@ all commands are run as:
     omnium [omnium_opts] <cmd> [cmd_opts] [cmd_args]
 """
 import os
+from logging import getLogger
 
+import omnium
 import omnium.cmds as cmds
 from omnium.command_parser import parse_commands
 from omnium.setup_logging import setup_logger, add_file_logging
-from omnium.state import State
+from omnium.pkg_state import PkgState
 from omnium.suite import Suite
 
 # Top level args, e.g. omnium -D ...
@@ -20,6 +22,9 @@ ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False
 
 def main(argv, import_log_msg=''):
     "Parse commands/env, setup logging, dispatch to cmds/<cmd>.py"
+    matplotlib_logger = getLogger('matplotlib')
+    matplotlib_logger.setLevel('WARNING')
+
     omnium_cmds, args = parse_commands('omnium', ARGS, cmds, argv[1:])
     cmd = omnium_cmds[args.cmd_name]
 
@@ -70,7 +75,6 @@ def main(argv, import_log_msg=''):
 
     if omnium_dev:
         logger.info('running omnium_dev')
-        import omnium
         logger.info(omnium)
     logger.debug('omnium import: {}', import_log_msg)
     logger.debug(' '.join(argv))
@@ -78,8 +82,8 @@ def main(argv, import_log_msg=''):
     logger.debug(args.cmd_name)
     logger.debug('cylc_control: {}', cylc_control)
 
-    state = State()
-    logger.debug('omnium git_hash, status: {}, {}', state.git_hash, state.git_status)
+    omnium_state = PkgState(omnium)
+    logger.debug('omnium state: {}', omnium_state)
     if not args.throw_exceptions:
         logger.debug('Catching all exceptions')
         try:

@@ -3,8 +3,9 @@ import glob
 from collections import OrderedDict
 from logging import getLogger
 
+import omnium
 from omnium.omnium_errors import OmniumError
-from omnium.state import State
+from omnium.pkg_state import PkgState
 from omnium.setup_logging import add_file_logging, remove_file_logging
 from omnium.analysis import AnalysisSettings
 from .task import TaskMaster
@@ -62,7 +63,7 @@ class RunControl(object):
         self._analysis_workflow = OrderedDict()
         self._full_analysis_workflow = OrderedDict()
 
-        self._state = State()
+        self._state = PkgState(omnium)
         self._task_master = TaskMaster(self._suite, self._run_type, self._settings_name,
                                        self._force)
         self._analysis_pkgs = self._suite.analysis_pkgs

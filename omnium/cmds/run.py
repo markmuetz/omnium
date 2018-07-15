@@ -75,9 +75,6 @@ def main(suite, args):
             slave = MpiSlave(run_control, comm, rank, size)
             slave.listen()
     else:
-        matplotlib_logger = getLogger('matplotlib')
-        matplotlib_logger.setLevel('WARNING')
-
         run_control.gen_analysis_workflow()
 
         if args.all:

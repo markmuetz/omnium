@@ -9,7 +9,7 @@ from .analysis import AnalysisPkgs, Analyser, AnalysisSettings, FF2NC_Converter
 from .run_control import RunControl, TaskMaster, Task
 from .suite import Suite, ExptList, Expt
 from .omnium_errors import OmniumError
-from .state import State
+from .pkg_state import PkgState
 from .syncher import Syncher
 from .omnium_cmd import main as omnium_main
 import omnium.analysis
@@ -31,7 +31,7 @@ __all__ = [
     ExptList,
     Expt,
     OmniumError,
-    State,
+    PkgState,
     Syncher,
     omnium_main
 ]

@@ -4,6 +4,7 @@ from typing import List
 from logging import getLogger
 
 from omnium.omnium_errors import OmniumError
+from omnium.pkg_state import PkgState
 from omnium.utils import get_git_info
 from omnium.version import get_version
 from .analyser import Analyser
@@ -25,13 +26,9 @@ class AnalysisPkg(dict):
     def __init__(self, name: str, pkg):
         self.name = name
         self.pkg = pkg
+        self.state = PkgState(self.pkg)
         self.version = self.pkg.__version__
         self.pkg_dir = os.path.dirname(self.pkg.__file__)
-        try:
-            self.git_hash, self.git_describe, self.git_status = get_git_info(self.pkg_dir)
-        except:
-            logger.warning('analysis pkg is not a git repo: {}', self.pkg_dir)
-            self.git_hash, self.git_describe, self.git_status = None, None, 'not a git repo'
 
         for cls in pkg.analyser_classes:
             if cls not in self:

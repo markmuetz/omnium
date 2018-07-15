@@ -31,7 +31,7 @@ def setup():
 def teardown():
     global origcwd
     os.chdir(origcwd)
-    shutil.rmtree(SCRATCH_DIR)
+    # shutil.rmtree(SCRATCH_DIR)
 
 
 def test_sanity():

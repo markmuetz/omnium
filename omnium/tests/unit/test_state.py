@@ -1,9 +1,10 @@
 from unittest import TestCase
 
-from omnium.state import State
+import omnium
+from omnium.pkg_state import PkgState
 
 
 class TestState(TestCase):
     def test(self):
-        state = State()
+        state = PkgState(omnium)
         print(state)
