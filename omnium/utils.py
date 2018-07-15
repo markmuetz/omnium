@@ -1,10 +1,11 @@
 import os
 import subprocess as sp
-from logging import getLogger
 from collections import namedtuple
+from logging import getLogger
 
 import iris
 import numpy as np
+
 from omnium.omnium_errors import OmniumError
 
 logger = getLogger('om.utils')

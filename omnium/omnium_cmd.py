@@ -8,12 +8,12 @@ from logging import getLogger
 
 import omnium
 import omnium.cmds as cmds
+from omnium.analysis import AnalysisPkgs
 from omnium.cmds.cmd_context import CmdContext
 from omnium.command_parser import parse_commands
-from omnium.setup_logging import setup_logger, add_file_logging
 from omnium.pkg_state import PkgState
+from omnium.setup_logging import setup_logger, add_file_logging
 from omnium.suite import Suite
-from omnium.analysis import AnalysisPkgs
 
 # Top level args, e.g. omnium -D ...
 ARGS = [(['--throw-exceptions', '-X'], {'action': 'store_true', 'default': False}),

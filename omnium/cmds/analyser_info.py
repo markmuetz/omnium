@@ -1,10 +1,9 @@
 """Displays information about analyser(s)"""
-import os
 import inspect
 
-from omnium.omnium_errors import OmniumError
 from omnium.analysis import Analyser
 from omnium.bcolors import bcolors
+from omnium.omnium_errors import OmniumError
 
 ARGS = [(['analysers'], {'nargs': '*', 'help': 'Analyser(s) to get info on'}),
         (['--long', '-l'], {'help': 'Display extra info', 'action': 'store_true'}),

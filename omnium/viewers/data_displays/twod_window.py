@@ -3,8 +3,9 @@ from functools import partial
 
 import numpy as np
 import pyqtgraph as pg
-from omnium.viewers.data_displays import DataDisplayWindow
 from pyqtgraph.Qt import QtCore, QtGui
+
+from omnium.viewers.data_displays import DataDisplayWindow
 
 
 class TwodWindow(DataDisplayWindow):

@@ -1,6 +1,6 @@
+from .analysis_settings import settings
 from .csv_analyser import CsvAnalyser
 from .simple_analyser import SimpleAnalyser
-from .analysis_settings import settings
 
 __version__ = (0, 0, 0, 1)
 

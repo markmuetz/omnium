@@ -1,11 +1,10 @@
 import importlib
 import os
-from typing import List
 from logging import getLogger
+from typing import List
 
 from omnium.omnium_errors import OmniumError
 from omnium.pkg_state import PkgState
-from omnium.utils import get_git_info
 from omnium.version import get_version
 from .analyser import Analyser
 

@@ -349,7 +349,6 @@ class TaskMaster(object):
 
     def get_version_dir(self, analyser_cls):
         _, settings = self._suite.analysis_pkgs.get_settings(analyser_cls, self._settings_name)
-        package = self._suite.analysis_pkgs.get_package(analyser_cls)
         omnium_version = 'om_v' + get_version(form='medium')
         package_version = self._suite.analysis_pkgs.get_package_version(analyser_cls)
         version = omnium_version + '_' + package_version

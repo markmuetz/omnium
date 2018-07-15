@@ -1,8 +1,7 @@
 import os
+from configparser import ConfigParser
 from glob import glob
 from logging import getLogger
-
-from configparser import ConfigParser
 
 from omnium.omnium_errors import OmniumError
 

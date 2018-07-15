@@ -1,10 +1,11 @@
 import abc
 import os
+import re
 from collections import OrderedDict
 from logging import getLogger
-import re
 
 import iris
+
 from omnium.omnium_errors import OmniumError
 from omnium.version import get_version
 

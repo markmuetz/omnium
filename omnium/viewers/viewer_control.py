@@ -5,10 +5,11 @@ from collections import OrderedDict
 from logging import getLogger
 
 import iris
+from pyqtgraph.Qt import QtCore, QtGui
+
 from omnium import Stash
 from omnium.viewers.data_displays import (TwodWindow, ThreedWindow,
                                           PlotWindow, ProfileWindow, ProfileContourWindow)
-from pyqtgraph.Qt import QtCore, QtGui
 
 logger = getLogger('om.vc_win')
 

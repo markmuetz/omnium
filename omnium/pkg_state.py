@@ -1,7 +1,7 @@
 import os
 import subprocess as sp
-from logging import getLogger
 from collections import namedtuple
+from logging import getLogger
 
 from omnium.utils import get_git_info
 

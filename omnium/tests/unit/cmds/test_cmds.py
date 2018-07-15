@@ -3,12 +3,14 @@ import imp
 import os
 from unittest import TestCase
 
-import omnium
 from mock import patch
+
+import omnium
 from omnium.analysis import FF2NC_Converter
+from omnium.cmds import modules
 from omnium.omnium_cmd import main as omnium_main
 from omnium.version import get_version
-from omnium.cmds import modules
+
 try:
     from omnium.viewers.viewer_control import ViewerControlWindow
     from pyqtgraph.Qt import QtGui

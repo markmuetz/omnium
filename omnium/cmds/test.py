@@ -1,8 +1,8 @@
 """Activates tests bundled with omnium or runs tests for analysis"""
 import importlib
 import os
-from logging import getLogger
 import subprocess as sp
+from logging import getLogger
 
 logger = getLogger('om.test')
 

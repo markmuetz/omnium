@@ -1,11 +1,7 @@
 """Makes a readonly suite readable"""
 import os
-import subprocess as sp
 
 from logging import getLogger
-
-from omnium.suite import Suite
-from omnium.setup_logging import add_file_logging
 
 logger = getLogger('om.suite_unfreeze')
 

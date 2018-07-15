@@ -1,13 +1,13 @@
-import os
 import glob
+import os
 from collections import OrderedDict
 from logging import getLogger
 
 import omnium
+from omnium.analysis import AnalysisSettings
 from omnium.omnium_errors import OmniumError
 from omnium.pkg_state import PkgState
 from omnium.setup_logging import add_file_logging, remove_file_logging
-from omnium.analysis import AnalysisSettings
 from .task import TaskMaster
 
 logger = getLogger('om.run_ctrl')

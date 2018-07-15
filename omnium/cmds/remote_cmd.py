@@ -3,7 +3,6 @@ import os
 from logging import getLogger
 
 from omnium.syncher import Syncher
-from omnium.omnium_errors import OmniumError
 
 logger = getLogger('om.fetch')
 

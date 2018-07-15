@@ -2,8 +2,8 @@
 import os
 from logging import getLogger
 
-from omnium.run_control import Task
 from omnium.analysis import FF2NC_Converter
+from omnium.run_control import Task
 
 logger = getLogger('om.convert')
 

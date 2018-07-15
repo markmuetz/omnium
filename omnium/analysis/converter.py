@@ -3,6 +3,7 @@ from logging import getLogger
 
 import iris
 import numpy as np
+
 from omnium.analysis import Analyser
 from omnium.omnium_errors import OmniumError
 from omnium.utils import get_cube

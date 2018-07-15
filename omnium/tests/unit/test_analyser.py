@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from mock import Mock, patch, mock_open
+
 from omnium import OmniumError
 from omnium.analysis import Analyser
 from omnium.run_control import Task

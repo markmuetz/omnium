@@ -1,5 +1,6 @@
 """Shows useful information about a suite"""
 from logging import getLogger
+
 from omnium.bcolors import bcolors
 
 logger = getLogger('om.suite_info')

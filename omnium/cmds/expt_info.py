@@ -1,6 +1,6 @@
 """Displays information about experiments"""
-from omnium.suite import ExptList
 from omnium.bcolors import bcolors
+from omnium.suite import ExptList
 
 ARGS = [(['expts'], {'nargs': '*', 'help': 'Experiments to display'}),
         (['--long', '-l'], {'help': 'Display extra info', 'action': 'store_true'}),

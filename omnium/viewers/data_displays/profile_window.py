@@ -1,6 +1,7 @@
 import pyqtgraph as pg
-from omnium.viewers.data_displays import DataDisplayWindow
 from pyqtgraph.Qt import QtGui
+
+from omnium.viewers.data_displays import DataDisplayWindow
 
 
 class ProfileWindow(DataDisplayWindow):

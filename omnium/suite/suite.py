@@ -1,17 +1,15 @@
 import io
 import os
-import subprocess as sp
-import socket
-from logging import getLogger
 import shutil
-
+import socket
+import subprocess as sp
 from configparser import ConfigParser
+from logging import getLogger
 
 import omnium
-from omnium.analysis import AnalysisPkgs
 from omnium.omnium_errors import OmniumError
-from omnium.setup_logging import add_file_logging
 from omnium.pkg_state import PkgState
+from omnium.setup_logging import add_file_logging
 from .expt import ExptList
 
 logger = getLogger('om.suite')

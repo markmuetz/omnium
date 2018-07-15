@@ -4,6 +4,8 @@ from mock import Mock, patch
 
 from omnium.run_control.run_control import _find_filenames, _scan_data_dirs
 from omnium.setup_logging import setup_logger
+
+
 # TODO: more tests on runcontrol.
 
 

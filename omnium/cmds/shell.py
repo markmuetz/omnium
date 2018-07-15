@@ -18,7 +18,7 @@ def main(cmd_ctx, args):
         from omnium.omnium_errors import OmniumError
         from omnium.stash import Stash
         from omnium.pkg_state import PkgState
-        from omnium.suite import Suite, ExptList
+        from omnium.suite import ExptList
         from omnium.run_control import RunControl, TaskMaster
         from omnium.analysis.converter import FF2NC_Converter
         from omnium.syncher import Syncher

@@ -1,8 +1,9 @@
 from unittest import TestCase
 
+from mock import Mock
+
 import omnium
 import omnium.consts as consts
-from mock import Mock
 
 
 class TestUtilsGetCube(TestCase):
