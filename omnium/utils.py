@@ -20,7 +20,7 @@ def get_git_info(location):
         else:
             return git_hash, git_describe, 'uncommitted_changes'
     except sp.CalledProcessError as ex:
-        return None, 'not_git_repo'
+        return None, None, 'not_git_repo'
     finally:
         os.chdir(cwd)
 
