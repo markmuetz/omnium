@@ -30,8 +30,7 @@ class PkgState:
         self.pip_info = None
         if self.full:
             self.conda_info = self._get_conda_installation_details(self.pkg_name)
-            if self.conda_info and self.conda_info.build == '<pip>':
-                self.pip_info = self._get_pip_installation_details(self.pkg_name)
+            self.pip_info = self._get_pip_installation_details(self.pkg_name)
 
     def __repr__(self):
         return 'State({}, {})'.format(self.pkg.__name__, self.full)
