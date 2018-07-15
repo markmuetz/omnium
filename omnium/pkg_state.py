@@ -55,7 +55,6 @@ class PkgState:
             conda_info = None
             for line in [l for l in lines if l and l[0] != '#']:
                 split_line = line.split()
-                logger.debug(line)
                 if split_line[0] == pkg_name:
                     args = split_line
                     args[1] = _version_from_str(args[1])
@@ -75,7 +74,6 @@ class PkgState:
             pip_info = None
             for line in [l for l in lines if l and l[0] != '#']:
                 split_line = line.split()
-                logger.debug(line)
                 if split_line[0] == pkg_name:
                     if len(split_line) == 3:
                         pip_info = PipState(split_line[0],
