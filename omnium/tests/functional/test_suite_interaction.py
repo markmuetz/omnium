@@ -16,7 +16,6 @@ def setup():
     global origcwd
     origcwd = os.getcwd()
     print(origcwd)
-    #sys.path.insert(0, os.path.join(origcwd, 'test_analysers'))
 
     os.environ['OMNIUM_ANALYSIS_PKGS'] = 'omnium.tests.test_analysers.analysis'
 
@@ -31,7 +30,7 @@ def setup():
 def teardown():
     global origcwd
     os.chdir(origcwd)
-    # shutil.rmtree(SCRATCH_DIR)
+    shutil.rmtree(SCRATCH_DIR)
 
 
 def test_sanity():

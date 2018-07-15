@@ -209,13 +209,19 @@ class Suite(object):
                 f.write('state: {}\n'.format(pkg_state))
 
         conda_list_filename = os.path.join(metadata_dir, 'conda_list.txt')
-        with open(conda_list_filename, 'w') as f:
-            f.write(sp.check_output('conda list'.split()).decode())
-            
+        try:
+            # TODO: Happens on nosetest in PyCharm, because conda env not loaded.
+            with open(conda_list_filename, 'w') as f:
+                f.write(sp.check_output('conda list'.split()).decode())
+        except FileNotFoundError:
+            pass
+
         pip_freeze_filename = os.path.join(metadata_dir, 'pip_freeze.txt')
-        with open(pip_freeze_filename, 'w') as f:
-            f.write(sp.check_output('pip freeze'.split()).decode())
-        
+        try:
+            with open(pip_freeze_filename, 'w') as f:
+                f.write(sp.check_output('pip freeze'.split()).decode())
+        except FileNotFoundError:
+            pass
 
     def abort_if_missing(self, filename):
         if self.check_filename_missing(filename):
