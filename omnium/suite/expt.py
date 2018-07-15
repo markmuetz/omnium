@@ -17,7 +17,8 @@ class ExptList(list):
 
     def find(self, expt_names):
         if not self.config_has_required_info:
-            logger.warning('Required information not in config')
+            logger.warning('Required ExptList information not in config')
+            logger.warning('Needs expt_datam_dir, expt_dataw_dir')
             return
 
         for expt_name in expt_names:
@@ -25,7 +26,8 @@ class ExptList(list):
 
     def find_all(self):
         if not self.config_has_required_info:
-            logger.warning('Required information not in config')
+            logger.warning('Required ExptList information not in config')
+            logger.warning('Needs expt_datam_dir, expt_dataw_dir')
             return
         expt_names = []
         # Check assumption about expt dir is that expt name comes last.

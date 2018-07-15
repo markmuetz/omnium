@@ -54,8 +54,7 @@ def main(cmd_ctx, args):
                 syncher = Syncher(suite)
             except:
                 syncher = None
-            expts = ExptList(suite)
-            expts.find_all()
+            expts = suite.expts
             cmd_run_control = RunControl(suite, 'cmd', [e.name for e in expts], 'test')
             cycle_run_control = RunControl(suite, 'cycle', [e.name for e in expts], 'test')
             expt_run_control = RunControl(suite, 'expt', [e.name for e in expts], 'test')

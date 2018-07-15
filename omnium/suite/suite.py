@@ -33,6 +33,7 @@ class Suite(object):
         self.logging_filename = ''
         self.missing_file_path = ''
         self.analysis_pkgs = None
+        self.expts = []
 
         self.load(cwd)
 
@@ -115,6 +116,9 @@ class Suite(object):
 
         if not os.path.exists(os.path.dirname(self.logging_filename)):
             os.makedirs(os.path.dirname(self.logging_filename), exist_ok=True)
+
+        self.expts = ExptList(self)
+        self.expts.find_all()
 
     def set_analysis_pkgs(self, analysis_pkgs):
         self.analysis_pkgs = analysis_pkgs
