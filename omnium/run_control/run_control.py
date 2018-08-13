@@ -181,10 +181,11 @@ class RunControl(object):
             if not os.path.exists(os.path.dirname(settings_filename)):
                 os.makedirs(os.path.dirname(settings_filename), exist_ok=True)
             settings.save(settings_filename)
-        else:
-            loaded_settings = AnalysisSettings()
-            loaded_settings.load(settings_filename)
-            assert loaded_settings == settings, 'settings not equal to loaded settings.'
+        # TODO: disabled because it causes problems when multiple MPI tasks running.
+        # else:
+        #     loaded_settings = AnalysisSettings()
+        #     loaded_settings.load(settings_filename)
+        #     assert loaded_settings == settings, 'settings not equal to loaded settings.'
 
         return analyser
 

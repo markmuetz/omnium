@@ -17,7 +17,7 @@ class MpiMaster(object):
         logger.info('Initialized MPI master: {}/{}', rank, size)
 
     def run(self):
-        task_master = self.run_control.task_master
+        task_master = self.run_control._task_master
         status = MPI.Status()
         # Launch all tasks initially.
         if self.size > len(task_master.pending_tasks):
