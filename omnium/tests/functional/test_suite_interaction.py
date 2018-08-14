@@ -4,6 +4,7 @@ from glob import glob
 
 from nose.tools import assert_raises
 
+from omnium import OmniumError
 from omnium.omnium_cmd import main as omnium_main
 from omnium.setup_logging import setup_logger
 
@@ -54,7 +55,8 @@ def test_suite_info():
 
 
 def test_suite_init():
-    omnium_main(['omnium', 'suite-init', '--suite-type', 'mirror'])
+    with assert_raises(OmniumError) as oe:
+        omnium_main(['omnium', 'suite-init', '--suite-type', 'mirror'])
 
 
 def test_ls_analysers():
@@ -139,6 +141,19 @@ def test_suite_unfreeze():
         f.write('hi')
     os.remove('dummy_file')
 
+
 def test_analyser_info():
     omnium_main(['omnium', 'analyser-info', '--all'])
     omnium_main(['omnium', 'analyser-info', '--all', '-l'])
+
+
+def test_suite_init2():
+    global origcwd
+    os.chdir(os.path.join(origcwd, SCRATCH_DIR, 'u-ap347'))
+    shutil.rmtree(os.path.join('.omnium'))
+    omnium_main(['omnium', 'suite-init', '--suite-type', 'run'])
+    with assert_raises(OmniumError) as oe:
+        omnium_main(['omnium', 'suite-init', '--suite-type', 'run'])
+
+
+
