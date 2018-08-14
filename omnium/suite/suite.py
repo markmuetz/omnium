@@ -119,6 +119,7 @@ class Suite(object):
     def init(self, suite_name, suite_type, host_name='', host=None, base_path=None):
         assert suite_type in Suite.suite_types
         cwd = os.getcwd()
+        logger.debug('initializing suite in {}', cwd)
         self.load(cwd)
 
         if self.is_in_suite and self.is_init:
