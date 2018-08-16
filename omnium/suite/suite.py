@@ -195,7 +195,8 @@ class Suite(object):
             for expt in expts:
                 rose_app_run_conf_file = os.path.join(metadata_dir,
                                                       '{}_rose-app-run.conf'.format(expt.name))
-                shutil.copy(expt.rose_app_run_conf_file, rose_app_run_conf_file)
+                if expt.rose_app_run_conf_file:
+                    shutil.copy(expt.rose_app_run_conf_file, rose_app_run_conf_file)
         omnium_state = PkgState(omnium, True)
         omnium_filename = os.path.join(metadata_dir, 'omnium_info.txt')
         with open(omnium_filename, 'w') as f:
