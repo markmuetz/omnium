@@ -22,9 +22,14 @@ def main(cmd_ctx, args):
     for expt in expts:
         bcolors.print(expt, ['HEADER', 'BOLD'])
         if args.long:
-            print('  ' + expt.datam_dir)
-            for dataw_dir in expt.dataw_dirs:
-                print('  ' + dataw_dir)
+            print('  DATAM: ' + expt.datam_dir)
+            if len(expt.dataw_dirs) > 5:
+                for dataw_dir in expt.dataw_dirs[:4]:
+                    print('  DATAW: ' + dataw_dir)
+                print('  DATAW: ...')
+            else:
+                for dataw_dir in expt.dataw_dirs:
+                    print('  DATAW: ' + dataw_dir)
             print('  ' + expt.rose_app_run_conf_file)
             if expt.has_um_config:
                 try:
