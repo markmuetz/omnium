@@ -20,6 +20,11 @@ class AnalysisSettings:
         if len(item) >= 2 and item[:2] == '__':
             return None
         return self._settings[item]
+    
+    def set(self, item: str, value: Any) -> None:
+        if item not in self._settings:
+            raise KeyError('item not in settings: {}'.format(item))
+        self._settings[item] = value
 
     def __eq__(self, other: 'AnalysisSettings') -> bool:
         return self.get_hash() == other.get_hash()
@@ -27,6 +32,9 @@ class AnalysisSettings:
     def __ne__(self, other: 'AnalysisSettings') -> bool:
         return not self == other
 
+    def copy(self) -> 'AnalysisSettings':
+        return AnalysisSettings(self._settings.copy())
+    
     def has_item(self, item: str) -> bool:
         return item in self._settings
 
