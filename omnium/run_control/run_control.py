@@ -175,12 +175,20 @@ class RunControl(object):
         settings_filename_fmt, settings = self._analysis_pkgs.get_settings(analyser_cls,
                                                                            self._settings_name)
         analyser = analyser_cls(self._suite, task, settings)
+
+        # Write out settings to the location specified in the analysis_pkg
+        # analysis_settings_filename variable.
         dir_vars = {'version_dir': self._task_master.get_version_dir(analyser_cls)}
-        settings_filename = settings_filename_fmt.format(**dir_vars)
+        settings_filename = os.path.join(self._suite.suite_dir,
+                                         settings_filename_fmt.format(**dir_vars))
         if not os.path.exists(settings_filename):
             if not os.path.exists(os.path.dirname(settings_filename)):
                 os.makedirs(os.path.dirname(settings_filename), exist_ok=True)
             settings.save(settings_filename)
+            settings_name_file = os.path.join(os.path.dirname(settings_filename),
+                                              self._settings_name + '.name')
+            with open(settings_name_file, 'w') as f:
+                f.write('Settings used are: {}'.format(self._settings_name))
         # TODO: disabled because it causes problems when multiple MPI tasks running.
         # else:
         #     loaded_settings = AnalysisSettings()
