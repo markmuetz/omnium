@@ -86,6 +86,10 @@ def get_cubes(cubes, section, item):
         raise OmniumError('No cubes found ({}, {})'.format(section, item))
 
 
+def cm_to_inch(*vals):
+    return [v / 2.54 for v in vals]
+
+
 class cd:
     def __init__(self, dir):
         self.dir = dir
