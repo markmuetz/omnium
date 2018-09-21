@@ -27,7 +27,7 @@ def main(cmd_ctx, args):
 
         if os.path.exists(reponame):
             os.chdir(reponame)
-            cmd = 'git fetch'
+            cmd = 'git pull'
             sp.call(cmd, shell=True)
         else:
             cmd = 'git clone {} {}'.format(repo, reponame)
