@@ -1,11 +1,14 @@
 import importlib
 import os
+import sys
 from logging import getLogger
 from typing import List
 
 from omnium.omnium_errors import OmniumError
 from omnium.pkg_state import PkgState
 from omnium.version import get_version
+from omnium.suite import Suite
+from omnium.utils import check_git_commits_equal, cd
 from .analyser import Analyser
 
 logger = getLogger('om.analysis_pkg')
@@ -22,9 +25,10 @@ class AnalysisPkg(dict):
     analysis_settings_filename: str - where settings.json will get written to
     analysis_settings = Dict[str, AnalysisSettings]
     """
-    def __init__(self, name: str, pkg):
+    def __init__(self, name: str, pkg, suite: Suite):
         self.name = name
         self.pkg = pkg
+        self.suite = suite
         self.state = PkgState(self.pkg)
         self.version = self.pkg.__version__
         self.pkg_dir = os.path.dirname(self.pkg.__file__)
@@ -38,11 +42,22 @@ class AnalysisPkg(dict):
         self.analysis_settings = self.pkg.analysis_settings
         self.analysis_settings_filename = self.pkg.analysis_settings_filename
 
+        analysis_pkg_config = self.suite.app_config['analysis_{}'.format(self.name)]
+        commit = analysis_pkg_config['commit']
+
+        with cd(self.pkg_dir):
+            if not check_git_commits_equal('HEAD', commit):
+                msg = 'analysis_pkg {} not at correct version'.format(self.name)
+                logger.error(msg)
+                logger.error('try running `omnium analysis-setup` to fix')
+                raise OmniumError(msg)
+
 
 class AnalysisPkgs(dict):
     """Contains all analysis packages"""
-    def __init__(self, analysis_pkg_names: List[str]):
+    def __init__(self, analysis_pkg_names: List[str], suite: Suite):
         self._analysis_pkg_names = analysis_pkg_names
+        self.suite = suite
         self._cls_to_pkg = {}
         self.analyser_classes = {}
         self.have_found = False
@@ -50,7 +65,11 @@ class AnalysisPkgs(dict):
 
     def _load(self):
         if self.have_found:
-            raise OmniumError('Should only call find_all once')
+            raise OmniumError('Should only call load once')
+
+        analysis_pkgs_dir = os.path.join(self.suite.suite_dir, '.omnium/analysis_pkgs')
+        for analysis_pkg_dir in os.listdir(analysis_pkgs_dir):
+            sys.path.append(os.path.join(analysis_pkgs_dir, analysis_pkg_dir))
 
         if self._analysis_pkg_names:
             # First dir takes precedence over second etc.
@@ -62,7 +81,7 @@ class AnalysisPkgs(dict):
                     logger.error("Or could not load it")
                     logger.error(e)
                     continue
-                analysis_pkg = AnalysisPkg(analyser_pkg_name, pkg)
+                analysis_pkg = AnalysisPkg(analyser_pkg_name, pkg, self.suite)
 
                 for cls_name, cls in analysis_pkg.items():
                     self._cls_to_pkg[cls] = analysis_pkg

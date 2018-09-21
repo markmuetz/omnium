@@ -31,6 +31,16 @@ def get_git_info(location):
         os.chdir(cwd)
 
 
+def check_git_commits_equal(commit1, commit2):
+    cmd1 = 'git rev-parse {}'.format(commit1)
+    cmd2 = 'git rev-parse {}'.format(commit2)
+    git_hash1 = sp.check_output(cmd1.split(),
+                                stderr=sp.STDOUT).decode().strip()
+    git_hash2 = sp.check_output(cmd2.split(),
+                                stderr=sp.STDOUT).decode().strip()
+    return git_hash1 == git_hash2
+
+
 def is_power_of_two(num):
     return num & (num - 1) == 0
 

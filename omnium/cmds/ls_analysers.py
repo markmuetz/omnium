@@ -4,15 +4,10 @@ import os
 from omnium.analysis import AnalysisPkgs
 
 ARGS = [(['-l', '--long'], {'help': 'print long version', 'action': 'store_true'})]
-RUN_OUTSIDE_SUITE = True
 
 
 def main(cmd_ctx, args):
-    omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
-    analysis_pkg_names = []
-    if omnium_analysis_pkgs:
-        analysis_pkg_names = omnium_analysis_pkgs.split(':')
-    analysis_pkgs = AnalysisPkgs(analysis_pkg_names)
+    analysis_pkgs = cmd_ctx.analysis_pkgs
     maxlen = max([len(k) for k in analysis_pkgs.analyser_classes.keys()])
 
     if args.long:

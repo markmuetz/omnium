@@ -59,12 +59,6 @@ def main(argv, import_log_msg=''):
         suite_dir = os.path.join(suite_base_dir, cylc_suite_name)
         os.chdir(suite_dir)
 
-    omnium_analysis_pkgs = os.getenv('OMNIUM_ANALYSIS_PKGS')
-    if omnium_analysis_pkgs:
-        analysis_pkg_names = omnium_analysis_pkgs.split(':')
-    else:
-        analysis_pkg_names = []
-
     logger.debug('start dir: {}', os.getcwd())
     suite = Suite(os.getcwd(), cylc_control)
     if not suite.is_in_suite:
@@ -79,8 +73,17 @@ def main(argv, import_log_msg=''):
                 logging_filename = suite.logging_filename
             add_file_logging(logging_filename)
 
-    analysis_pkgs = AnalysisPkgs(analysis_pkg_names)
-    suite.set_analysis_pkgs(analysis_pkgs)
+    if cmd is not omnium.cmds.analysis_setup:
+        omnium_analysis_pkgs = suite.app_config.get('env', 'OMNIUM_ANALYSIS_PKGS')
+        if omnium_analysis_pkgs:
+            analysis_pkg_names = omnium_analysis_pkgs.split(':')
+        else:
+            analysis_pkg_names = []
+
+        analysis_pkgs = AnalysisPkgs(analysis_pkg_names, suite)
+        suite.set_analysis_pkgs(analysis_pkgs)
+    else:
+        analysis_pkgs = AnalysisPkgs([], suite)
 
     if omnium_dev:
         logger.info('running omnium_dev')

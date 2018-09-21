@@ -3,7 +3,7 @@ from logging import getLogger
 
 from omnium.syncher import Syncher
 
-logger = getLogger('om.suite_init')
+logger = getLogger('om.suite_clone')
 
 ARGS = [(['--host-name'], {'help': 'Short name for host', 'default': 'rdf'}),
         (['--host'], {'help': '<user>@<host_url> or localhost', 'default': 'localhost'}),
