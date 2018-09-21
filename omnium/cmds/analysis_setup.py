@@ -9,6 +9,7 @@ ARGS = []
 
 
 def main(cmd_ctx, args):
+    orig_cwd = os.getcwd()
     os.chdir(os.path.join(cmd_ctx.suite.suite_dir, '.omnium'))
     os.makedirs('analysis_pkgs', exist_ok=True)
     os.chdir('analysis_pkgs')
@@ -37,3 +38,4 @@ def main(cmd_ctx, args):
         sp.call(cmd, shell=True)
 
         os.chdir(cwd)
+    os.chdir(orig_cwd)

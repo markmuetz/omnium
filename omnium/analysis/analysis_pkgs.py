@@ -61,13 +61,17 @@ class AnalysisPkgs(dict):
         self._cls_to_pkg = {}
         self.analyser_classes = {}
         self.have_found = False
-        self._load()
+        if self.suite.is_in_suite:
+            self._load()
 
     def _load(self):
         if self.have_found:
             raise OmniumError('Should only call load once')
 
         analysis_pkgs_dir = os.path.join(self.suite.suite_dir, '.omnium/analysis_pkgs')
+        if not os.path.exists(analysis_pkgs_dir):
+            logger.warning('analysis_pkg_dir: {} does not exist', analysis_pkgs_dir)
+            return
         for analysis_pkg_dir in os.listdir(analysis_pkgs_dir):
             sys.path.append(os.path.join(analysis_pkgs_dir, analysis_pkg_dir))
 

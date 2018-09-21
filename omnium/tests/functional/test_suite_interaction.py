@@ -50,6 +50,10 @@ def test_clone():
     os.chdir('u-ap347')
 
 
+def test_analysis_setup():
+    omnium_main(['omnium', 'analysis-setup'])
+
+
 def test_suite_info():
     omnium_main(['omnium', 'suite-info'])
 

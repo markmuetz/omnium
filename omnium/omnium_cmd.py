@@ -73,7 +73,7 @@ def main(argv, import_log_msg=''):
                 logging_filename = suite.logging_filename
             add_file_logging(logging_filename)
 
-    if cmd is not omnium.cmds.analysis_setup:
+    if hasattr(suite, 'app_config') and cmd is not omnium.cmds.analysis_setup:
         omnium_analysis_pkgs = suite.app_config.get('env', 'OMNIUM_ANALYSIS_PKGS')
         if omnium_analysis_pkgs:
             analysis_pkg_names = omnium_analysis_pkgs.split(':')
