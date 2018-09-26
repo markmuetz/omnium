@@ -12,6 +12,7 @@ from .omnium_errors import OmniumError
 from .pkg_state import PkgState
 from .syncher import Syncher
 from .omnium_cmd import main as omnium_main
+from .run_local_analyser import run_local_analyser
 
 __version__ = VERSION
 
@@ -30,7 +31,8 @@ __all__ = [
     OmniumError,
     PkgState,
     Syncher,
-    omnium_main
+    omnium_main,
+    run_local_analyser
 ]
 
 
