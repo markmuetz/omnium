@@ -28,4 +28,4 @@ def run_local_analyser(analysis_pkg_name, analyser_cls, run_type, expts,
                                                                   True)
 
     run_control.gen_tasks()
-    run_control.run_all()
+    return run_control.run_all(True)

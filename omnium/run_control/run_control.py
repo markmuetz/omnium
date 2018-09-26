@@ -145,8 +145,9 @@ class RunControl(object):
         self._task_master.gen_single_analysis_tasks(self._expts, virtual_drive,
                                                     self._analysis_workflow, analysis_name)
 
-    def run_all(self):
+    def run_all(self, return_analysers=False):
         logger.debug('running all analysis')
+        analysers = []
 
         run_count = 0
         for task in self._task_master.get_all_tasks():
@@ -155,11 +156,17 @@ class RunControl(object):
                 # until there are no more left.
                 raise Exception('Task not issued by TaskMaster')
             run_count += 1
-            self.run_task(task)
+
+            if return_analysers:
+                analysers.append(self.run_task(task))
+            else:
+                self.run_task(task)
+
             task.status = 'done'
             self._task_master.update_task(task.index, task.status)
         if not run_count:
             logger.warning('No tasks were run')
+        return analysers
 
     def run_single_analysis(self, analysis_name):
         all_tasks = self._task_master.all_tasks
