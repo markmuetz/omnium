@@ -68,7 +68,7 @@ class Analyser(abc.ABC):
         assert self.analysis_name
         if self.uses_runid:
             assert self.runid_pattern
-        assert self.input_dir
+        assert self.input_dir is not None
         assert sum([self.input_filename_glob is not None,
                     self.input_filename is not None,
                     self.input_filenames is not None]) == 1
