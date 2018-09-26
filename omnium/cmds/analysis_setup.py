@@ -25,7 +25,7 @@ def main(cmd_ctx, args):
         commit = analysis_pkg_config['commit']
         logger.info('  analysis_pkg repo: {}', repo)
         logger.info('  analysis_pkg reponame: {}', reponame)
-        logger.info('  analysis_pkg commit: {}', reponame)
+        logger.info('  analysis_pkg commit: {}', commit)
         cwd = os.getcwd()
 
         if os.path.exists(reponame):
