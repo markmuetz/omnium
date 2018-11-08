@@ -337,12 +337,11 @@ class TaskMaster(object):
                 fns = sorted(fnmatch.filter(self.virtual_drive, filename))
                 filtered_filenames.extend(fns)
             if len(input_filenames) != len(filtered_filenames):
+                # Display useful info before raising error.
                 i_fns = set([path.basename(f) for f in input_filenames])
                 f_fns = set([path.basename(f) for f in filtered_filenames])
                 logger.error('input_filenames - filtered_filenames: {}', i_fns - f_fns)
                 logger.error('filtered_filenames - input_filenames: {}', f_fns - i_fns)
-                # logger.error('input_filenames: {}', input_filenames)
-                # logger.error('filtered_filenames: {}', filtered_filenames)
                 raise OmniumError('Could not find all filenames for {}'
                                   .format(analyser_cls.analysis_name))
         else:
