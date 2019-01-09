@@ -79,6 +79,7 @@ class RunControl(object):
                 # N.B. checks that each pkg is a git repo and is clean.
                 if status != 'clean':
                     raise OmniumError('pkg {}, status {}, not running'.format(pkg_name, status))
+            logger.info('All code is clean - no outstanding git commits')
         else:
             logger.warning('Disabling Python warnings')  # oh the irony.
             import warnings
