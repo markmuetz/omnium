@@ -70,11 +70,15 @@ class RunControl(object):
 
         if self._production:
             logger.info('Running in production mode')
-            if self._state.git_status != 'clean':
+            if self._state.git_info.status != 'clean':
                 raise OmniumError('omnium is not clean, not running')
-            for status in self._suite.analysis_status:
+            for pkg_name in self._suite.analysis_pkgs.keys():
+                pkg = self._suite.analysis_pkgs[pkg_name]
+                status = pkg.state.git_info.status
+
+                # N.B. checks that each pkg is a git repo and is clean.
                 if status != 'clean':
-                    raise OmniumError('omnium analysis not all clean clean, not running')
+                    raise OmniumError('pkg {}, status {}, not running'.format(pkg_name, status))
         else:
             logger.warning('Disabling Python warnings')  # oh the irony.
             import warnings
