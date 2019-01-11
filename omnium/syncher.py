@@ -19,7 +19,7 @@ class Syncher(object):
 
     local_send_cmd_fmt = ("rsync -Rza{verbose} {rel_filenames} {path}/")
     local_fetch_cmd_fmt = ("rsync -Rza{verbose} {progress} {rel_filenames} .")
-    local_sync_cmd_fmt = ('MYPWD=`pwd` && cd {path} && find . -type f '
+    local_sync_cmd_fmt = ('MYPWD=`pwd` && cd {path} && find . -type f ! -path "./.omnium/*"'
                           '> $MYPWD/.omnium/{remote_name}.file_index.txt '
                           '2> $MYPWD/.omnium/sync.errlog')
     local_info_cmd_fmt = ('cd {path} && ls -lh {rel_filenames}')
@@ -32,7 +32,7 @@ class Syncher(object):
 
     remote_send_cmd_fmt = ("rsync -Rza{verbose} {rel_filenames} {host}:{path}/")
     remote_fetch_cmd_fmt = ("rsync -Rza{verbose} {progress} {host}:{rel_filenames} .")
-    remote_sync_cmd_fmt = ('ssh {host} "cd {path} && find . -type f"'
+    remote_sync_cmd_fmt = ('ssh {host} "cd {path} && find . -type f ! \'-path ./.omnium/*\'"'
                            '> .omnium/{remote_name}.file_index.txt {ignore_stderr}')
     remote_info_cmd_fmt = ('ssh {host} "cd {path} && ls -lh {rel_filenames}"')
     remote_cat_cmd_fmt = ('ssh {host} "cd {path} && cat {rel_filename}"')
