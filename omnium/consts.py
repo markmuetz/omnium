@@ -14,6 +14,7 @@ L = 2.501e6
 cp = 1005
 
 # earth_pref
+# In Pa
 p_ref = 100000
 
 kappa = Rd / cp
