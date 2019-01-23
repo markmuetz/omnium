@@ -19,6 +19,7 @@ def _scan_data_dirs(expts, suite, task_master, analysis):
     for expt in expts:
         for analysis_name, analyser_cls, enabled in analysis:
             dir_vars = {'expt': expt,
+                        'expts': '_'.join(expts),
                         'version_dir': task_master.get_version_dir(analyser_cls)}
             # TODO: this *might* miss some files if it is not def'd using '{input_dir}/...'
             input_dir = os.path.join(suite.suite_dir,

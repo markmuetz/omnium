@@ -169,19 +169,23 @@ class TaskMaster(object):
 
     def gen_suite_tasks(self, analyser_cls):
         logger.debug('generating suite tasks for {}', analyser_cls.analysis_name)
-        assert analyser_cls.multi_expt
+        # assert analyser_cls.multi_expt
         filenames = []
-        for expt in self._expts:
-            done_filenames = self._find_done_filenames(expt, analyser_cls)
-            assert len(done_filenames) <= 1
-            if done_filenames:
-                filenames.append(done_filenames[0])
+        if analyser_cls.multi_expt:
+            for expt in self._expts:
+                done_filenames = self._find_done_filenames(expt, analyser_cls)
+                assert len(done_filenames) <= 1
+                if done_filenames:
+                    filenames.append(done_filenames[0])
 
-        if not filenames:
-            logger.debug('found no files for {}', analyser_cls.analysis_name)
-            return
+            if not filenames:
+                logger.debug('found no files for {}', analyser_cls.analysis_name)
+                return
 
-        assert len(filenames) == len(self._expts)
+            assert len(filenames) == len(self._expts)
+        else:
+            done_filenames = self._find_done_filenames(None, analyser_cls)
+            filenames.extend(done_filenames)
 
         # N.B. output filename for suite tasks cannot contain {expt} - this will raise an error if
         # it does.
@@ -314,6 +318,8 @@ class TaskMaster(object):
         dir_vars = {'version_dir': self.get_version_dir(analyser_cls)}
         if expt:
             dir_vars['expt'] = expt
+        if len(self._expts) >= 2:
+            dir_vars['expts'] = '_'.join(self._expts)
         dir_vars['input_dir'] = analyser_cls.input_dir.format(**dir_vars)
 
         if analyser_cls.input_filename_glob:
