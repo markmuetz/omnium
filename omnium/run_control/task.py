@@ -185,6 +185,8 @@ class TaskMaster(object):
             assert len(filenames) == len(self._expts)
         else:
             done_filenames = self._find_done_filenames(None, analyser_cls)
+            # TODO: should check there are correct number of done filenames.
+            assert len(done_filenames)
             filenames.extend(done_filenames)
 
         # N.B. output filename for suite tasks cannot contain {expt} - this will raise an error if
