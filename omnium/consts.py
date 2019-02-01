@@ -20,4 +20,3 @@ cp = 1005
 p_ref = 100000
 
 kappa = Rd / cp
-

@@ -228,13 +228,9 @@ class TaskMaster(object):
         logger.debug('single file analysis')
 
         for filtered_filename in done_filenames:
+            # N.B. done_filenames already filtered based on e.g. analyser_cls.min_runid.
             if analyser_cls.uses_runid:
                 runid, filename_vars = analyser_cls.get_runid_filename_vars(filtered_filename)
-                logger.debug('runid: {}', runid)
-                if not (analyser_cls.min_runid <= runid <= analyser_cls.max_runid):
-                    logger.debug('file {} out of runid range: {} - {}',
-                                 filtered_filename, analyser_cls.min_runid, analyser_cls.max_runid)
-                    continue
                 dir_vars.update(filename_vars)
                 dir_vars['runid'] = runid
             else:
@@ -357,6 +353,22 @@ class TaskMaster(object):
                               'input_filename_glob, input_filenames, input_filename'
                               .format(analyser_cls))
         done_filenames = [fn for fn in filtered_filenames if fn + '.done' in self.virtual_drive]
+
+        if analyser_cls.uses_runid:
+            logger.debug('using filenames with runid in range: {} - {}',
+                         analyser_cls.min_runid,
+                         analyser_cls.max_runid)
+            runid_done_filenames = []
+            for filtered_filename in done_filenames:
+                runid, filename_vars = analyser_cls.get_runid_filename_vars(filtered_filename)
+                logger.debug('runid: {}', runid)
+                if not (analyser_cls.min_runid <= runid <= analyser_cls.max_runid):
+                    logger.debug('file {} out of runid range: {} - {}',
+                                 filtered_filename, analyser_cls.min_runid, analyser_cls.max_runid)
+                    continue
+                runid_done_filenames.append(filtered_filename)
+            done_filenames = runid_done_filenames
+
         logger.debug('found files: {}', done_filenames)
         return done_filenames
 
