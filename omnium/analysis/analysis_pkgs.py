@@ -95,9 +95,8 @@ class AnalysisPkgs(dict):
         self.have_found = True
 
     def get_settings(self, analyser_cls, settings_name):
-        logger.debug('getting settings for {}', analyser_cls)
         analysis_pkg = self._cls_to_pkg[analyser_cls]
-        logger.debug('{} in package {}', analyser_cls, analysis_pkg)
+        logger.debug('analysis_cls {} in package {}', analyser_cls, analysis_pkg.name)
         settings_dict = analysis_pkg.analysis_settings
         if settings_name not in settings_dict:
             raise OmniumError('Settings {} not defined in {}, choices are {}'
