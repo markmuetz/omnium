@@ -33,8 +33,6 @@ setup(
               'omnium.tests',
               'omnium.tests.functional',
               'omnium.tests.pep8_tests',
-              'omnium.tests.test_analysers',
-              'omnium.tests.test_analysers.analysis',
               'omnium.tests.unit',
               'omnium.tests.unit.cmds',
               'omnium.viewers',

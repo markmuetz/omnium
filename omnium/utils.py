@@ -20,7 +20,7 @@ def get_git_info(location):
         # Will raise sp.CalledProcessError if not in git repo.
         git_hash = sp.check_output('git rev-parse HEAD'.split(),
                                    stderr=sp.STDOUT).decode().strip()
-        git_describe = sp.check_output('git describe --tags'.split()).decode().strip()
+        git_describe = sp.check_output('git describe --tags --always'.split()).decode().strip()
         if sp.check_output('git status --porcelain'.split()) == b'':
             return GitInfo(location, True, git_hash, git_describe, 'clean')
         else:
