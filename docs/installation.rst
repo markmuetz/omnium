@@ -10,6 +10,8 @@ Installing omnium and dependencies
     # see: https://www.anaconda.com/download/#linux
     git clone https://github.com/markmuetz/omnium
     cd omnium
+    # If you need a specific release of omnium e.g.:
+    git checkout v0.11.2
     # Install conda requirements
     conda create -n omnium_env --file installation/conda_reqs.txt
     # Active conda env.
