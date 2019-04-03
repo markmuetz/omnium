@@ -344,6 +344,7 @@ class TaskMaster(object):
                 # Display useful info before raising error.
                 i_fns = set([path.basename(f) for f in input_filenames])
                 f_fns = set([path.basename(f) for f in filtered_filenames])
+                logger.error('Could not find files for {}', expt)
                 logger.error('input_filenames - filtered_filenames: {}', i_fns - f_fns)
                 logger.error('filtered_filenames - input_filenames: {}', f_fns - i_fns)
                 raise OmniumError('Could not find all filenames for {}'
