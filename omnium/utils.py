@@ -112,3 +112,13 @@ class cd:
     def __exit__(self, type, value, traceback):
         logger.debug('cd to {}', self.cwd)
         os.chdir(self.cwd)
+
+
+def latex_sigfig(v, n=2):
+    rounded_value = float('{:.{p}g}'.format(v, p=n))
+    formatted_value = '{:g}'.format(rounded_value)
+    if 'e' in formatted_value:
+        value, exponent = '{:g}'.format(rounded_value).split('e')
+        return '{0}$\\times 10 ^{{{1}}}$'.format(value, int(exponent))
+    else:
+        return formatted_value
