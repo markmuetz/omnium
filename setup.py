@@ -45,7 +45,7 @@ setup(
         'nose',
         'mock',
         # N.B. there can be problems with iris 2.1.0 and pip not recognizing it's been installed
-        'iris',
+        # 'iris',
         'simplejson',
         'numpy',
         'configparser',

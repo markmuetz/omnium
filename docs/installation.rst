@@ -12,6 +12,17 @@ Installing omnium and dependencies
     cd omnium
     # If you need a specific release of omnium e.g.:
     git checkout v0.11.2
+
+    cd envs
+    bash create_env.sh
+    cd ..
+
+    # Active conda env.
+    source activate omnium_env
+    # Install omnium
+    pip install -e .
+
+    # OLD METHOD:
     # Install conda requirements
     conda create -n omnium_env --file installation/conda_reqs.txt
     # Active conda env.

@@ -1,0 +1,24 @@
+name: omnium_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - cartopy
+  - cf_units
+  - f90nml
+  - configparser
+  - ipython
+  - iris
+  - matplotlib
+  - metpy
+  - mock
+  - nose
+  - numpy
+  - pandas
+  - pip
+  - pytables
+  - python
+  - scipy
+  - scikit-learn
+  - simplejson
+
