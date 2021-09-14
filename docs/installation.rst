@@ -10,8 +10,9 @@ Installing omnium and dependencies
     # see: https://www.anaconda.com/download/#linux
     git clone https://github.com/markmuetz/omnium
     cd omnium
+    # You can skip this to use the latest version (recommended).
     # If you need a specific release of omnium e.g.:
-    git checkout v0.11.2
+    git checkout v0.11.3
 
     cd envs
     bash create_env.sh
